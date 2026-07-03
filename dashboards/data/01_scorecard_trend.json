@@ -1,0 +1,50 @@
+[
+  {
+    "quarter": "2025-Q1",
+    "renewal_count": 1089,
+    "churn_count": 276,
+    "renewal_arr": 77287690.56,
+    "churn_arr": -12671151.0,
+    "renewal_rate": 0.8361
+  },
+  {
+    "quarter": "2025-Q2",
+    "renewal_count": 1058,
+    "churn_count": 283,
+    "renewal_arr": 62512840.82,
+    "churn_arr": -10538115.0,
+    "renewal_rate": 0.8314
+  },
+  {
+    "quarter": "2025-Q3",
+    "renewal_count": 904,
+    "churn_count": 285,
+    "renewal_arr": 68895436.45,
+    "churn_arr": -12969164.0,
+    "renewal_rate": 0.8118
+  },
+  {
+    "quarter": "2025-Q4",
+    "renewal_count": 1066,
+    "churn_count": 279,
+    "renewal_arr": 79925565.19,
+    "churn_arr": -13212150.0,
+    "renewal_rate": 0.8347
+  },
+  {
+    "quarter": "2026-Q1",
+    "renewal_count": 1042,
+    "churn_count": 273,
+    "renewal_arr": 78669247.09,
+    "churn_arr": -14713194.0,
+    "renewal_rate": 0.813
+  },
+  {
+    "quarter": "2026-Q2",
+    "renewal_count": 925,
+    "churn_count": 126,
+    "renewal_arr": 66209335.64,
+    "churn_arr": -5009524.0,
+    "renewal_rate": 0.9243
+  }
+]

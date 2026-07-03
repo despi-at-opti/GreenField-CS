@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Performance — MoM Insights · May 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue:#0037ff; --dark:#0a0a23; --mid:#2d2d4e; --bg:#f5f6fa;
+  --card:#fff; --border:#e2e4ef; --text:#1a1a2e; --muted:#6b7280;
+  --green:#10b981; --red:#ef4444; --amber:#f59e0b; --purple:#7c3aed; --teal:#0d9488;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{width:100%;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+
+.header{background:var(--dark);color:#fff;padding:24px 32px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;}
+.header h1{font-size:20px;font-weight:700;}
+.header .sub{font-size:12px;color:#a0aec0;margin-top:3px;}
+.badge{background:var(--blue);color:#fff;font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;white-space:nowrap;}
+
+.nav-tabs{background:var(--mid);display:flex;padding:0 32px;overflow-x:auto;scrollbar-width:none;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.nav-tab{padding:11px 16px;font-size:13px;color:#9ca3af;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:color .15s;}
+.nav-tab:hover{color:#e5e7eb;}
+.nav-tab.active{color:#fff;border-bottom-color:var(--blue);font-weight:600;}
+
+.section{display:none;padding:24px 32px;}
+.section.active{display:block;}
+.sec-title{font-size:15px;font-weight:700;color:var(--dark);margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:8px;}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--blue);flex-shrink:0;}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:14px;margin-bottom:22px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi.b::before{background:var(--blue);}  .kpi.g::before{background:var(--green);}
+.kpi.r::before{background:var(--red);}   .kpi.p::before{background:var(--purple);}
+.kpi.a::before{background:var(--amber);} .kpi.t::before{background:var(--teal);}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:5px;}
+.kpi-val{font-size:24px;font-weight:700;color:var(--dark);line-height:1.1;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+.kpi-d{font-size:11px;font-weight:600;margin-top:3px;}
+.kpi-d.up{color:var(--green);} .kpi-d.dn{color:var(--red);} .kpi-d.nn{color:var(--amber);}
+
+/* CARDS + GRID */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px;}
+.card-title{font-size:13px;font-weight:700;color:var(--dark);margin-bottom:14px;}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+@media(max-width:720px){.g2{grid-template-columns:1fr;}}
+
+/* CHART WRAPPERS */
+.ch     {position:relative;width:100%;height:240px;}
+.ch-md  {position:relative;width:100%;height:280px;}
+.ch-lg  {position:relative;width:100%;height:320px;}
+.ch-sm  {position:relative;width:100%;height:180px;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:#f8f9fc;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);}
+td{padding:7px 10px;border-bottom:1px solid var(--border);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f8f9fc;}
+.num{text-align:right;}
+
+/* PILLS + CHIPS */
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;}
+.pill.g{background:#d1fae5;color:#065f46;} .pill.r{background:#fee2e2;color:#991b1b;}
+.pill.a{background:#fef3c7;color:#92400e;} .pill.b{background:#dbeafe;color:#1e40af;}
+.chip{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px;}
+.chip.up{background:#d1fae5;color:#065f46;} .chip.dn{background:#fee2e2;color:#991b1b;}
+.chip.nn{background:#f3f4f6;color:#374151;}
+
+/* DELTA BADGE */
+.delta-cell{font-weight:600;}
+.delta-cell.pos{color:var(--green);} .delta-cell.neg{color:var(--red);} .delta-cell.flat{color:var(--amber);}
+
+/* CALLOUTS */
+.insight{background:#eff6ff;border-left:4px solid var(--blue);border-radius:0 8px 8px 0;padding:11px 15px;margin-top:14px;font-size:12px;color:#1e40af;}
+.insight strong{display:block;margin-bottom:3px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
+.alert{background:#fef2f2;border-left:4px solid var(--red);border-radius:0 8px 8px 0;padding:11px 15px;margin-top:14px;font-size:12px;color:#991b1b;}
+.alert strong{display:block;margin-bottom:3px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
+.warn{background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 13px;font-size:12px;color:#78350f;margin-bottom:16px;display:flex;gap:8px;align-items:flex-start;}
+
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
+.footer{text-align:center;font-size:11px;color:var(--muted);padding:18px 32px;border-top:1px solid var(--border);margin-top:8px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="sub">OPTIMIZELY CUSTOMER SUCCESS · GLOBAL PERFORMANCE</div>
+    <h1>Global MoM Performance Insights</h1>
+    <div class="sub">May 2025 – May 2026 · Snowflake Production</div>
+  </div>
+  <div class="badge">MAY 2026</div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="showTab('summary',this)">Summary</div>
+  <div class="nav-tab" onclick="showTab('arr',this)">ARR</div>
+  <div class="nav-tab" onclick="showTab('rr',this)">Renewal Rate</div>
+  <div class="nav-tab" onclick="showTab('churn',this)">Churn</div>
+  <div class="nav-tab" onclick="showTab('solutions',this)">By Solution</div>
+  <div class="nav-tab" onclick="showTab('pipeline',this)">Pipeline</div>
+  <div class="nav-tab" onclick="showTab('regional',this)">Regional</div>
+  <div class="nav-tab" onclick="showTab('soltype',this)">Single vs Multi</div>
+</div>
+
+<!-- ══════════════════════════════════ SUMMARY ══════════════════════════════════ -->
+<div class="section active" id="summary">
+  <div class="warn"><span>⚠️</span><span>May 2026 renewal data is partial (month in progress). MoM deltas for May use Apr 2026 as the prior complete month.</span></div>
+  <div class="sec-title"><span class="dot"></span>Global Snapshot — May 2026 vs Apr 2026</div>
+
+  <div class="kpi-grid">
+    <div class="kpi b">
+      <div class="kpi-lbl">Total ARR (May 2026)</div>
+      <div class="kpi-val">$418.8M</div>
+      <div class="kpi-sub">+$1.0M vs Apr 2026 ($417.8M)</div>
+      <div class="kpi-d up">▲ +$14.6M YoY vs May 2025</div>
+    </div>
+    <div class="kpi g">
+      <div class="kpi-lbl">Active Customers</div>
+      <div class="kpi-val">3,571</div>
+      <div class="kpi-sub">–15 vs Apr 2026 (3,586)</div>
+      <div class="kpi-d dn">▼ –247 YoY vs May 2025 (3,818)</div>
+    </div>
+    <div class="kpi b">
+      <div class="kpi-lbl">Avg ARR / Customer</div>
+      <div class="kpi-val">$117K</div>
+      <div class="kpi-sub">May 2026</div>
+      <div class="kpi-d up">▲ $106K in May 2025 (+10% YoY)</div>
+    </div>
+    <div class="kpi a">
+      <div class="kpi-lbl">May 2026 Renewal Rate</div>
+      <div class="kpi-val">89.7%</div>
+      <div class="kpi-sub">Partial — 263 accounts renewed</div>
+      <div class="kpi-d up">▲ vs Feb low of 75.1%</div>
+    </div>
+    <div class="kpi r">
+      <div class="kpi-lbl">May 2026 Churn</div>
+      <div class="kpi-val">$3.7M</div>
+      <div class="kpi-sub">65 accounts lost</div>
+      <div class="kpi-d up">▲ Improving vs Feb/Mar ($5.2–5.3M)</div>
+    </div>
+    <div class="kpi p">
+      <div class="kpi-lbl">Opal ARR Growth (YoY)</div>
+      <div class="kpi-val">70×</div>
+      <div class="kpi-sub">$0.1M → $7.2M in 12 months</div>
+      <div class="kpi-d up">▲ Fastest-growing line</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Total ARR — Monthly Trend ($M)</div>
+      <div class="ch-md"><canvas id="summaryArr"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Monthly Renewal Rate (%)</div>
+      <div class="ch-md"><canvas id="summaryRR"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Key MoM Signals — Last 13 Months</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Month</th><th>Total ARR</th><th>MoM Δ ARR</th><th>Customers</th><th>MoM Δ Cust</th><th>Renewal Rate</th><th>Churned ARR</th><th>Churned Accts</th></tr>
+        </thead>
+        <tbody id="summaryTableBody"></tbody>
+      </table>
+    </div>
+    <div class="insight">
+      <strong>12-Month Narrative</strong>
+      ARR has grown +$14.6M (+3.6%) YoY despite customer count shrinking by 247 (–6.5%), meaning the portfolio is getting more concentrated in higher-value accounts. Average ARR per customer rose from $106K to $117K. The renewal rate story is volatile — two clear dips (Sep 2025 at 79.0% and Feb 2026 at 75.1%) driven by EO weakness, with recovery in Apr/May 2026.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ ARR ══════════════════════════════════ -->
+<div class="section" id="arr">
+  <div class="sec-title"><span class="dot"></span>ARR — Monthly Movement</div>
+
+  <div class="kpi-grid">
+    <div class="kpi b">
+      <div class="kpi-lbl">ARR May 2026</div>
+      <div class="kpi-val">$418.8M</div>
+      <div class="kpi-d up">▲ +3.6% YoY</div>
+    </div>
+    <div class="kpi g">
+      <div class="kpi-lbl">Best MoM Gain</div>
+      <div class="kpi-val">+$4.9M</div>
+      <div class="kpi-sub">Jan 2026 vs Dec 2025</div>
+    </div>
+    <div class="kpi r">
+      <div class="kpi-lbl">Worst MoM Drop</div>
+      <div class="kpi-val">–$2.1M</div>
+      <div class="kpi-sub">Mar 2026 vs Feb 2026</div>
+    </div>
+    <div class="kpi p">
+      <div class="kpi-lbl">Opal ARR (May 26)</div>
+      <div class="kpi-val">$7.2M</div>
+      <div class="kpi-sub">From $0.1M (May 25) — 70× growth</div>
+    </div>
+    <div class="kpi r">
+      <div class="kpi-lbl">EO ARR Δ (YoY)</div>
+      <div class="kpi-val">–$2.8M</div>
+      <div class="kpi-sub">$166.7M → $163.9M (–1.7%)</div>
+    </div>
+    <div class="kpi g">
+      <div class="kpi-lbl">EC ARR Δ (YoY)</div>
+      <div class="kpi-val">+$14.0M</div>
+      <div class="kpi-sub">$181.8M → $195.8M (+7.7%)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">ARR by Solution — Monthly Stacked ($M)</div>
+    <div class="ch-lg"><canvas id="arrBySOL"></canvas></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">ARR MoM Delta — Total ($M)</div>
+      <div class="ch-md"><canvas id="arrDelta"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Opal ARR Growth — Monthly ($M)</div>
+      <div class="ch-md"><canvas id="opalGrowth"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">ARR by Solution — MoM Detail ($M)</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Month</th><th>EO ARR</th><th>EO Δ MoM</th><th>EC ARR</th><th>EC Δ MoM</th><th>Opal ARR</th><th>Other ARR</th><th>Total ARR</th></tr></thead>
+        <tbody id="arrTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ RENEWAL RATE ══════════════════════════════════ -->
+<div class="section" id="rr">
+  <div class="sec-title"><span class="dot"></span>Renewal Rate — Monthly Trends</div>
+
+  <div class="kpi-grid">
+    <div class="kpi r">
+      <div class="kpi-lbl">Lowest RR (12 months)</div>
+      <div class="kpi-val">75.1%</div>
+      <div class="kpi-sub">Feb 2026 — EO drag</div>
+    </div>
+    <div class="kpi g">
+      <div class="kpi-lbl">Highest RR (complete month)</div>
+      <div class="kpi-val">87.0%</div>
+      <div class="kpi-sub">Nov 2025</div>
+    </div>
+    <div class="kpi a">
+      <div class="kpi-lbl">12-Month Avg RR</div>
+      <div class="kpi-val">82.4%</div>
+      <div class="kpi-sub">Weighted monthly average</div>
+    </div>
+    <div class="kpi b">
+      <div class="kpi-lbl">Apr 2026 RR</div>
+      <div class="kpi-val">85.7%</div>
+      <div class="kpi-sub">360 accounts · Recovery trend</div>
+      <div class="kpi-d up">▲ +6.7pp vs Mar 2026 (79.0%)</div>
+    </div>
+    <div class="kpi r">
+      <div class="kpi-lbl">EO Feb 2026 RR</div>
+      <div class="kpi-val">51.0%</div>
+      <div class="kpi-sub">Worst single-solution-month</div>
+    </div>
+    <div class="kpi g">
+      <div class="kpi-lbl">EC 12-Month Avg RR</div>
+      <div class="kpi-val">84.4%</div>
+      <div class="kpi-sub">Consistently outperforms EO</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Monthly Renewal Rate — Global (%)</div>
+      <div class="ch-md"><canvas id="rrGlobal"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Monthly Renewal Rate — EO vs EC (%)</div>
+      <div class="ch-md"><canvas id="rrBySOL"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Accounts &amp; ARR up for Renewal — Monthly</div>
+    <div class="ch-md"><canvas id="renewalVolume"></canvas></div>
+    <div class="insight">
+      <strong>Seasonality Pattern</strong>
+      December is consistently the largest renewal month by ARR (559 accounts, $36.2M in Dec 2025). January and October also see elevated volumes. February tends to be the toughest month — smallest ARR base but historically lowest renewal rates (75.1% in Feb 2026). CSM coverage and pre-renewal engagement should be concentrated in Q4 and early Q1.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Monthly Renewal Rate Detail</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Month</th><th>Qtr</th><th>Accounts</th><th>ARR at Renewal</th><th>ARR Churned</th><th>Renewal Rate</th><th>MoM Δ RR</th></tr></thead>
+        <tbody id="rrTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ CHURN ══════════════════════════════════ -->
+<div class="section" id="churn">
+  <div class="sec-title"><span class="dot"></span>Churn — Monthly Closed Lost</div>
+
+  <div class="kpi-grid">
+    <div class="kpi r">
+      <div class="kpi-lbl">Total Churned ARR (12 mo)</div>
+      <div class="kpi-val">$49.2M</div>
+      <div class="kpi-sub">May 2025 – May 2026</div>
+    </div>
+    <div class="kpi r">
+      <div class="kpi-lbl">Total Churned Accounts</div>
+      <div class="kpi-val">870</div>
+      <div class="kpi-sub">Avg 67/month</div>
+    </div>
+    <div class="kpi a">
+      <div class="kpi-lbl">Avg Monthly Churn ARR</div>
+      <div class="kpi-val">$3.8M</div>
+      <div class="kpi-sub">Per month over 13 months</div>
+    </div>
+    <div class="kpi r">
+      <div class="kpi-lbl">Peak Churn Month</div>
+      <div class="kpi-val">$5.3M</div>
+      <div class="kpi-sub">Feb 2026 (72 accounts)</div>
+    </div>
+    <div class="kpi g">
+      <div class="kpi-lbl">Best Churn Month</div>
+      <div class="kpi-val">$2.6M</div>
+      <div class="kpi-sub">Sep 2025 (70 accounts)</div>
+    </div>
+    <div class="kpi b">
+      <div class="kpi-lbl">May 2026 Churn</div>
+      <div class="kpi-val">$3.7M</div>
+      <div class="kpi-sub">65 accounts — partial month</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Monthly Churned ARR ($M)</div>
+      <div class="ch-md"><canvas id="churnArr"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Monthly Churned Accounts</div>
+      <div class="ch-md"><canvas id="churnAccts"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Churn vs Renewal Volume — Monthly ($M)</div>
+    <div class="ch-lg"><canvas id="churnVsRenewal"></canvas></div>
+    <div class="alert">
+      <strong>Feb + Mar 2026 Spike</strong>
+      Churn ARR hit $5.3M in Feb and $5.2M in Mar 2026 — the two worst consecutive months in the 13-month window. Both were driven by EO (WebEx EMEA specifically). Jun 2025 was the other outlier at $5.2M. Structurally, Q1 2026 churned more ARR ($14.9M) than any prior quarter in this window.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Monthly Churn Detail</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Month</th><th>Churned Accounts</th><th>Churned ARR</th><th>Avg ARR / Account</th><th>MoM Δ</th></tr></thead>
+        <tbody id="churnTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SOLUTIONS ══════════════════════════════════ -->
+<div class="section" id="solutions">
+  <div class="sec-title"><span class="dot"></span>ARR &amp; Renewal Rate by Solution — MoM</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">EO — Monthly ARR ($M) &amp; RR (%)</div>
+      <div class="ch-md"><canvas id="eoCombo"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">EC — Monthly ARR ($M) &amp; RR (%)</div>
+      <div class="ch-md"><canvas id="ecCombo"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Customer Count by Solution — Monthly</div>
+      <div class="ch-md"><canvas id="solCust"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Opal — Monthly ARR ($M) &amp; Customer Count</div>
+      <div class="ch-md"><canvas id="opalCombo"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Solution Renewal Rate — Monthly (%)</div>
+    <div class="ch-lg"><canvas id="solRR"></canvas></div>
+    <div class="insight">
+      <strong>Key Pattern</strong>
+      EC renewal rate is consistently 5–15pp higher than EO each month. EO's worst month was Feb 2026 (51.0%) — a 29pp gap vs EC in the same month (83.9%). Opal RR is volatile given small renewal volumes but averaged above 90% in months where it had meaningful renewal events.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ PIPELINE ══════════════════════════════════ -->
+<div class="section" id="pipeline">
+  <div class="sec-title"><span class="dot"></span>Renewal Pipeline — Forward View (Jun–Dec 2026)</div>
+
+  <div class="kpi-grid">
+    <div class="kpi b">
+      <div class="kpi-lbl">Jun 2026 Pipeline</div>
+      <div class="kpi-val">$11.9M</div>
+      <div class="kpi-sub">73 accounts across all stages</div>
+    </div>
+    <div class="kpi a">
+      <div class="kpi-lbl">Q3 2026 Pipeline</div>
+      <div class="kpi-val">$47.4M</div>
+      <div class="kpi-sub">Sep is the biggest month ($21.2M)</div>
+    </div>
+    <div class="kpi r">
+      <div class="kpi-lbl">Q4 2026 Pipeline</div>
+      <div class="kpi-val">$70.7M</div>
+      <div class="kpi-sub">Dec alone: $30.7M (388 accts)</div>
+    </div>
+    <div class="kpi g">
+      <div class="kpi-lbl">Won - Finance (Jun 26)</div>
+      <div class="kpi-val">$3.3M</div>
+      <div class="kpi-sub">16 accounts effectively closed</div>
+    </div>
+    <div class="kpi p">
+      <div class="kpi-lbl">In Contracts (Jun 26)</div>
+      <div class="kpi-val">$3.2M</div>
+      <div class="kpi-sub">17 accounts — high confidence</div>
+    </div>
+    <div class="kpi t">
+      <div class="kpi-lbl">In Discovery (Jun 26)</div>
+      <div class="kpi-val">$2.5M</div>
+      <div class="kpi-sub">29 accounts — early stage</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Renewal Pipeline by Month — All Stages ($M)</div>
+      <div class="ch-md"><canvas id="pipelineBar"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Jun 2026 Pipeline by Stage ($M)</div>
+      <div class="ch-md"><canvas id="junStages"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Pipeline Detail — Jun to Dec 2026</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Month</th><th>Quarter</th><th>Won–Finance</th><th>Contracts</th><th>Proposal</th><th>Discovery</th><th>PoV</th><th>Total Pipeline</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Jun 2026</strong></td><td>Q2</td><td>$3.3M / 16</td><td>$3.2M / 17</td><td>$2.8M / 10</td><td>$2.5M / 29</td><td>$0.1M / 1</td><td><strong>$11.9M</strong></td></tr>
+          <tr><td><strong>Jul 2026</strong></td><td>Q3</td><td>—</td><td>$1.6M / 9</td><td>$0.7M / 4</td><td>$7.3M / 67</td><td>$0.1M / 1</td><td><strong>$9.7M</strong></td></tr>
+          <tr><td><strong>Aug 2026</strong></td><td>Q3</td><td>—</td><td>$0.7M / 4</td><td>$0.4M / 3</td><td>$5.1M / 77</td><td>$0.1M / 1</td><td><strong>$6.3M</strong></td></tr>
+          <tr><td><strong>Sep 2026</strong></td><td>Q3</td><td>—</td><td>$0.9M / 6</td><td>$1.1M / 9</td><td>$18.5M / 216</td><td>$0.7M / 5</td><td><strong>$21.2M</strong></td></tr>
+          <tr><td><strong>Oct 2026</strong></td><td>Q4</td><td>—</td><td>$0.1M / 2</td><td>$0.8M / 2</td><td>$18.9M / 238</td><td>$0.2M / 2</td><td><strong>$20.1M</strong></td></tr>
+          <tr><td><strong>Nov 2026</strong></td><td>Q4</td><td>—</td><td>$0.3M / 2</td><td>$0.4M / 4</td><td>$19.1M / 236</td><td>$0.5M / 4</td><td><strong>$20.3M</strong></td></tr>
+          <tr><td><strong>Dec 2026</strong></td><td>Q4</td><td>—</td><td>—</td><td>$0.5M / 7</td><td>$27.8M / 388</td><td>$2.4M / 11</td><td><strong>$30.7M</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert">
+      <strong>Q4 2026 Risk Concentration</strong>
+      $71M in renewal pipeline sits in Q4 2026, mostly in early-stage Discovery. December alone has 388 accounts in pipeline ($30.7M) — nearly all in Discovery, meaning CSM engagement needs to start now. Sep 2026 is the largest single month in Q3 with $21.2M, also discovery-heavy.
+    </div>
+    <div class="insight">
+      <strong>Near-Term Coverage (Jun 2026)</strong>
+      $6.5M of June's $11.9M pipeline is already in Won-Finance or Contracts — very high conversion probability. The remaining $5.4M in Proposal and Discovery needs active management before end of Q2.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ REGIONAL ══════════════════════════════════ -->
+<div class="section" id="regional">
+  <div class="sec-title"><span class="dot"></span>Regional Performance — MoM (May 2025 – May 2026)</div>
+
+  <div class="kpi-grid">
+    <div class="kpi b">
+      <div class="kpi-lbl">NA ARR (May 2026)</div>
+      <div class="kpi-val">$210.7M</div>
+      <div class="kpi-sub">50.3% of total portfolio</div>
+      <div class="kpi-d up">▲ +$5.7M YoY (+2.8%)</div>
+    </div>
+    <div class="kpi g">
+      <div class="kpi-lbl">EMEA ARR (May 2026)</div>
+      <div class="kpi-val">$182.3M</div>
+      <div class="kpi-sub">43.5% of total portfolio</div>
+      <div class="kpi-d up">▲ +$6.6M YoY (+3.8%)</div>
+    </div>
+    <div class="kpi t">
+      <div class="kpi-lbl">APJ ARR (May 2026)</div>
+      <div class="kpi-val">$25.8M</div>
+      <div class="kpi-sub">6.2% of total portfolio</div>
+      <div class="kpi-d up">▲ +$2.4M YoY (+10.3%)</div>
+    </div>
+    <div class="kpi r">
+      <div class="kpi-lbl">EMEA Feb 2026 RR</div>
+      <div class="kpi-val">67.3%</div>
+      <div class="kpi-sub">Worst regional month in window</div>
+      <div class="kpi-d dn">▼ –22.6pp vs Jan 2026 (89.9%)</div>
+    </div>
+    <div class="kpi a">
+      <div class="kpi-lbl">NA Sep 2025 RR</div>
+      <div class="kpi-val">68.3%</div>
+      <div class="kpi-sub">Second-worst — seasonal dip</div>
+      <div class="kpi-d dn">▼ –12.7pp vs Aug 2025</div>
+    </div>
+    <div class="kpi g">
+      <div class="kpi-lbl">APJ May 2026 RR</div>
+      <div class="kpi-val">100%</div>
+      <div class="kpi-sub">5 accounts — partial month</div>
+      <div class="kpi-d up">▲ Smallest but strongest region</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">ARR by Region — Monthly Trend ($M)</div>
+    <div class="ch-lg"><canvas id="regARR"></canvas></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Renewal Rate by Region — Monthly (%)</div>
+      <div class="ch-md"><canvas id="regRR"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">ARR Share by Region — May 2026</div>
+      <div class="ch-md"><canvas id="regShare"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Regional MoM Detail</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>NA ARR</th><th>NA RR</th>
+            <th>EMEA ARR</th><th>EMEA RR</th>
+            <th>APJ ARR</th><th>APJ RR</th>
+          </tr>
+        </thead>
+        <tbody id="regTableBody"></tbody>
+      </table>
+    </div>
+    <div class="insight">
+      <strong>Key Regional Insight</strong>
+      EMEA is the highest-risk region — it drove the Feb 2026 global dip (67.3% RR, –22.6pp MoM) and Mar 2026 weakness (72.6%). NA has its own seasonal vulnerability in Sep 2025 (68.3%). APJ is small but structurally healthy, with only one month below 75% in 13 months. ARR growth is strongest in APJ (+10.3% YoY) though off a small base; EMEA shows modest growth (+3.8%) despite churn volatility.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ SINGLE VS MULTI ══════════════════════════════════ -->
+<div class="section" id="soltype">
+  <div class="sec-title"><span class="dot"></span>Single vs Multi-Solution — Portfolio Analysis MoM</div>
+
+  <div class="kpi-grid">
+    <div class="kpi p">
+      <div class="kpi-lbl">Multi-Solution Customers (May 26)</div>
+      <div class="kpi-val">547</div>
+      <div class="kpi-sub">+208 vs May 2025 (+61.4%)</div>
+      <div class="kpi-d up">▲ Fastest growing segment</div>
+    </div>
+    <div class="kpi b">
+      <div class="kpi-lbl">Multi-Solution ARR (May 26)</div>
+      <div class="kpi-val">$149.2M</div>
+      <div class="kpi-sub">35.6% of total ARR</div>
+      <div class="kpi-d up">▲ +$51.7M YoY (+53.1%)</div>
+    </div>
+    <div class="kpi r">
+      <div class="kpi-lbl">Single-Solution Customers (May 26)</div>
+      <div class="kpi-val">3,024</div>
+      <div class="kpi-sub">–455 vs May 2025 (–13.1%)</div>
+      <div class="kpi-d dn">▼ Shrinking as customers expand</div>
+    </div>
+    <div class="kpi a">
+      <div class="kpi-lbl">Single-Solution ARR (May 26)</div>
+      <div class="kpi-val">$269.6M</div>
+      <div class="kpi-sub">64.4% of total ARR</div>
+      <div class="kpi-d dn">▼ –$37.1M YoY (–12.1%)</div>
+    </div>
+    <div class="kpi g">
+      <div class="kpi-lbl">Multi-Solution RR (12-mo avg)</div>
+      <div class="kpi-val">93.8%</div>
+      <div class="kpi-sub">vs 79.5% for Single-Solution</div>
+      <div class="kpi-d up">▲ +14.3pp premium</div>
+    </div>
+    <div class="kpi b">
+      <div class="kpi-lbl">Avg ARR — Multi vs Single</div>
+      <div class="kpi-val">$273K vs $89K</div>
+      <div class="kpi-sub">Multi = 3× higher ARR per customer</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">ARR — Multi vs Single-Solution ($M)</div>
+      <div class="ch-md"><canvas id="stARR"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Customer Count — Multi vs Single</div>
+      <div class="ch-md"><canvas id="stCust"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Renewal Rate — Multi vs Single-Solution (%)</div>
+    <div class="ch-lg"><canvas id="stRR"></canvas></div>
+    <div class="insight">
+      <strong>Multi-Solution = Structural Retention Advantage</strong>
+      Multi-solution customers renew at a 12-month average of 93.8% vs 79.5% for single-solution — a consistent 14pp premium every month. The Feb 2026 global dip (75.1%) was almost entirely a single-solution story (65.7% RR), while multi-solution held at 96.5%. Cross-selling existing customers is the highest-leverage retention lever in the portfolio.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Single vs Multi-Solution — MoM Detail</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Month</th>
+            <th>Multi Custs</th><th>Multi ARR</th><th>Multi RR</th>
+            <th>Single Custs</th><th>Single ARR</th><th>Single RR</th>
+            <th>Multi ARR %</th>
+          </tr>
+        </thead>
+        <tbody id="stTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Global MoM Performance · June 2026 · Snowflake: REPORTING.GTM_ANALYTICS + REPORTING.ARR_SST · despi.evangelakou@optimizely.com</div>
+
+<script>
+Chart.defaults.font.family = "'Segoe UI', Arial, sans-serif";
+Chart.defaults.font.size   = 12;
+Chart.defaults.color       = '#6b7280';
+
+function showTab(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+// ── RAW DATA ──
+const MONTHS = ['May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26'];
+const MONTHS_LONG = ['2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12','2026-01','2026-02','2026-03','2026-04','2026-05'];
+
+const eoArr   = [166.7,167.2,168.1,167.7,166.2,166.5,166.6,165.8,167.5,165.4,164.0,164.3,163.9];
+const ecArr   = [181.8,183.8,185.4,185.7,187.5,189.0,189.6,191.2,192.7,192.6,192.9,194.7,195.8];
+const opalArr = [0.10, 0.42, 0.73, 0.89, 1.87, 2.70, 2.98, 4.13, 5.44, 5.72, 6.24, 6.89, 7.19];
+const otherArr= [55.6, 55.5, 54.3, 53.8, 54.0, 53.8, 53.5, 52.7, 53.2, 53.1, 52.4, 51.9, 51.9];
+const totalArr= [404.2,406.8,408.5,408.1,409.6,412.1,412.6,413.9,418.8,416.8,415.5,417.8,418.8];
+
+const rrGlobal = [85.0,80.6,81.9,82.3,79.0,86.2,87.0,79.8,85.5,75.1,79.0,85.7,89.7];
+const rrEO     = [64.7,67.8,76.8,78.5,59.9,75.4,70.7,67.6,79.5,51.0,62.1,80.0,80.0];
+const rrEC     = [97.5,85.2,85.4,84.0,83.3,89.4,71.8,81.4,79.1,83.9,80.6,81.8,87.5];
+
+const renewalARR   = [16.7,26.0,27.3,15.0,26.6,25.0,18.8,36.2,35.8,17.0,25.9,20.5,19.8];
+const renewalAccts = [311, 491, 366, 266, 442, 331, 331, 559, 470, 282, 438, 360, 263];
+const rrChurn      = [2.5, 5.0, 4.9, 2.7, 5.6, 3.5, 2.4, 7.3, 5.2, 4.2, 5.4, 2.9, 2.0];
+
+const churnARR   = [3.10,5.21,2.92,2.94,2.56,4.02,4.02,3.95,3.70,5.25,5.17,2.67,3.65];
+const churnAccts = [84,75,53,57,70,77,67,77,69,72,76,65,65];
+
+const solCustEO    = [1362,1359,1360,1356,1359,1369,1372,1358,1358,1350,1334,1336,1329];
+const solCustEC    = [2143,2137,2136,2124,2119,2121,2117,2107,2112,2100,2090,2100,2099];
+const solCustOpal  = [3,10,21,25,54,83,103,129,171,183,200,216,228];
+
+// helpers
+const $ = (id) => document.getElementById(id);
+const base = { responsive:true, maintainAspectRatio:false };
+const noXGrid = { x:{ grid:{ display:false } } };
+const pctY  = (mn,mx) => ({ y:{ min:mn, max:mx, ticks:{ callback:v=>v+'%' } }, ...noXGrid });
+const dolY  = () => ({ y:{ ticks:{ callback:v=>'$'+Math.abs(v).toFixed(1)+'M' } }, ...noXGrid });
+const leg   = (pos='bottom') => ({ legend:{ position:pos, labels:{ boxWidth:12, font:{ size:11 } } } });
+
+// colour helpers
+function rrColor(v) { return v>=85?'rgba(16,185,129,.75)':v>=80?'rgba(245,158,11,.75)':'rgba(239,68,68,.75)'; }
+function deltaColor(v) { return v>0?'rgba(16,185,129,.8)':'rgba(239,68,68,.8)'; }
+
+// ── SUMMARY TABLE ──
+(function(){
+  const tb = $('summaryTableBody');
+  for (let i=0;i<MONTHS.length;i++){
+    const prevArr   = i>0?totalArr[i-1]:null;
+    const prevCust  = i>0?(solCustEO[i-1]+solCustEC[i-1]+solCustOpal[i-1]):null;
+    const dArr  = prevArr  ? (totalArr[i]-prevArr).toFixed(1)  : '—';
+    const dCust = prevCust ? ((solCustEO[i]+solCustEC[i]+solCustOpal[i])-prevCust) : '—';
+    const dArrCls = prevArr ? (totalArr[i]-prevArr>=0?'pos':'neg') : '';
+    const dCustCls= prevCust? (dCust>=0?'pos':'neg') : '';
+    tb.innerHTML += `<tr>
+      <td>${MONTHS[i]}</td>
+      <td>$${totalArr[i].toFixed(1)}M</td>
+      <td class="delta-cell ${dArrCls}">${prevArr?(totalArr[i]-prevArr>0?'+':'')+dArr+'M':'—'}</td>
+      <td>${(solCustEO[i]+solCustEC[i]+solCustOpal[i]).toLocaleString()}</td>
+      <td class="delta-cell ${dCustCls}">${prevCust?(dCust>0?'+':'')+dCust:'—'}</td>
+      <td>${rrGlobal[i].toFixed(1)}%</td>
+      <td>$${churnARR[i].toFixed(2)}M</td>
+      <td>${churnAccts[i]}</td>
+    </tr>`;
+  }
+})();
+
+// ── SUMMARY CHARTS ──
+new Chart('summaryArr', { type:'line',
+  data:{ labels:MONTHS, datasets:[{
+    label:'Total ARR ($M)', data:totalArr, borderColor:'#0037ff',
+    backgroundColor:'rgba(0,55,255,.07)', fill:true, tension:.3, pointRadius:3
+  }]},
+  options:{ ...base, scales:{ y:{ min:395, ticks:{ callback:v=>'$'+v+'M' } }, ...noXGrid }, plugins:{ legend:{ display:false } } }
+});
+new Chart('summaryRR', { type:'bar',
+  data:{ labels:MONTHS, datasets:[{
+    label:'Renewal Rate', data:rrGlobal,
+    backgroundColor:rrGlobal.map(rrColor), borderRadius:4
+  }]},
+  options:{ ...base, scales:pctY(65,95), plugins:{ legend:{ display:false } } }
+});
+
+// ── ARR TABLE ──
+(function(){
+  const tb = $('arrTableBody');
+  for(let i=0;i<MONTHS.length;i++){
+    const dEO = i>0?(eoArr[i]-eoArr[i-1]).toFixed(1):null;
+    const dEC = i>0?(ecArr[i]-ecArr[i-1]).toFixed(1):null;
+    const eoD = dEO ? (parseFloat(dEO)>=0?'<span class="delta-cell pos">▲ +$'+dEO+'M</span>':'<span class="delta-cell neg">▼ $'+dEO+'M</span>') : '—';
+    const ecD = dEC ? (parseFloat(dEC)>=0?'<span class="delta-cell pos">▲ +$'+dEC+'M</span>':'<span class="delta-cell neg">▼ $'+dEC+'M</span>') : '—';
+    tb.innerHTML += `<tr><td>${MONTHS[i]}</td>
+      <td>$${eoArr[i].toFixed(1)}M</td><td>${eoD}</td>
+      <td>$${ecArr[i].toFixed(1)}M</td><td>${ecD}</td>
+      <td>$${opalArr[i].toFixed(2)}M</td>
+      <td>$${otherArr[i].toFixed(1)}M</td>
+      <td><strong>$${totalArr[i].toFixed(1)}M</strong></td></tr>`;
+  }
+})();
+
+// ── ARR CHARTS ──
+new Chart('arrBySOL', { type:'bar',
+  data:{ labels:MONTHS, datasets:[
+    { label:'EO',    data:eoArr,    backgroundColor:'#0037ff', borderRadius:2 },
+    { label:'EC',    data:ecArr,    backgroundColor:'#10b981', borderRadius:2 },
+    { label:'Opal',  data:opalArr,  backgroundColor:'#7c3aed', borderRadius:2 },
+    { label:'Other', data:otherArr, backgroundColor:'#d1d5db', borderRadius:2 }
+  ]},
+  options:{ ...base, stacked:true,
+    scales:{ x:{ stacked:true, grid:{ display:false } }, y:{ stacked:true, ticks:{ callback:v=>'$'+v+'M' } } },
+    plugins:leg() }
+});
+
+const deltas = totalArr.map((v,i)=>i===0?null:parseFloat((v-totalArr[i-1]).toFixed(2)));
+new Chart('arrDelta', { type:'bar',
+  data:{ labels:MONTHS.slice(1), datasets:[{
+    label:'MoM ARR Δ ($M)', data:deltas.slice(1),
+    backgroundColor:deltas.slice(1).map(deltaColor), borderRadius:4
+  }]},
+  options:{ ...base, scales:dolY(), plugins:{ legend:{ display:false } } }
+});
+new Chart('opalGrowth', { type:'bar',
+  data:{ labels:MONTHS, datasets:[{
+    label:'Opal ARR ($M)', data:opalArr,
+    backgroundColor:'rgba(124,58,237,.8)', borderRadius:4
+  }]},
+  options:{ ...base, scales:{ y:{ ticks:{ callback:v=>'$'+v+'M' } }, ...noXGrid }, plugins:{ legend:{ display:false } } }
+});
+
+// ── RR CHARTS ──
+new Chart('rrGlobal', { type:'line',
+  data:{ labels:MONTHS, datasets:[{
+    label:'Global RR', data:rrGlobal, borderColor:'#0037ff',
+    backgroundColor:'rgba(0,55,255,.07)', fill:true, tension:.3, pointRadius:4,
+    pointBackgroundColor:rrGlobal.map(v=>v<80?'#ef4444':'#0037ff')
+  }]},
+  options:{ ...base, scales:pctY(65,95), plugins:{ legend:{ display:false },
+    annotation:{ annotations:{ target:{ type:'line', yMin:85, yMax:85, borderColor:'rgba(16,185,129,.4)', borderDash:[4,4] } } } } }
+});
+new Chart('rrBySOL', { type:'line',
+  data:{ labels:MONTHS, datasets:[
+    { label:'EO', data:rrEO, borderColor:'#0037ff', tension:.3, pointRadius:3, fill:false },
+    { label:'EC', data:rrEC, borderColor:'#10b981', tension:.3, pointRadius:3, fill:false }
+  ]},
+  options:{ ...base, scales:pctY(45,105), plugins:leg() }
+});
+new Chart('renewalVolume', { type:'bar',
+  data:{ labels:MONTHS, datasets:[
+    { label:'ARR at Renewal ($M)', data:renewalARR, backgroundColor:'rgba(0,55,255,.6)', borderRadius:3, yAxisID:'y1' },
+    { label:'Churned ARR ($M)',    data:rrChurn.map(v=>-v), backgroundColor:'rgba(239,68,68,.6)', borderRadius:3, yAxisID:'y1' }
+  ]},
+  options:{ ...base,
+    scales:{ y1:{ ticks:{ callback:v=>'$'+Math.abs(v).toFixed(0)+'M' } }, ...noXGrid },
+    plugins:leg() }
+});
+
+// RR table
+(function(){
+  const tb = $('rrTableBody'), qtrs=['2025-Q2','2025-Q2','2025-Q3','2025-Q3','2025-Q3','2025-Q4','2025-Q4','2025-Q4','2026-Q1','2026-Q1','2026-Q1','2026-Q2','2026-Q2'];
+  for(let i=0;i<MONTHS.length;i++){
+    const prev = i>0?rrGlobal[i-1]:null;
+    const d = prev?(rrGlobal[i]-prev).toFixed(1):null;
+    const dHtml = d ? `<span class="delta-cell ${parseFloat(d)>=0?'pos':'neg'}">${parseFloat(d)>=0?'▲ +':'▼ '}${d}pp</span>` : '—';
+    const rrCls = rrGlobal[i]>=85?'g':rrGlobal[i]>=80?'a':'r';
+    tb.innerHTML += `<tr>
+      <td><strong>${MONTHS[i]}</strong></td>
+      <td>${qtrs[i]}</td>
+      <td class="num">${renewalAccts[i]}</td>
+      <td class="num">$${renewalARR[i].toFixed(1)}M</td>
+      <td class="num">($${rrChurn[i].toFixed(1)}M)</td>
+      <td><span class="pill ${rrCls}">${rrGlobal[i].toFixed(1)}%</span></td>
+      <td>${dHtml}</td>
+    </tr>`;
+  }
+})();
+
+// ── CHURN CHARTS ──
+new Chart('churnArr', { type:'bar',
+  data:{ labels:MONTHS, datasets:[{
+    label:'Churned ARR ($M)', data:churnARR,
+    backgroundColor:churnARR.map(v=>v>=5?'rgba(239,68,68,.85)':v>=4?'rgba(245,158,11,.85)':'rgba(156,163,175,.8)'),
+    borderRadius:4
+  }]},
+  options:{ ...base, scales:{ y:{ ticks:{ callback:v=>'$'+v+'M' } }, ...noXGrid }, plugins:{ legend:{ display:false } } }
+});
+new Chart('churnAccts', { type:'bar',
+  data:{ labels:MONTHS, datasets:[{
+    label:'Accounts Churned', data:churnAccts,
+    backgroundColor:'rgba(239,68,68,.7)', borderRadius:4
+  }]},
+  options:{ ...base, scales:{ y:{ }, ...noXGrid }, plugins:{ legend:{ display:false } } }
+});
+new Chart('churnVsRenewal', { type:'bar',
+  data:{ labels:MONTHS, datasets:[
+    { label:'ARR Renewed ($M)',  data:renewalARR,           backgroundColor:'rgba(0,55,255,.6)',  borderRadius:3 },
+    { label:'ARR Churned ($M)',  data:churnARR.map(v=>-v),  backgroundColor:'rgba(239,68,68,.7)', borderRadius:3 }
+  ]},
+  options:{ ...base,
+    scales:{ y:{ ticks:{ callback:v=>'$'+Math.abs(v).toFixed(0)+'M' } }, ...noXGrid },
+    plugins:leg() }
+});
+
+// churn table
+(function(){
+  const tb = $('churnTableBody');
+  for(let i=0;i<MONTHS.length;i++){
+    const avg = (churnARR[i]*1e6/churnAccts[i]/1000).toFixed(0);
+    const prev = i>0?churnARR[i-1]:null;
+    const d = prev?(churnARR[i]-prev).toFixed(2):null;
+    const dHtml = d ? `<span class="delta-cell ${parseFloat(d)<=0?'pos':'neg'}">${parseFloat(d)<=0?'▼ –':'▲ +'}$${Math.abs(parseFloat(d)).toFixed(2)}M</span>` : '—';
+    const sev = churnARR[i]>=5?'r':churnARR[i]>=4?'a':'g';
+    tb.innerHTML += `<tr>
+      <td><strong>${MONTHS[i]}</strong></td>
+      <td class="num">${churnAccts[i]}</td>
+      <td><span class="pill ${sev}">$${churnARR[i].toFixed(2)}M</span></td>
+      <td class="num">$${avg}K</td>
+      <td>${dHtml}</td>
+    </tr>`;
+  }
+})();
+
+// ── SOLUTIONS ──
+function comboChart(id, arrData, rrData, color, label){
+  new Chart(id, { type:'bar',
+    data:{ labels:MONTHS, datasets:[
+      { type:'bar',  label:label+' ARR ($M)', data:arrData, backgroundColor:color+'33', borderRadius:3, yAxisID:'y1' },
+      { type:'line', label:'Renewal Rate (%)', data:rrData, borderColor:color, pointBackgroundColor:color, tension:.3, pointRadius:3, yAxisID:'y2', fill:false }
+    ]},
+    options:{ ...base,
+      scales:{
+        y1:{ type:'linear', position:'left',  ticks:{ callback:v=>'$'+v+'M' } },
+        y2:{ type:'linear', position:'right', min:40, max:105, ticks:{ callback:v=>v+'%' }, grid:{ display:false } },
+        ...noXGrid
+      },
+      plugins:leg() }
+  });
+}
+comboChart('eoCombo', eoArr, rrEO, '#0037ff', 'EO');
+comboChart('ecCombo', ecArr, rrEC, '#10b981', 'EC');
+
+new Chart('solCust', { type:'line',
+  data:{ labels:MONTHS, datasets:[
+    { label:'EO',   data:solCustEO,   borderColor:'#0037ff', tension:.3, pointRadius:3, fill:false },
+    { label:'EC',   data:solCustEC,   borderColor:'#10b981', tension:.3, pointRadius:3, fill:false },
+    { label:'Opal', data:solCustOpal, borderColor:'#7c3aed', tension:.3, pointRadius:3, fill:false }
+  ]},
+  options:{ ...base,
+    scales:{ y:{ ticks:{ callback:v=>v.toLocaleString() } }, ...noXGrid },
+    plugins:leg() }
+});
+
+new Chart('opalCombo', { type:'bar',
+  data:{ labels:MONTHS, datasets:[
+    { type:'bar',  label:'ARR ($M)', data:opalArr, backgroundColor:'rgba(124,58,237,.5)', borderRadius:3, yAxisID:'y1' },
+    { type:'line', label:'Customers', data:solCustOpal, borderColor:'#f59e0b', pointBackgroundColor:'#f59e0b', tension:.3, pointRadius:3, yAxisID:'y2', fill:false }
+  ]},
+  options:{ ...base,
+    scales:{
+      y1:{ type:'linear', position:'left',  ticks:{ callback:v=>'$'+v+'M' } },
+      y2:{ type:'linear', position:'right', ticks:{}, grid:{ display:false } },
+      ...noXGrid
+    },
+    plugins:leg() }
+});
+
+new Chart('solRR', { type:'line',
+  data:{ labels:MONTHS, datasets:[
+    { label:'EO',   data:rrEO,    borderColor:'#0037ff', tension:.3, pointRadius:4, fill:false },
+    { label:'EC',   data:rrEC,    borderColor:'#10b981', tension:.3, pointRadius:4, fill:false },
+    { label:'Global', data:rrGlobal, borderColor:'#9ca3af', borderDash:[4,3], tension:.3, pointRadius:3, fill:false }
+  ]},
+  options:{ ...base, scales:pctY(40,105), plugins:leg() }
+});
+
+// ── REGIONAL DATA ──
+const regARR_NA   = [205.0,205.5,193.4,190.4,203.7,206.4,206.6,208.0,209.1,208.6,209.2,210.7,210.7];
+const regARR_EMEA = [175.7,177.3,190.8,193.3,181.0,180.7,180.8,181.0,184.7,182.9,181.1,181.5,182.3];
+const regARR_APJ  = [23.4, 24.0, 24.3, 24.3, 24.8, 25.0, 25.2, 24.9, 25.0, 25.3, 25.3, 25.5, 25.8];
+
+const regRR_NA    = [85.4,75.3,81.0,80.8,68.3,85.1,87.0,77.8,80.1,78.5,84.7,87.5,87.0];
+const regRR_EMEA  = [86.0,87.3,84.3,83.6,89.6,86.8,86.2,83.4,89.9,67.3,72.6,82.9,93.4];
+const regRR_APJ   = [65.1,84.6,75.7,89.4,97.4,88.4,93.3,75.0,87.0,97.7,89.3,92.5,100.0];
+
+// Regional table
+(function(){
+  const tb = $('regTableBody');
+  const rrFmt = v => {
+    const cls = v>=85?'g':v>=75?'a':'r';
+    return `<span class="pill ${cls}">${v.toFixed(1)}%</span>`;
+  };
+  for(let i=0;i<MONTHS.length;i++){
+    tb.innerHTML += `<tr>
+      <td><strong>${MONTHS[i]}</strong></td>
+      <td class="num">$${regARR_NA[i].toFixed(1)}M</td><td>${rrFmt(regRR_NA[i])}</td>
+      <td class="num">$${regARR_EMEA[i].toFixed(1)}M</td><td>${rrFmt(regRR_EMEA[i])}</td>
+      <td class="num">$${regARR_APJ[i].toFixed(1)}M</td><td>${rrFmt(regRR_APJ[i])}</td>
+    </tr>`;
+  }
+})();
+
+// Regional ARR stacked line
+new Chart('regARR', { type:'line',
+  data:{ labels:MONTHS, datasets:[
+    { label:'NA',   data:regARR_NA,   borderColor:'#0037ff', backgroundColor:'rgba(0,55,255,.08)',  fill:true, tension:.3, pointRadius:3 },
+    { label:'EMEA', data:regARR_EMEA, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,.08)', fill:true, tension:.3, pointRadius:3 },
+    { label:'APJ',  data:regARR_APJ,  borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,.08)', fill:true, tension:.3, pointRadius:3 }
+  ]},
+  options:{ ...base, scales:{ y:{ ticks:{ callback:v=>'$'+v+'M' } }, ...noXGrid }, plugins:leg() }
+});
+
+// Regional RR line
+new Chart('regRR', { type:'line',
+  data:{ labels:MONTHS, datasets:[
+    { label:'NA',   data:regRR_NA,   borderColor:'#0037ff', tension:.3, pointRadius:3, fill:false },
+    { label:'EMEA', data:regRR_EMEA, borderColor:'#10b981', tension:.3, pointRadius:3, fill:false },
+    { label:'APJ',  data:regRR_APJ,  borderColor:'#f59e0b', tension:.3, pointRadius:3, fill:false }
+  ]},
+  options:{ ...base, scales:pctY(55,105), plugins:leg() }
+});
+
+// Regional share horizontal bar (May 2026 snapshot)
+new Chart('regShare', { type:'bar',
+  data:{ labels:['NA','EMEA','APJ'],
+    datasets:[
+      { label:'ARR ($M)', data:[210.7,182.3,25.8],
+        backgroundColor:['rgba(0,55,255,.75)','rgba(16,185,129,.75)','rgba(245,158,11,.75)'],
+        borderRadius:6 }
+    ]},
+  options:{ ...base, indexAxis:'y',
+    scales:{ x:{ ticks:{ callback:v=>'$'+v+'M' } }, y:{ grid:{ display:false } } },
+    plugins:{ legend:{ display:false } } }
+});
+
+// ── SINGLE VS MULTI DATA ──
+const stCustMulti  = [339,353,363,366,393,417,432,452,489,501,516,535,547];
+const stCustSingle = [3479,3441,3419,3400,3357,3329,3287,3226,3171,3138,3080,3051,3024];
+const stARR_Multi  = [97.5, 99.6,102.9,104.6,108.5,113.8,116.7,123.4,133.7,136.5,139.9,145.1,149.2];
+const stARR_Single = [306.7,307.3,305.6,303.5,301.1,298.2,295.9,290.5,285.1,280.3,275.6,272.6,269.6];
+const stRR_Multi   = [110.1,91.3,98.9,92.7,65.1,98.9,92.7,95.3,98.0,96.5,93.9,99.6,98.1];
+const stRR_Single  = [79.5, 77.2,77.8,78.4,83.5,81.8,84.9,74.0,79.0,65.7,74.1,80.8,85.9];
+
+// Single vs Multi table
+(function(){
+  const tb = $('stTableBody');
+  for(let i=0;i<MONTHS.length;i++){
+    const pct = (stARR_Multi[i]/(stARR_Multi[i]+stARR_Single[i])*100).toFixed(1);
+    const rrFmt = (v,cls) => `<span class="pill ${cls}">${v.toFixed(1)}%</span>`;
+    const mCls = stRR_Multi[i]>=90?'g':stRR_Multi[i]>=80?'a':'r';
+    const sCls = stRR_Single[i]>=85?'g':stRR_Single[i]>=75?'a':'r';
+    tb.innerHTML += `<tr>
+      <td><strong>${MONTHS[i]}</strong></td>
+      <td class="num">${stCustMulti[i]}</td>
+      <td class="num">$${stARR_Multi[i].toFixed(1)}M</td>
+      <td>${rrFmt(stRR_Multi[i],mCls)}</td>
+      <td class="num">${stCustSingle[i].toLocaleString()}</td>
+      <td class="num">$${stARR_Single[i].toFixed(1)}M</td>
+      <td>${rrFmt(stRR_Single[i],sCls)}</td>
+      <td class="num">${pct}%</td>
+    </tr>`;
+  }
+})();
+
+// ARR Multi vs Single stacked bar
+new Chart('stARR', { type:'bar',
+  data:{ labels:MONTHS, datasets:[
+    { label:'Multi-Solution', data:stARR_Multi,  backgroundColor:'rgba(124,58,237,.75)', borderRadius:2 },
+    { label:'Single-Solution',data:stARR_Single, backgroundColor:'rgba(156,163,175,.5)', borderRadius:2 }
+  ]},
+  options:{ ...base, stacked:true,
+    scales:{ x:{ stacked:true, grid:{ display:false } }, y:{ stacked:true, ticks:{ callback:v=>'$'+v+'M' } } },
+    plugins:leg() }
+});
+
+// Customer count multi vs single
+new Chart('stCust', { type:'bar',
+  data:{ labels:MONTHS, datasets:[
+    { label:'Multi-Solution', data:stCustMulti,  backgroundColor:'rgba(124,58,237,.75)', borderRadius:2, yAxisID:'y1' },
+    { label:'Single-Solution',data:stCustSingle, backgroundColor:'rgba(156,163,175,.5)', borderRadius:2, yAxisID:'y2' }
+  ]},
+  options:{ ...base,
+    scales:{
+      y1:{ type:'linear', position:'left',  title:{ display:true, text:'Multi' }, max:700 },
+      y2:{ type:'linear', position:'right', title:{ display:true, text:'Single' }, min:2800, grid:{ display:false } },
+      ...noXGrid
+    },
+    plugins:leg() }
+});
+
+// RR multi vs single line
+new Chart('stRR', { type:'line',
+  data:{ labels:MONTHS, datasets:[
+    { label:'Multi-Solution', data:stRR_Multi,  borderColor:'#7c3aed', tension:.3, pointRadius:4, fill:false },
+    { label:'Single-Solution',data:stRR_Single, borderColor:'#9ca3af', tension:.3, pointRadius:4, fill:false, borderDash:[4,3] },
+    { label:'Global',         data:rrGlobal,    borderColor:'#0037ff', tension:.3, pointRadius:3, fill:false, borderDash:[2,4] }
+  ]},
+  options:{ ...base, scales:pctY(55,115), plugins:leg() }
+});
+
+// ── PIPELINE ──
+const pipeMonths = ['Jun 26','Jul 26','Aug 26','Sep 26','Oct 26','Nov 26','Dec 26'];
+const pipeTotal  = [11.9, 9.7, 6.3, 21.2, 20.1, 20.3, 30.7];
+const pipeWon    = [3.3,  0,   0,   0,    0,    0,    0   ];
+const pipeContr  = [3.2,  1.6, 0.7, 0.9,  0.1,  0.3,  0   ];
+const pipeProp   = [2.8,  0.7, 0.4, 1.1,  0.8,  0.4,  0.5 ];
+const pipeDisc   = [2.5,  7.3, 5.1, 18.5, 18.9, 19.1, 27.8];
+const pipePov    = [0.1,  0.1, 0.1, 0.7,  0.2,  0.5,  2.4 ];
+
+new Chart('pipelineBar', { type:'bar',
+  data:{ labels:pipeMonths, datasets:[
+    { label:'Won–Finance', data:pipeWon,   backgroundColor:'rgba(16,185,129,.8)',  borderRadius:2 },
+    { label:'Contracts',   data:pipeContr, backgroundColor:'rgba(0,55,255,.8)',    borderRadius:2 },
+    { label:'Proposal',    data:pipeProp,  backgroundColor:'rgba(245,158,11,.8)',  borderRadius:2 },
+    { label:'Discovery',   data:pipeDisc,  backgroundColor:'rgba(156,163,175,.7)', borderRadius:2 },
+    { label:'PoV',         data:pipePov,   backgroundColor:'rgba(124,58,237,.8)',  borderRadius:2 }
+  ]},
+  options:{ ...base, stacked:true,
+    scales:{ x:{ stacked:true, grid:{ display:false } }, y:{ stacked:true, ticks:{ callback:v=>'$'+v+'M' } } },
+    plugins:leg() }
+});
+
+new Chart('junStages', { type:'bar',
+  data:{ labels:['Won–Finance','Contracts','Proposal','Discovery','PoV'],
+    datasets:[{ label:'Jun 2026 ($M)', data:[3.3,3.2,2.8,2.5,0.1],
+      backgroundColor:['rgba(16,185,129,.8)','rgba(0,55,255,.8)','rgba(245,158,11,.8)','rgba(156,163,175,.7)','rgba(124,58,237,.8)'],
+      borderRadius:4 }]},
+  options:{ ...base, indexAxis:'y',
+    scales:{ x:{ ticks:{ callback:v=>'$'+v+'M' } }, y:{ grid:{ display:false } } },
+    plugins:{ legend:{ display:false } } }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opal Attach × Pipeline Cross-Check — 2026 Q2/Q3/Q4 — Optimizely</title>
+<style>
+  /* ── Reset & base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "TT Commons", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #F8F8FC;
+    color: #10141D;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: #0037FF;
+    color: #FFFFFF;
+    padding: 32px 40px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .header-left h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .header-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .source-chip, .period-chip {
+    background: rgba(255,255,255,0.15);
+    color: #FFFFFF;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .header-right {
+    text-align: right;
+    font-size: 12px;
+    opacity: 0.75;
+    flex-shrink: 0;
+    margin-left: 24px;
+  }
+  .opti-logo {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: #FFFFFF;
+    margin-bottom: 4px;
+  }
+
+  /* ── Main container ── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px 60px; }
+
+  /* ── KPI grid ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    border-radius: 12px;
+    padding: 20px 18px 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .kpi-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #10141D;
+    line-height: 1.1;
+    margin-bottom: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi-label {
+    font-size: 12px;
+    color: #969CAC;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  /* ── Caveat box ── */
+  .caveat-box {
+    background: #FFEB99;
+    border-left: 3px solid #FF8110;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+  }
+  .caveat-box ul { padding-left: 18px; }
+  .caveat-box li { margin-bottom: 4px; }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .search-box {
+    padding: 8px 14px;
+    border: 1.5px solid #E9EBF1;
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+    width: 240px;
+    background: #FFFFFF;
+    color: #10141D;
+  }
+  .search-box:focus { border-color: #0037FF; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: opacity 0.15s;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-primary { background: #0037FF; color: #FFFFFF; }
+  .btn-secondary {
+    background: #FFFFFF;
+    color: #10141D;
+    border: 1.5px solid #E9EBF1;
+  }
+  .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* ── Table card ── */
+  .table-card {
+    background: #FFFFFF;
+    border-radius: 12px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    overflow: hidden;
+  }
+  .table-scroll { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  thead {
+    background: #080736;
+    color: #FFFFFF;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+  }
+  th:hover { background: #1a1e2e; }
+  .sort-icon { opacity: 0.45; font-size: 10px; }
+  td {
+    padding: 11px 16px;
+    border-bottom: 1px solid #E9EBF1;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #F8F8FC; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── Delta colors ── */
+  .positive { color: #1a7a45; font-weight: 600; }
+  .negative { color: #b91c1c; font-weight: 600; }
+  .neutral  { color: #969CAC; }
+
+  /* ── Query block ── */
+  .query-block {
+    margin-top: 24px;
+    background: #FFFFFF;
+    border-radius: 12px;
+    border: 1.5px solid #E9EBF1;
+    overflow: hidden;
+  }
+  .query-block summary {
+    padding: 12px 18px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #969CAC;
+    list-style: none;
+  }
+  .query-block summary:hover { color: #10141D; }
+  .query-block pre {
+    padding: 16px 18px;
+    background: #0f1117;
+    color: #e2e8f0;
+    font-size: 12px;
+    line-height: 1.6;
+    overflow-x: auto;
+    border-top: 1.5px solid #E9EBF1;
+  }
+  .query-block code { font-family: "NB International Pro Mono", "Fira Code", monospace; }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 40px;
+    text-align: center;
+    font-size: 11px;
+    color: #969CAC;
+  }
+  .footer a { color: #0037FF; text-decoration: none; }
+
+  /* ── Empty state ── */
+  .empty { text-align: center; padding: 48px; color: #969CAC; font-size: 15px; }
+
+  /* ── Print / PDF styles ── */
+  @media print {
+    body { background: white; font-size: 11px; }
+    .header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .kpi-card { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    thead { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .toolbar { display: none; }
+    .query-block { display: none; }
+    .container { padding: 16px; max-width: 100%; }
+    .table-card { box-shadow: none; border: 1px solid #ccc; }
+    tr { page-break-inside: avoid; }
+    .footer { display: none; }
+    a[href]::after { content: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="header">
+  <div class="header-left">
+    <div class="opti-logo">Optimizely</div>
+    <h1>Opal Attach × Pipeline Cross-Check — 2026 Q2/Q3/Q4</h1>
+    <div class="header-chips">
+      <span class="source-chip">📊 SOURCE B · REPORTING.GTM_ANALYTICS.RENEWAL_OPPORTUNITY + SOURCE C · EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP</span>
+      <span class="period-chip">🗓 2026 Q2 – Q4</span>
+    </div>
+  </div>
+  <div class="header-right">
+    Generated 30 Jun 2026, 19:59<br>
+    <small>product-swap-analyst</small>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- KPI cards -->
+  <div class="kpi-grid"><div class="kpi-card" style="background:#CCD7FF"><div class="kpi-value">4 accts · $570K</div><div class="kpi-label">Q2 Won (New)</div></div><div class="kpi-card" style="background:#D9F9E6"><div class="kpi-value">6 accts · $1.42M</div><div class="kpi-label">Q3 Won (New)</div></div><div class="kpi-card" style="background:#FFEB99"><div class="kpi-value">1 acct · $286K</div><div class="kpi-label">Q4 Won (New)</div></div><div class="kpi-card" style="background:#E7D2FF"><div class="kpi-value">30 accts · $4.3M</div><div class="kpi-label">Open Pipeline (Q2–Q4)</div></div><div class="kpi-card" style="background:#99AFFF"><div class="kpi-value">11 accts · $2.3M</div><div class="kpi-label">Total Won New Attach</div></div></div>
+
+  <!-- Caveats -->
+  <div class="caveat-box"><ul><li>Pipeline figures are forward-looking estimates, not booked ARR.</li><li>IS_OPAL=TRUE filter applied.</li><li>Deduped per MCID x CONTRACT_START_QUARTER.</li><li>Attach base = 5 EO accounts with Opal booked in Q2 per SST.</li></ul></div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input class="search-box" type="text" id="searchInput"
+           placeholder="Filter rows…" oninput="filterTable()">
+    <div class="btn-group">
+      <button class="btn btn-secondary" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn btn-primary" onclick="window.print()">🖨 Save as PDF</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-scroll">
+      <table id="dataTable">
+        <thead>
+          <tr><th onclick="sortTable(0)" title="Click to sort">Status <span class="sort-icon">⇅</span></th><th onclick="sortTable(1)" title="Click to sort">Quarter <span class="sort-icon">⇅</span></th><th onclick="sortTable(2)" title="Click to sort">Funnel Stage <span class="sort-icon">⇅</span></th><th onclick="sortTable(3)" title="Click to sort">Account Name <span class="sort-icon">⇅</span></th><th onclick="sortTable(4)" title="Click to sort">Primary Ae <span class="sort-icon">⇅</span></th><th onclick="sortTable(5)" title="Click to sort">Primary Csm <span class="sort-icon">⇅</span></th><th onclick="sortTable(6)" title="Click to sort">Stage Name <span class="sort-icon">⇅</span></th><th onclick="sortTable(7)" title="Click to sort">Contract Arr K <span class="sort-icon">⇅</span></th><th onclick="sortTable(8)" title="Click to sort">Baseline Arr K <span class="sort-icon">⇅</span></th></tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td>✅ Already Attached</td><td>2026 Q2</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>LocalAgentFinder</td><td>—</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won - Finance</span></td><td>84.8</td><td>84.8</td></tr><tr><td>🆕 Won - New to Attach</td><td>2026 Q2</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>Ocado Innovation Limited</td><td>Rob Janes</td><td>Adam Johnson</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won</span></td><td>342.7</td><td>351.4</td></tr><tr><td>🆕 Won - New to Attach</td><td>2026 Q2</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>Kid Distro Holdings, LLC</td><td>Kevin Kelly</td><td>Hallie Benezra</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won - Finance</span></td><td>131.9</td><td>131.9</td></tr><tr><td>🆕 Won - New to Attach</td><td>2026 Q2</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>Allens Operations Pty Ltd.</td><td>Matthew Meffan</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won - Finance</span></td><td>57.7</td><td>57.7</td></tr><tr><td>🆕 Won - New to Attach</td><td>2026 Q2</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>Diligent Corporation</td><td>Oliver Betuel</td><td>Kevin Dudginski</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won - Finance</span></td><td>38.2</td><td>38.2</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q2</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Enverus</td><td>Daniel Cox</td><td>Brandon Hilgenkamp</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Proposal</span></td><td>172.9</td><td>172.9</td></tr><tr><td>🆕 Won - New to Attach</td><td>2026 Q3</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>Depop Ltd.</td><td>Mike Cartwright</td><td>Ed Tate</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won - Finance</span></td><td>945.3</td><td>945.3</td></tr><tr><td>🆕 Won - New to Attach</td><td>2026 Q3</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>Länsförsäkringar AB</td><td>Robert Tanasa</td><td>Natalia Butor</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won - Finance</span></td><td>170.3</td><td>170.3</td></tr><tr><td>🆕 Won - New to Attach</td><td>2026 Q3</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>Best&Less Pty Limited</td><td>Deepali Saini</td><td>Tania Cai</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won - Finance</span></td><td>119.3</td><td>119.3</td></tr><tr><td>🆕 Won - New to Attach</td><td>2026 Q3</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>Mason Companies, Inc.</td><td>Giovanni Del Carpio</td><td>John Park</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won - Finance</span></td><td>98.4</td><td>98.4</td></tr><tr><td>🆕 Won - New to Attach</td><td>2026 Q3</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>Vita Group AS</td><td>Simon Simonsen</td><td>Regina Pak</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won</span></td><td>51.6</td><td>51.6</td></tr><tr><td>🆕 Won - New to Attach</td><td>2026 Q3</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>Employment Hero Pty Ltd</td><td>Deepali Saini</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won</span></td><td>36.7</td><td>36.7</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Employbridge</td><td>Chuck Acker</td><td>Victoria Dawson</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>190.3</td><td>150.0</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Qantas Airways Limited</td><td>Mark Ryan</td><td>Andrea Ciuffreda</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Contracts</span></td><td>167.3</td><td>194.2</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Tenerity, LLC</td><td>Jared Rizo</td><td>Brett Anthony Pascall</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>155.0</td><td>155.0</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Mars Inc.</td><td>Rachel Gray</td><td>Ashley Sheard</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>154.3</td><td>144.9</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Arizona State University</td><td>Rachel Gray</td><td>Emily Larson</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Contracts</span></td><td>115.1</td><td>115.1</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Johnson Financial Group</td><td>Oliver Betuel</td><td>Brett Anthony Pascall</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Contracts</span></td><td>104.4</td><td>104.4</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>UKG Inc.</td><td>Jen Oliver</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>87.0</td><td>87.0</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Visa U.S.A. Inc.</td><td>Jon Kee</td><td>Alyssa Alvarez</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>66.0</td><td>66.0</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Gerrie Electric Wholesale Limited</td><td>David Bingham</td><td>Ariba Sattar</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Proposal</span></td><td>57.7</td><td>0.0</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>KnowBe4, Inc</td><td>Giovanni Del Carpio</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>49.5</td><td>49.5</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Mimecast Services Ltd.</td><td>Sean Groat</td><td>Mary Kate McElroy</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>33.5</td><td>33.5</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Vastsvenska Handelskammaren Service AB</td><td>Daniel Martell</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Contracts</span></td><td>32.5</td><td>32.5</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q3</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Swiss Re Management Ltd</td><td>Markus Krause</td><td>Dominique Fabian</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>15.0</td><td>15.0</td></tr><tr><td>🆕 Won - New to Attach</td><td>2026 Q4</td><td><span class="badge" style="background:#D9F9E6;color:#10141D"><span class="dot" style="background:#3BE081"></span>Won</span></td><td>Compusoft Deutschland AG</td><td>Markus Krause</td><td>Matt Payne</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Closed Won</span></td><td>285.8</td><td>285.8</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Carnival Cruise Lines</td><td>Kelsey McCarthy</td><td>James Kulp</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>635.2</td><td>635.2</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Charles Schwab & Co., Inc.,</td><td>Dan Bulauski</td><td>Steven Reed</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>384.3</td><td>384.3</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Carlisle Construction Materials, LLC</td><td>Neil Harkins</td><td>Michelle Diaz</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Contracts</span></td><td>188.2</td><td>188.2</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Serena & Lily, Inc.</td><td>Kevin Kelly</td><td>Brendan Welsh</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>128.3</td><td>128.3</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Livelo S.A.</td><td>Kevin Kelly</td><td>Hannah McDowell</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>114.5</td><td>114.5</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Thrive Market, Inc.</td><td>Kevin Kelly</td><td>Brendan Welsh</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>111.5</td><td>111.5</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Globoforce Limited trading as Workhuman</td><td>Remi Pleyber</td><td>Jarrad del Pozo</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>103.0</td><td>103.0</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Corel Inc.</td><td>Joe Rosso</td><td>Hallie Benezra</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>101.9</td><td>115.4</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Freshworks Inc.</td><td>Hallah Karam</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>100.0</td><td>100.0</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Azazie Inc.</td><td>Joe Rosso</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>78.2</td><td>78.2</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Humble Bundle, Inc</td><td>Daniel Coletta</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>75.0</td><td>75.0</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Raisin SE</td><td>Sorcha Egan</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>71.2</td><td>71.2</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>KPMG - USA</td><td>Matthew E. Payne</td><td>Kevin Dudginski</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>70.0</td><td>160.0</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>StackCommerce</td><td>Hallah Karam</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>64.9</td><td>64.9</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>World Vision International Inc.</td><td>Rob Janes</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Proposal</span></td><td>64.5</td><td>64.5</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>American Residential Services, LLC</td><td>Jon Kee</td><td>—</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>58.8</td><td>58.8</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>National Notary Association</td><td>Joe Rosso</td><td>Patrick Reed</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>50.0</td><td>50.0</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Elite Hotels of Sweden AB</td><td>Kim Campese</td><td>Natalia Butor</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>34.2</td><td>34.2</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>University of Technology Sydney</td><td>Mark Ryan</td><td>Betsie Campos</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>21.5</td><td>21.5</td></tr><tr><td>🔵 Open Pipeline</td><td>2026 Q4</td><td><span class="badge" style="background:#CCD7FF;color:#10141D"><span class="dot" style="background:#0037FF"></span>Open Pipeline</span></td><td>Country Supplier (Parent)</td><td>David Bingham</td><td>Brandon Hilgenkamp</td><td><span class="badge" style="background:#F8F8FC;color:#10141D"><span class="dot" style="background:#969CAC"></span>Discovery</span></td><td>10.9</td><td>10.9</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SQL query -->
+  
+
+  <div class="footer">
+    Optimizely Analytics · Data from Snowflake · For internal use only
+  </div>
+
+</div>
+
+<script>
+// ── Sort ──────────────────────────────────────────────────────────────────────
+let sortDir = {};
+function sortTable(colIdx) {
+  const tbody = document.getElementById("tableBody");
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+  sortDir[colIdx] = !sortDir[colIdx];
+  rows.sort((a, b) => {
+    const aText = a.cells[colIdx]?.innerText.trim() || "";
+    const bText = b.cells[colIdx]?.innerText.trim() || "";
+    const aNum = parseFloat(aText.replace(/[^\d.\-]/g, ""));
+    const bNum = parseFloat(bText.replace(/[^\d.\-]/g, ""));
+    if (!isNaN(aNum) && !isNaN(bNum)) {
+      return sortDir[colIdx] ? aNum - bNum : bNum - aNum;
+    }
+    return sortDir[colIdx]
+      ? aText.localeCompare(bText)
+      : bText.localeCompare(aText);
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+// ── Filter ────────────────────────────────────────────────────────────────────
+function filterTable() {
+  const q = document.getElementById("searchInput").value.toLowerCase();
+  document.querySelectorAll("#tableBody tr").forEach(row => {
+    row.style.display = row.innerText.toLowerCase().includes(q) ? "" : "none";
+  });
+}
+
+// ── CSV export ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const table = document.getElementById("dataTable");
+  const rows = Array.from(table.querySelectorAll("tr"));
+  const csv = rows.map(r =>
+    Array.from(r.cells).map(c => '"' + c.innerText.replace(/"/g, '""') + '"').join(",")
+  ).join("\n");
+  const blob = new Blob([csv], {type: "text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Opal_Attach_×_Pipeline_Cross-Check_—_2026_Q2/Q3/Q4.csv";
+  a.click();
+}
+</script>
+</body>
+</html>

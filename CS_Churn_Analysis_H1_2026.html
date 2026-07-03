@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Churn Analysis H1 2026 | Optimizely CS Operations</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue-dark:#0A1628; --blue:#005CFF; --blue-light:#EEF3FF;
+    --orange:#FF6B35; --green:#00C48C; --red:#FF3B5C;
+    --amber:#F59E0B; --purple:#7C3AED; --teal:#0EA5E9;
+    --grey-50:#F9FAFB; --grey-100:#F3F4F6; --grey-200:#E5E7EB;
+    --grey-400:#9CA3AF; --grey-600:#4B5563; --grey-800:#1F2937;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Arial', sans-serif; background: var(--grey-50); color: var(--grey-800); }
+
+  /* ── Header ───────────────────────────────── */
+  .site-header {
+    background: var(--blue-dark); color: #fff;
+    padding: 0 40px; display: flex; align-items: center;
+    justify-content: space-between; height: 64px;
+  }
+  .site-header .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+  .site-header .logo span { color: var(--blue); }
+  .site-header .meta { font-size: 11px; color: #9CA3AF; text-align: right; }
+
+  .page-hero {
+    background: linear-gradient(135deg, var(--blue-dark) 0%, #0D2250 100%);
+    color: #fff; padding: 36px 40px 32px;
+    border-bottom: 3px solid var(--blue);
+  }
+  .page-hero h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  .page-hero p { font-size: 13px; color: #94A3B8; }
+  .page-hero .pills { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px; padding: 4px 12px; font-size: 11px; color: #CBD5E1;
+  }
+
+  /* ── KPI tiles ──────────────────────────────── */
+  .kpi-band { background: #fff; border-bottom: 1px solid var(--grey-200); padding: 20px 40px; }
+  .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
+  .kpi { border-left: 3px solid var(--blue); padding: 12px 16px; background: var(--grey-50); border-radius: 4px; }
+  .kpi.orange { border-color: var(--orange); }
+  .kpi.green  { border-color: var(--green); }
+  .kpi.red    { border-color: var(--red); }
+  .kpi.amber  { border-color: var(--amber); }
+  .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--grey-400); margin-bottom: 4px; }
+  .kpi-val   { font-size: 22px; font-weight: 700; color: var(--grey-800); }
+  .kpi-sub   { font-size: 10px; color: var(--grey-400); margin-top: 2px; }
+
+  /* ── Layout ─────────────────────────────────── */
+  .main { max-width: 1280px; margin: 0 auto; padding: 28px 40px 60px; }
+  .section { margin-bottom: 40px; }
+  .section-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--blue);
+  }
+  .section-num {
+    background: var(--blue); color: #fff;
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .section-title { font-size: 16px; font-weight: 700; color: var(--blue-dark); }
+  .section-sub   { font-size: 11px; color: var(--grey-400); margin-left: auto; }
+
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .chart-card {
+    background: #fff; border: 1px solid var(--grey-200);
+    border-radius: 8px; padding: 20px 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .chart-card.wide { grid-column: 1 / -1; }
+  .chart-title { font-size: 12px; font-weight: 700; color: var(--grey-800); margin-bottom: 4px; }
+  .chart-note  { font-size: 10px; color: var(--grey-400); margin-bottom: 14px; }
+  canvas { max-height: 340px; }
+
+  /* ── Competitor ─────────────────────────────── */
+  .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .comp-card {
+    background: #fff; border: 1px solid var(--grey-200);
+    border-radius: 8px; padding: 20px 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .comp-card-title { font-size: 12px; font-weight: 700; color: var(--grey-800); margin-bottom: 14px; }
+
+  /* ── AI Analysis ─────────────────────────────── */
+  .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .theme-card {
+    background: #fff; border: 1px solid var(--grey-200); border-radius: 8px;
+    padding: 20px 22px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .theme-card.wide { grid-column: 1 / -1; }
+  .theme-card-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+  .theme-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .theme-card-title { font-size: 13px; font-weight: 700; color: var(--grey-800); margin-bottom: 2px; }
+  .theme-card-sol   { font-size: 10px; color: var(--grey-400); }
+  .theme-body { font-size: 12px; line-height: 1.7; color: var(--grey-600); }
+  .theme-body strong { color: var(--grey-800); }
+  .quote {
+    background: var(--grey-50); border-left: 3px solid var(--blue);
+    padding: 8px 12px; border-radius: 0 4px 4px 0;
+    font-size: 11px; font-style: italic; color: var(--grey-600);
+    margin: 8px 0;
+  }
+  .signal {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 10px; font-weight: 700; margin: 2px 2px 2px 0;
+  }
+  .sig-red    { background: #FEE2E2; color: #991B1B; }
+  .sig-blue   { background: var(--blue-light); color: #1D4ED8; }
+  .sig-orange { background: #FFF7ED; color: #C2410C; }
+  .sig-green  { background: #D1FAE5; color: #065F46; }
+  .sig-purple { background: #EDE9FE; color: #5B21B6; }
+  .sig-amber  { background: #FEF3C7; color: #92400E; }
+
+  /* ── Table ───────────────────────────────────── */
+  .data-table-wrap { overflow-x: auto; margin-top: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  th { background: var(--blue-dark); color: #fff; padding: 7px 10px; text-align: left; font-weight: 600; white-space: nowrap; }
+  td { padding: 6px 10px; border-bottom: 1px solid var(--grey-200); white-space: nowrap; }
+  tr:nth-child(even) td { background: var(--grey-50); }
+  tr:hover td { background: var(--blue-light); }
+  .badge {
+    display: inline-block; padding: 1px 8px; border-radius: 10px;
+    font-size: 10px; font-weight: 600;
+  }
+  .b-eo  { background: #DBEAFE; color: #1D4ED8; }
+  .b-ec  { background: #FFF7ED; color: #C2410C; }
+  .b-oth { background: #D1FAE5; color: #065F46; }
+
+  /* ── Legend ─────────────────────────────────── */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .leg-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--grey-600); }
+  .leg-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ── Footer ─────────────────────────────────── */
+  .footer {
+    background: var(--blue-dark); color: #6B7280; font-size: 10px;
+    text-align: center; padding: 16px; margin-top: 40px;
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo">optim<span>izely</span></div>
+  <div class="meta">CS Operations &nbsp;|&nbsp; H1 2026 Churn Intelligence &nbsp;|&nbsp; Confidential</div>
+</header>
+
+<div class="page-hero">
+  <h1>H1 2026 Churn Analysis — Reason, Category &amp; Competitive Intelligence</h1>
+  <p>Source: REPORTING.GTM_ANALYTICS.RENEWAL_OPPORTUNITY + OPPORTUNITY_SNAPSHOT &nbsp;|&nbsp; OPPORTUNITY_STAGE = 'Lost' &nbsp;|&nbsp; CLOSE_DATE 2026-01-01 – 2026-06-30</p>
+  <div class="pills">
+    <span class="pill">441 churned opportunity lines</span>
+    <span class="pill">359 unique accounts</span>
+    <span class="pill">$21.8M total churned ARR</span>
+    <span class="pill">Experience Optimization · Experience Creation · Other</span>
+    <span class="pill">AI narrative from REASON_LOST_DETAIL + RENEWAL_NOTE_C</span>
+  </div>
+</div>
+
+<div class="kpi-band">
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Exp Optimization ARR Lost</div>
+      <div class="kpi-val">$49.0M</div>
+      <div class="kpi-sub">122 unique opportunities</div>
+    </div>
+    <div class="kpi orange">
+      <div class="kpi-label">Exp Creation ARR Lost</div>
+      <div class="kpi-val">$17.5M</div>
+      <div class="kpi-sub">210 unique opportunities</div>
+    </div>
+    <div class="kpi green">
+      <div class="kpi-label">Other Products ARR Lost</div>
+      <div class="kpi-val">$8.2M</div>
+      <div class="kpi-sub">109 unique opportunities</div>
+    </div>
+    <div class="kpi red">
+      <div class="kpi-label">Top Competitive Threat</div>
+      <div class="kpi-val">Amplitude</div>
+      <div class="kpi-sub">$1.32M ARR lost · 10 opps</div>
+    </div>
+    <div class="kpi amber">
+      <div class="kpi-label">No Reason Captured</div>
+      <div class="kpi-val">~28%</div>
+      <div class="kpi-sub">of all churned opportunities</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ── SECTION 1: PRIMARY CHURN REASON ─────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">1</div>
+    <div class="section-title">Primary Churn Reason by Product Solution</div>
+    <div class="section-sub">% of unique churned opportunities · keyword-classified from REASON_LOST_DETAIL</div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card wide">
+      <div class="chart-title">Primary Churn Reason — % of Opportunities by Product Solution</div>
+      <div class="chart-note">Classified from free-text REASON_LOST_DETAIL via keyword pattern matching. "Unknown / No Data" combines Other/Unclear, No Reason Recorded, and Admin/Duplicate entries.</div>
+      <canvas id="reasonChart"></canvas>
+      <div class="legend" id="reasonLegend"></div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-top:16px;">
+    <div class="chart-title">Source Data: Reason Classification by Product Solution (opportunity count)</div>
+    <div class="data-table-wrap">
+      <table>
+        <thead><tr>
+          <th>Primary Reason</th>
+          <th>Exp Optimization</th><th>%</th>
+          <th>Exp Creation</th><th>%</th>
+          <th>Other</th><th>%</th>
+          <th>Total</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Unknown / No Data</td><td>72</td><td>59.5%</td><td>146</td><td>74.9%</td><td>80</td><td>74.1%</td><td>298</td></tr>
+          <tr><td>Budget / Commercial</td><td>16</td><td>13.2%</td><td>11</td><td>5.6%</td><td>3</td><td>2.8%</td><td>30</td></tr>
+          <tr><td>Competitive Displacement</td><td>13</td><td>10.7%</td><td>11</td><td>5.6%</td><td>8</td><td>7.4%</td><td>32</td></tr>
+          <tr><td>M&amp;A / Corp Restructuring</td><td>8</td><td>6.6%</td><td>8</td><td>4.1%</td><td>3</td><td>2.8%</td><td>19</td></tr>
+          <tr><td>Low Adoption / No Resources</td><td>7</td><td>5.8%</td><td>4</td><td>2.1%</td><td>3</td><td>2.8%</td><td>14</td></tr>
+          <tr><td>Platform Migration / EOL</td><td>3</td><td>2.5%</td><td>13</td><td>6.7%</td><td>7</td><td>6.5%</td><td>23</td></tr>
+          <tr><td>Bankruptcy</td><td>1</td><td>0.8%</td><td>2</td><td>1.0%</td><td>4</td><td>3.7%</td><td>7</td></tr>
+          <tr><td>Product Gap / Poor Fit</td><td>1</td><td>0.8%</td><td>0</td><td>0%</td><td>0</td><td>0%</td><td>1</td></tr>
+          <tr style="font-weight:bold;"><td>Total</td><td>121</td><td>100%</td><td>195</td><td>100%</td><td>108</td><td>100%</td><td>424</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 2: CHURN CATEGORY ────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">2</div>
+    <div class="section-title">Churn Category by Product Solution</div>
+    <div class="section-sub">% of unique churned opportunities · derived from REASON_LOST_DETAIL categorisation</div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card wide">
+      <div class="chart-title">Churn Category — % of Opportunities by Product Solution</div>
+      <div class="chart-note">Categories represent the structural driver of churn, independent of the specific competitor or reason. "Other" = free-text reasons not matching any structured keyword bucket.</div>
+      <canvas id="categoryChart"></canvas>
+      <div class="legend" id="categoryLegend"></div>
+    </div>
+  </div>
+
+  <div class="chart-card" style="margin-top:16px;">
+    <div class="chart-title">Source Data: Churn Category by Product Solution (opportunity count)</div>
+    <div class="data-table-wrap">
+      <table>
+        <thead><tr>
+          <th>Churn Category</th>
+          <th>Exp Optimization</th><th>%</th>
+          <th>Exp Creation</th><th>%</th>
+          <th>Other</th><th>%</th>
+          <th>Total</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>Unknown / Admin</td><td>32</td><td>26.4%</td><td>52</td><td>26.7%</td><td>22</td><td>20.4%</td><td>106</td></tr>
+          <tr><td>Other (Unclassified)</td><td>33</td><td>27.3%</td><td>82</td><td>42.1%</td><td>56</td><td>51.9%</td><td>171</td></tr>
+          <tr><td>Commercial</td><td>18</td><td>14.9%</td><td>19</td><td>9.7%</td><td>6</td><td>5.6%</td><td>43</td></tr>
+          <tr><td>Competitive</td><td>12</td><td>9.9%</td><td>10</td><td>5.1%</td><td>5</td><td>4.6%</td><td>27</td></tr>
+          <tr><td>Corporate / Structural</td><td>9</td><td>7.4%</td><td>8</td><td>4.1%</td><td>7</td><td>6.5%</td><td>24</td></tr>
+          <tr><td>Product</td><td>8</td><td>6.6%</td><td>5</td><td>2.6%</td><td>1</td><td>0.9%</td><td>14</td></tr>
+          <tr><td>Adoption / Capability</td><td>6</td><td>5.0%</td><td>4</td><td>2.1%</td><td>3</td><td>2.8%</td><td>13</td></tr>
+          <tr><td>Platform Migration / EOL</td><td>3</td><td>2.5%</td><td>13</td><td>6.7%</td><td>7</td><td>6.5%</td><td>23</td></tr>
+          <tr style="font-weight:bold;"><td>Total</td><td>121</td><td>100%</td><td>193</td><td>100%</td><td>107</td><td>100%</td><td>421</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 3: COMPETITORS ─────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">3</div>
+    <div class="section-title">Primary Competitor by Product Solution</div>
+    <div class="section-sub">Named competitors with 2+ opps or $75K+ ARR at stake · sourced from PRIMARY_COMPETITOR_NAME field</div>
+  </div>
+
+  <div class="comp-grid">
+    <div class="comp-card">
+      <div class="comp-card-title">Experience Optimization — Top Competitors by Churned ARR ($K)</div>
+      <canvas id="compEOChart"></canvas>
+    </div>
+    <div class="comp-card">
+      <div class="comp-card-title">Experience Creation — Top Competitors by Churned ARR ($K)</div>
+      <canvas id="compECChart"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card wide" style="margin-top:16px;">
+    <div class="chart-title">Overall Top 10 Competitors — Total Churned ARR ($K, all product solutions combined)</div>
+    <div class="chart-note">Sorted by total ARR at risk. Highlights cross-product competitive threats.</div>
+    <canvas id="compAllChart" style="max-height:280px;"></canvas>
+  </div>
+
+  <div class="chart-card" style="margin-top:16px;">
+    <div class="chart-title">Source Data: Competitor Detail</div>
+    <div class="data-table-wrap">
+      <table>
+        <thead><tr><th>Competitor</th><th>Product Solution</th><th>Opps Won</th><th>Churned ARR ($)</th></tr></thead>
+        <tbody>
+          <tr><td>Amplitude</td><td><span class="badge b-eo">Exp Optimization</span></td><td>9</td><td>$1,180,835</td></tr>
+          <tr><td>Amplitude</td><td><span class="badge b-oth">Other</span></td><td>1</td><td>$53,400</td></tr>
+          <tr><td>Adobe Target</td><td><span class="badge b-eo">Exp Optimization</span></td><td>5</td><td>$708,916</td></tr>
+          <tr><td>StatSig</td><td><span class="badge b-eo">Exp Optimization</span></td><td>5</td><td>$611,067</td></tr>
+          <tr><td>AB Tasty</td><td><span class="badge b-eo">Exp Optimization</span></td><td>4</td><td>$528,512</td></tr>
+          <tr><td>AB Tasty</td><td><span class="badge b-ec">Exp Creation</span></td><td>4</td><td>$38,381</td></tr>
+          <tr><td>AB Tasty</td><td><span class="badge b-oth">Other</span></td><td>2</td><td>$116,852</td></tr>
+          <tr><td>Adobe AEM</td><td><span class="badge b-ec">Exp Creation</span></td><td>5</td><td>$560,548</td></tr>
+          <tr><td>Adobe AEM</td><td><span class="badge b-oth">Other</span></td><td>1</td><td>$86,053</td></tr>
+          <tr><td>In-house Solution</td><td><span class="badge b-eo">Exp Optimization</span></td><td>3</td><td>$226,112</td></tr>
+          <tr><td>In-house Solution</td><td><span class="badge b-ec">Exp Creation</span></td><td>2</td><td>$78,242</td></tr>
+          <tr><td>In-house Solution</td><td><span class="badge b-oth">Other</span></td><td>5</td><td>$51,533</td></tr>
+          <tr><td>Enonic AS</td><td><span class="badge b-ec">Exp Creation</span></td><td>1</td><td>$243,021</td></tr>
+          <tr><td>Dynamic Yield</td><td><span class="badge b-ec">Exp Creation</span></td><td>1</td><td>$220,490</td></tr>
+          <tr><td>VWO</td><td><span class="badge b-eo">Exp Optimization</span></td><td>1</td><td>$180,000</td></tr>
+          <tr><td>WordPress</td><td><span class="badge b-ec">Exp Creation</span></td><td>9</td><td>$214,087</td></tr>
+          <tr><td>Sanity</td><td><span class="badge b-ec">Exp Creation</span></td><td>3</td><td>$168,718</td></tr>
+          <tr><td>LaunchDarkly</td><td><span class="badge b-eo">Exp Optimization</span></td><td>1</td><td>$132,814</td></tr>
+          <tr><td>Asana</td><td><span class="badge b-ec">Exp Creation</span></td><td>2</td><td>$134,450</td></tr>
+          <tr><td>PostHog</td><td><span class="badge b-eo">Exp Optimization</span></td><td>1</td><td>$112,634</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 4: AI ANALYSIS ──────────────────────────────── -->
+<div class="section">
+  <div class="section-header">
+    <div class="section-num">4</div>
+    <div class="section-title">AI Theme Analysis — Key Patterns from REASON_LOST_DETAIL &amp; RENEWAL_NOTE_C</div>
+    <div class="section-sub">Synthesised from free-text churn narratives across 441 closed-lost opportunity lines, H1 2026</div>
+  </div>
+
+  <div class="theme-grid">
+
+    <!-- EO Theme 1 -->
+    <div class="theme-card">
+      <div class="theme-card-header">
+        <div class="theme-icon" style="background:#EEF3FF; color:#005CFF; font-size:18px;">📊</div>
+        <div>
+          <div class="theme-card-title">Analytics-First Platforms Displacing Experimentation</div>
+          <div class="theme-card-sol">Experience Optimization &nbsp;·&nbsp; $1.32M ARR · 10 opps</div>
+        </div>
+      </div>
+      <div class="theme-body">
+        <strong>Amplitude</strong> is the dominant competitive threat in H1 2026, winning 9 Exp Optimization accounts worth $1.18M. The pattern is consistent: analytics-led teams consolidate behavioural analytics and experimentation into one platform, and Amplitude's narrative wins at the CDO/Head of Product level.
+        <div class="quote">"Significant financial challenges. CDO values the partnership and is open to exploring Opal/Analytics — could reduce the churn level." — Yoox renewal note ($767K)</div>
+        <strong>StatSig</strong> (5 opps, $611K) wins specifically on <em>server-side testing</em> depth and pricing. The pattern is technical: engineering-led teams outgrow client-side testing and StatSig fills the gap at a lower price point. AB Tasty (4 opps, $529K) is gaining traction in EMEA mid-market, particularly where customers de-prioritise breadth in favour of cost.
+        <div class="legend" style="margin-top:8px;">
+          <span class="signal sig-red">Amplitude #1 threat · EO</span>
+          <span class="signal sig-blue">StatSig on server-side</span>
+          <span class="signal sig-orange">AB Tasty EMEA mid-market</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EO Theme 2 -->
+    <div class="theme-card">
+      <div class="theme-card-header">
+        <div class="theme-icon" style="background:#FFF7ED; color:#C2410C; font-size:18px;">💰</div>
+        <div>
+          <div class="theme-card-title">MAU Consumption Model Driving Commercial Friction</div>
+          <div class="theme-card-sol">Experience Optimization &nbsp;·&nbsp; recurring commercial pattern</div>
+        </div>
+      </div>
+      <div class="theme-body">
+        Renewal notes reveal a structural commercial tension: customers who experience MAU overages feel "commercially unprotected." The Stepstone Group ($476K) is the clearest signal — they explicitly cite the consumption model as the primary driver, not product dissatisfaction.
+        <div class="quote">"They felt commercially unprotected with our MAU-based consumption model due to past overage situations, leading to a higher cost than initially planned." — The Stepstone Group</div>
+        Constant Contact ($180K, lost to VWO) noted pricing as an issue without formal documentation. This pattern is consistent with 13% of Exp Optimization churns classified as Budget/Commercial. <strong>Action: review MAU overage notification and proactive right-sizing triggers.</strong>
+        <div class="legend" style="margin-top:8px;">
+          <span class="signal sig-amber">13% of EO churns = commercial</span>
+          <span class="signal sig-red">Overage-driven price sensitivity</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EO Theme 3 -->
+    <div class="theme-card">
+      <div class="theme-card-header">
+        <div class="theme-icon" style="background:#EDE9FE; color:#5B21B6; font-size:18px;">🏢</div>
+        <div>
+          <div class="theme-card-title">Financial Distress &amp; Executive Mandates</div>
+          <div class="theme-card-sol">Cross-product &nbsp;·&nbsp; structurally unrecoverable losses</div>
+        </div>
+      </div>
+      <div class="theme-body">
+        A meaningful cluster of H1 2026 churns are <strong>structurally unrecoverable</strong> — driven by bankruptcy, M&amp;A, and top-down executive mandates unrelated to product performance.
+        <ul style="margin:8px 0 8px 16px; font-size:12px; line-height:1.8; color:var(--grey-600);">
+          <li><strong>WHG/Evoke ($1.06M)</strong>: 5x net debt/EBITDA + UK gambling tax increase forced martech cuts. Optimizely had no leverage at renewal.</li>
+          <li><strong>Neiman Marcus ($557K)</strong>: Chapter 11 bankruptcy (Saks Global). DIP financing mode, no renewals possible.</li>
+          <li><strong>Toolstream ($181K)</strong>: Administration in Dec 2025, all employees redundant.</li>
+          <li><strong>Eddie Bauer ($203K)</strong>: Sold by Catalyst brands; acquisition forced shutdown of Optimizely instance.</li>
+        </ul>
+        These 4 accounts alone represent ~$2M ARR. No CS intervention could have altered the outcome. Collectively, M&amp;A/Bankruptcy accounts for ~10% of opps across all products.
+        <div class="legend" style="margin-top:8px;">
+          <span class="signal sig-purple">$2M+ in unrecoverable macro churns</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EO Theme 4 -->
+    <div class="theme-card">
+      <div class="theme-card-header">
+        <div class="theme-icon" style="background:#D1FAE5; color:#065F46; font-size:18px;">👥</div>
+        <div>
+          <div class="theme-card-title">Low Adoption — No Internal Experimentation Program</div>
+          <div class="theme-card-sol">Experience Optimization &nbsp;·&nbsp; 7 opps · preventable signal</div>
+        </div>
+      </div>
+      <div class="theme-body">
+        Multiple churn notes reveal a recurring pattern: customers who purchased experimentation capability but never built the internal program to use it. They move to fully-managed agencies that include testing tooling, at a fraction of the cost.
+        <div class="quote">"No internal resource to use an A/B testing tool. Moving to a fully-managed agency that brings their own testing tool... the agency is a fraction of the cost of Optimizely." — The Fragrance Shop ($138K)</div>
+        <div class="quote">"Client experienced budget reductions and did not have dedicated resources with the expertise required to run experimentation programs." — Exp Optimization customer ($62K)</div>
+        PetLab ($194K) went unresponsive after a 3-month complimentary offer + Opal demo — a sign that even aggressive retention tactics failed when there was no internal champion. <strong>These churns are early-warning signals catchable at QBR stage.</strong>
+        <div class="legend" style="margin-top:8px;">
+          <span class="signal sig-green">Catchable at QBR / health score</span>
+          <span class="signal sig-amber">Agency displacement pattern</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EC Theme 1 -->
+    <div class="theme-card">
+      <div class="theme-card-header">
+        <div class="theme-icon" style="background:#FEE2E2; color:#991B1B; font-size:18px;">🏗️</div>
+        <div>
+          <div class="theme-card-title">MACH / Composable Architecture Migration Wave</div>
+          <div class="theme-card-sol">Experience Creation &nbsp;·&nbsp; $1.06M single-account signal + broader trend</div>
+        </div>
+      </div>
+      <div class="theme-body">
+        The largest single churn in H1 2026 (WHG/Evoke, $1.06M across 21 opportunity lines) is a MACH architecture migration. The customer selected Sitoo as their MACH-certified transactional foundation, displacing Optimizely's commerce/experimentation stack. This is representative of a broader market trend.
+        <div class="quote">"They have chosen a customised composable MACH architecture... chosen Sitoo as their MACH-certified transactional foundation." — WHG International</div>
+        St John Ambulance ($223K) explicitly migrated CMS to Contentful and Commerce to Shopify — two best-of-breed MACH choices. Adobe AEM remains the enterprise fallback for large-org consolidation (5 opps, $561K in EC), particularly where the CMO/CTO mandate is "one vendor, enterprise grade."
+        <div class="legend" style="margin-top:8px;">
+          <span class="signal sig-red">MACH displacement accelerating</span>
+          <span class="signal sig-blue">Adobe AEM for enterprise</span>
+          <span class="signal sig-orange">Shopify + Contentful mid-market</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- EC Theme 2 -->
+    <div class="theme-card">
+      <div class="theme-card-header">
+        <div class="theme-icon" style="background:#EEF3FF; color:#005CFF; font-size:18px;">☁️</div>
+        <div>
+          <div class="theme-card-title">Internal DXP Migration Counted as Churn (Not True Attrition)</div>
+          <div class="theme-card-sol">Experience Creation &amp; Other &nbsp;·&nbsp; 20+ opps · $750K ARR · retained customers</div>
+        </div>
+      </div>
+      <div class="theme-body">
+        A significant portion of Experience Creation "churn" in H1 2026 is actually <strong>internal platform migration</strong> — customers moving from on-premise CMS to Optimizely DXP (cloud). These customers <em>remain</em> Optimizely customers but their CMS renewal opportunity is closed-lost because the on-prem SKU is replaced.
+        <div class="quote">"Riksbanken has signed a DXP agreement for the period 2026-01-30 to 2027-08-31. This SKU will be replaced by a new DXP agreement. Churn migration ARR is $200,257." — Sveriges Riksbank note</div>
+        <strong>This represents false-negative churn data.</strong> If DXP revenue is tracked separately, this deflates apparent Exp Creation renewal rates without reflecting true customer loss. Sveriges Riksbank ($601K + $241K), Metropolitan Police, and 10+ others follow this pattern. Finance and reporting teams should normalise for DXP migration when calculating product-level renewal rates.
+        <div class="legend" style="margin-top:8px;">
+          <span class="signal sig-green">~$750K "churn" = retained on DXP</span>
+          <span class="signal sig-blue">Report as migration, not attrition</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cross-product Theme 1 -->
+    <div class="theme-card">
+      <div class="theme-card-header">
+        <div class="theme-icon" style="background:#FEF3C7; color:#92400E; font-size:18px;">🎯</div>
+        <div>
+          <div class="theme-card-title">Executive / Top-Down Consolidation Decisions</div>
+          <div class="theme-card-sol">Cross-product &nbsp;·&nbsp; new CMO/CTO patterns</div>
+        </div>
+      </div>
+      <div class="theme-body">
+        A recurring pattern across both Exp Optimization and Exp Creation: churn decisions made at the CxO level, often triggered by incoming leadership, are not recoverable through working-level CS engagement.
+        <div class="quote">"Confirmed as a result of a top-down executive decision rather than account-level dissatisfaction or performance concerns." — CenterWell/Humana ($222K, Adobe AEM)</div>
+        <div class="quote">"Ford Credit is consolidating across the org to Adobe Target. Formal notice recently received." — Ford Motor Credit ($167K)</div>
+        <div class="quote">"The $135K CMP renewal remains confirmed churn tied to broader martech consolidation under the new CMO rather than pricing or product performance." — Proofpoint note</div>
+        These decisions typically involve "one-vendor" strategies (Adobe, Salesforce) where Optimizely is not positioned at the executive level. <strong>Key signal: new CxO hire at a key account should trigger executive outreach within 30 days.</strong>
+        <div class="legend" style="margin-top:8px;">
+          <span class="signal sig-red">New CxO = 30-day risk signal</span>
+          <span class="signal sig-purple">Adobe / Salesforce 1-vendor play</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cross-product Theme 2 (wide) -->
+    <div class="theme-card wide">
+      <div class="theme-card-header">
+        <div class="theme-icon" style="background:#F3F4F6; color:#4B5563; font-size:18px;">⚠️</div>
+        <div>
+          <div class="theme-card-title">Data Quality Gap: 28% of Churns Have No Documented Reason — and Key Recommendations</div>
+          <div class="theme-card-sol">All Products &nbsp;·&nbsp; systemic insight gap impeding early warning</div>
+        </div>
+      </div>
+      <div class="theme-body" style="display:grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div>
+          <strong>Data Gap:</strong> Across all products, approximately 28% of churned opportunity lines have no reason recorded or carry only administrative/duplicate entries. This is highest in Exp Creation (74.9% unknown/no data) and significant even in Exp Optimization (59.5% including unclear/admin). Without structured churn capture at close, the organisation cannot systematically identify preventable churn patterns, build early-warning health score models, or benchmark competitive displacement rates over time.
+          <div class="quote" style="margin-top:10px;">"CZ 6/11: Cancellation note from customer this morning. I am trying to perform winbacks, but they have been unresponsive. Moving to closed lost &amp; lack of churn data." — CSM note</div>
+          <p style="margin-top:8px;"><strong>Recommended actions:</strong></p>
+          <ul style="margin:6px 0 0 16px; font-size:12px; line-height:1.9; color:var(--grey-600);">
+            <li>Mandate structured churn reason picklist at Closed Lost (not free text only)</li>
+            <li>Set Salesforce validation rule: REASON_LOST_DETAIL required on Closed Lost</li>
+            <li>Tag DXP migrations as "Migration – Internal" to separate from true attrition</li>
+          </ul>
+        </div>
+        <div>
+          <strong>Opal as a Retention Signal:</strong> Multiple renewal notes show CSMs offering Opal demos and workshops as a last-resort retention play. The pattern is visible across WHG, Yoox, Nederlandse Spoorwegen, and PetLab. Results are mixed — some CDOs express openness to Opal even after declining core product renewal, suggesting an upsell/pivot path.
+          <div class="quote" style="margin-top:10px;">"CDO values the partnership and is open to exploring Opal/Analytics... could potentially reduce the churn level." — Yoox CDO ($767K)</div>
+          <div class="quote">"Explore retention efforts with Opal. Identified Risk: Full Churn. Help Needed: Opal value conversation with the AI steerco at NS." — Nederlandse Spoorwegen note</div>
+          <p style="margin-top:8px;"><strong>Campaign product gap:</strong> The Emarsys cluster (10 identical lines) traces to a Campaign UI gap — XML editor migration from old template interface to new editor was not completed. Customers experiencing this gap churned to Emarsys. This is a product-specific, actionable signal for the Campaign roadmap team.
+          </p>
+          <div class="legend" style="margin-top:10px;">
+            <span class="signal sig-green">Opal as cross-sell at churn point</span>
+            <span class="signal sig-red">Campaign XML editor gap → Emarsys</span>
+            <span class="signal sig-amber">Mandate structured reason capture</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<div class="footer">
+  Optimizely CS Operations &nbsp;|&nbsp; H1 2026 Churn Intelligence Report &nbsp;|&nbsp; Data: REPORTING.GTM_ANALYTICS &nbsp;|&nbsp; Generated June 2026 &nbsp;|&nbsp; Confidential
+</div>
+
+<script>
+// ─────── COLOUR PALETTES ────────────────────────
+const REASON_COLORS = {
+  'Unknown / No Data':           '#D1D5DB',
+  'Budget / Commercial':         '#F59E0B',
+  'Competitive Displacement':    '#EF4444',
+  'M&A / Corp Restructuring':    '#7C3AED',
+  'Low Adoption / No Resources': '#F97316',
+  'Platform Migration / EOL':    '#3B82F6',
+  'Bankruptcy':                  '#1F2937',
+  'Product Gap / Poor Fit':      '#EC4899',
+};
+const CAT_COLORS = {
+  'Other (Unclassified)':       '#9CA3AF',
+  'Unknown / Admin':            '#D1D5DB',
+  'Commercial':                 '#F59E0B',
+  'Competitive':                '#EF4444',
+  'Corporate / Structural':     '#7C3AED',
+  'Platform Migration / EOL':   '#3B82F6',
+  'Adoption / Capability':      '#F97316',
+  'Product':                    '#EC4899',
+};
+const PRODUCTS = ['Exp Optimization', 'Exp Creation', 'Other'];
+
+// ─────── CHART 1: PRIMARY REASON ────────────────
+const reasonLabels = Object.keys(REASON_COLORS);
+const reasonData = {
+  'Unknown / No Data':           [59.5, 74.9, 74.1],
+  'Budget / Commercial':         [13.2,  5.6,  2.8],
+  'Competitive Displacement':    [10.7,  5.6,  7.4],
+  'M&A / Corp Restructuring':    [ 6.6,  4.1,  2.8],
+  'Low Adoption / No Resources': [ 5.8,  2.1,  2.8],
+  'Platform Migration / EOL':    [ 2.5,  6.7,  6.5],
+  'Bankruptcy':                  [ 0.8,  1.0,  3.7],
+  'Product Gap / Poor Fit':      [ 0.8,  0.0,  0.0],
+};
+
+const rDatasets = reasonLabels.map(label => ({
+  label,
+  data: reasonData[label],
+  backgroundColor: REASON_COLORS[label],
+  borderRadius: 2,
+  borderSkipped: false,
+}));
+
+new Chart(document.getElementById('reasonChart'), {
+  type: 'bar',
+  data: { labels: PRODUCTS, datasets: rDatasets },
+  options: {
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.x.toFixed(1)}%`
+        }
+      }
+    },
+    scales: {
+      x: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#F3F4F6' } },
+      y: { stacked: true, grid: { display: false } }
+    },
+    maintainAspectRatio: false,
+    responsive: true,
+    animation: false,
+  }
+});
+document.getElementById('reasonChart').style.height = '200px';
+
+// Build legend
+const rLeg = document.getElementById('reasonLegend');
+reasonLabels.forEach(l => {
+  const item = document.createElement('div');
+  item.className = 'leg-item';
+  item.innerHTML = `<div class="leg-dot" style="background:${REASON_COLORS[l]}"></div>${l}`;
+  rLeg.appendChild(item);
+});
+
+// ─────── CHART 2: CHURN CATEGORY ────────────────
+const catLabels = Object.keys(CAT_COLORS);
+const catData = {
+  'Other (Unclassified)':       [27.3, 42.1, 51.9],
+  'Unknown / Admin':            [26.4, 26.7, 20.4],
+  'Commercial':                 [14.9,  9.7,  5.6],
+  'Competitive':                [ 9.9,  5.1,  4.6],
+  'Corporate / Structural':     [ 7.4,  4.1,  6.5],
+  'Product':                    [ 6.6,  2.6,  0.9],
+  'Adoption / Capability':      [ 5.0,  2.1,  2.8],
+  'Platform Migration / EOL':   [ 2.5,  6.7,  6.5],
+};
+
+const cDatasets = catLabels.map(label => ({
+  label,
+  data: catData[label],
+  backgroundColor: CAT_COLORS[label],
+  borderRadius: 2,
+  borderSkipped: false,
+}));
+
+new Chart(document.getElementById('categoryChart'), {
+  type: 'bar',
+  data: { labels: PRODUCTS, datasets: cDatasets },
+  options: {
+    indexAxis: 'y',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.x.toFixed(1)}%`
+        }
+      }
+    },
+    scales: {
+      x: { stacked: true, max: 100, ticks: { callback: v => v + '%' }, grid: { color: '#F3F4F6' } },
+      y: { stacked: true, grid: { display: false } }
+    },
+    maintainAspectRatio: false,
+    responsive: true,
+    animation: false,
+  }
+});
+document.getElementById('categoryChart').style.height = '200px';
+
+// Build legend
+const cLeg = document.getElementById('categoryLegend');
+catLabels.forEach(l => {
+  const item = document.createElement('div');
+  item.className = 'leg-item';
+  item.innerHTML = `<div class="leg-dot" style="background:${CAT_COLORS[l]}"></div>${l}`;
+  cLeg.appendChild(item);
+});
+
+// ─────── CHART 3a: EO Competitors ───────────────
+new Chart(document.getElementById('compEOChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Amplitude','Adobe Target','StatSig','AB Tasty','In-house','VWO','LaunchDarkly','PostHog','Kameleoon','Harness.io'],
+    datasets: [{
+      label: 'Churned ARR ($K)',
+      data: [1181, 709, 611, 529, 226, 180, 133, 113, 75, 62],
+      backgroundColor: '#005CFF',
+      borderRadius: 3,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ` $${ctx.parsed.x.toLocaleString()}K` } }
+    },
+    scales: {
+      x: { grid: { color: '#F3F4F6' }, ticks: { callback: v => '$'+v+'K' } },
+      y: { grid: { display: false } }
+    },
+    animation: false, responsive: true, maintainAspectRatio: false,
+  }
+});
+document.getElementById('compEOChart').style.height = '280px';
+
+// ─────── CHART 3b: EC Competitors ───────────────
+new Chart(document.getElementById('compECChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Adobe AEM','Enonic AS','Dynamic Yield','WordPress','Asana','Sanity','Shopify Plus','Acquia','Contentful','Umbraco'],
+    datasets: [{
+      label: 'Churned ARR ($K)',
+      data: [561, 243, 220, 214, 134, 169, 88, 90, 98, 66],
+      backgroundColor: '#FF6B35',
+      borderRadius: 3,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: ctx => ` $${ctx.parsed.x.toLocaleString()}K` } }
+    },
+    scales: {
+      x: { grid: { color: '#F3F4F6' }, ticks: { callback: v => '$'+v+'K' } },
+      y: { grid: { display: false } }
+    },
+    animation: false, responsive: true, maintainAspectRatio: false,
+  }
+});
+document.getElementById('compECChart').style.height = '280px';
+
+// ─────── CHART 3c: All Competitors ──────────────
+new Chart(document.getElementById('compAllChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Amplitude','AB Tasty','Adobe AEM','Adobe Target','StatSig','In-house','WordPress','Enonic','Dynamic Yield','VWO'],
+    datasets: [
+      {
+        label: 'Exp Optimization',
+        data: [1181, 529, 0, 709, 611, 226, 0, 0, 0, 180],
+        backgroundColor: '#005CFF', borderRadius: 3,
+      },
+      {
+        label: 'Exp Creation',
+        data: [0, 38, 561, 0, 0, 78, 214, 243, 220, 0],
+        backgroundColor: '#FF6B35', borderRadius: 3,
+      },
+      {
+        label: 'Other',
+        data: [53, 117, 86, 5, 0, 52, 8, 0, 0, 0],
+        backgroundColor: '#00C48C', borderRadius: 3,
+      },
+    ]
+  },
+  options: {
+    plugins: {
+      legend: { position: 'top', labels: { font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y.toLocaleString()}K` } }
+    },
+    scales: {
+      x: { stacked: true, grid: { display: false } },
+      y: { stacked: true, grid: { color: '#F3F4F6' }, ticks: { callback: v => '$'+v+'K' } }
+    },
+    animation: false, responsive: true, maintainAspectRatio: false,
+  }
+});
+document.getElementById('compAllChart').style.height = '260px';
+</script>
+</body>
+</html>

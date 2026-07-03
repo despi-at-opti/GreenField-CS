@@ -1,0 +1,298 @@
+[
+  {
+    "SNAPSHOT_MONTH": "2025-06-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1724,
+    "TOTAL_ARR": 122037064.86,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-06-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 28,
+    "TOTAL_ARR": 917500.52,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-07-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1721,
+    "TOTAL_ARR": 123120335.76,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-07-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 30,
+    "TOTAL_ARR": 1036566.69,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-08-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1711,
+    "TOTAL_ARR": 122931478.16,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-08-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 30,
+    "TOTAL_ARR": 1018932.81,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-09-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1704,
+    "TOTAL_ARR": 124312597.89,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-09-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 35,
+    "TOTAL_ARR": 1039921.86,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-10-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1703,
+    "TOTAL_ARR": 125297786.27,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-10-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 43,
+    "TOTAL_ARR": 1114369.53,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-11-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1699,
+    "TOTAL_ARR": 125411693.37,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-11-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 45,
+    "TOTAL_ARR": 2084824.04,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-12-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1691,
+    "TOTAL_ARR": 126801475.24,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2025-12-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 51,
+    "TOTAL_ARR": 2199165.18,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2026-01-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1704,
+    "TOTAL_ARR": 129049976.29,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2026-01-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 60,
+    "TOTAL_ARR": 2444285.49,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2026-02-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1696,
+    "TOTAL_ARR": 129307482.15,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2026-02-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 60,
+    "TOTAL_ARR": 2444285.49,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2026-03-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1684,
+    "TOTAL_ARR": 129498263.83,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2026-03-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 63,
+    "TOTAL_ARR": 2537362.82,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2026-04-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1692,
+    "TOTAL_ARR": 130473110.8,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2026-04-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 74,
+    "TOTAL_ARR": 3132318.17,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2026-05-01",
+    "PRODUCT_TYPE": "Content Management PaaS",
+    "CUSTOMER_COUNT": 1692,
+    "TOTAL_ARR": 131379815.84,
+    "_section": "trend"
+  },
+  {
+    "SNAPSHOT_MONTH": "2026-05-01",
+    "PRODUCT_TYPE": "Content Management SaaS",
+    "CUSTOMER_COUNT": 76,
+    "TOTAL_ARR": 3219570.04,
+    "_section": "trend"
+  },
+  {
+    "PRODUCT_GROUP_CLEANED": "Content Management PaaS",
+    "RENEWAL_COUNT": 375,
+    "RENEWAL_ARR": 19329834.05,
+    "CHURN_COUNT": 38,
+    "CHURN_ARR": -1321851.0,
+    "RENEWAL_RATE": 0.9546,
+    "_section": "renewal_trend"
+  },
+  {
+    "PRODUCT_GROUP_CLEANED": "Content Management SaaS",
+    "RENEWAL_COUNT": 2,
+    "RENEWAL_ARR": 30504.34,
+    "CHURN_COUNT": 1,
+    "CHURN_ARR": -15453.0,
+    "RENEWAL_RATE": 0.4934,
+    "_section": "renewal_trend"
+  },
+  {
+    "ACCOUNT_NAME": null,
+    "CSM": null,
+    "REGION": null,
+    "MASTER_CUSTOMER_ID": "948aa7e9-3051-94f2-8c94-a2967f5ed6fd",
+    "PAAS_ARR": 1117921.88,
+    "SAAS_ARR": 103711.83,
+    "TOTAL_ARR": 1221633.71,
+    "_section": "upcoming"
+  },
+  {
+    "ACCOUNT_NAME": "Skanska AB",
+    "CSM": "Conny Marklund",
+    "REGION": "EMEA",
+    "MASTER_CUSTOMER_ID": "ea17b8b2-9102-e011-8e56-0018717a8c82",
+    "PAAS_ARR": 298803.3,
+    "SAAS_ARR": 17176.69,
+    "TOTAL_ARR": 315979.99,
+    "_section": "upcoming"
+  },
+  {
+    "ACCOUNT_NAME": null,
+    "CSM": null,
+    "REGION": null,
+    "MASTER_CUSTOMER_ID": "59026c28-b4f0-7ef8-8133-b77f26ed7384",
+    "PAAS_ARR": 209797.02,
+    "SAAS_ARR": 82657.37,
+    "TOTAL_ARR": 292454.39,
+    "_section": "upcoming"
+  },
+  {
+    "ACCOUNT_NAME": null,
+    "CSM": null,
+    "REGION": null,
+    "MASTER_CUSTOMER_ID": "aa35e3c7-725d-e311-9350-0050568d002c",
+    "PAAS_ARR": 211633.15,
+    "SAAS_ARR": 59444.42,
+    "TOTAL_ARR": 271077.57,
+    "_section": "upcoming"
+  },
+  {
+    "ACCOUNT_NAME": null,
+    "CSM": null,
+    "REGION": null,
+    "MASTER_CUSTOMER_ID": "b2cf5a37-8cfc-e511-813d-c4346bace0b8",
+    "PAAS_ARR": 97256.84,
+    "SAAS_ARR": 159873.82,
+    "TOTAL_ARR": 257130.66,
+    "_section": "upcoming"
+  },
+  {
+    "ACCOUNT_NAME": "Just Retirement Management Services Limited",
+    "CSM": "Chynna Roberts",
+    "REGION": "EMEA",
+    "MASTER_CUSTOMER_ID": "1b8f307b-fb20-e411-9f63-0050568d2da8",
+    "PAAS_ARR": 115854.03,
+    "SAAS_ARR": 62710.29,
+    "TOTAL_ARR": 178564.33,
+    "_section": "upcoming"
+  },
+  {
+    "ACCOUNT_NAME": "American Equity Investment Life Insurance Company",
+    "CSM": "Kaitlyn Koonce",
+    "REGION": "NA",
+    "MASTER_CUSTOMER_ID": "5b690fc2-b449-1f1f-90eb-f011c899b14c",
+    "PAAS_ARR": 101008.36,
+    "SAAS_ARR": 56135.0,
+    "TOTAL_ARR": 157143.36,
+    "_section": "upcoming"
+  },
+  {
+    "ACCOUNT_NAME": "Teledyne Technologies",
+    "CSM": "Becky Mowers",
+    "REGION": "NA",
+    "MASTER_CUSTOMER_ID": "63af5113-2430-e711-810c-3863bb365008",
+    "PAAS_ARR": 84148.58,
+    "SAAS_ARR": 60000.0,
+    "TOTAL_ARR": 144148.58,
+    "_section": "upcoming"
+  },
+  {
+    "ACCOUNT_NAME": "(SEB) Skandinaviska Enskilda Banken AB",
+    "CSM": "Natalia Butor",
+    "REGION": "EMEA",
+    "MASTER_CUSTOMER_ID": "05ad3ebf-88cb-df11-994a-0018717a8c82",
+    "PAAS_ARR": 97542.67,
+    "SAAS_ARR": 40901.4,
+    "TOTAL_ARR": 138444.06,
+    "_section": "upcoming"
+  },
+  {
+    "ACCOUNT_NAME": "Mount Sinai Health System, Inc.",
+    "CSM": "Robert Beckerman",
+    "REGION": "NA",
+    "MASTER_CUSTOMER_ID": "64896a19-9be4-e411-9afb-0050568d2da8",
+    "PAAS_ARR": 96509.65,
+    "SAAS_ARR": 41219.39,
+    "TOTAL_ARR": 137729.03,
+    "_section": "upcoming"
+  },
+  {
+    "ACCOUNT_NAME": "HD Supply Support Services, Inc.",
+    "CSM": "Justin Fast",
+    "REGION": "NA",
+    "MASTER_CUSTOMER_ID": "37fd9c05-8632-40f2-ac73-e7de2dcd1e9c",
+    "PAAS_ARR": 14703.19,
+    "SAAS_ARR": 12203.64,
+    "TOTAL_ARR": 26906.83,
+    "_section": "upcoming"
+  }
+]

@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EO Portfolio Analysis — May 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --blue:#0037ff; --dark:#0a0a23; --mid:#2d2d4e; --light-bg:#f5f6fa;
+  --card:#ffffff; --border:#e2e4ef; --text:#1a1a2e; --muted:#6b7280;
+  --green:#10b981; --red:#ef4444; --amber:#f59e0b; --purple:#7c3aed;
+  --teal:#0d9488; --orange:#f97316;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--light-bg); color: var(--text); font-size: 14px; }
+
+/* ── HEADER ── */
+.header { background: var(--dark); color: #fff; padding: 24px 32px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
+.header h1 { font-size: 20px; font-weight: 700; }
+.header .sub { font-size: 12px; color: #a0aec0; margin-top: 3px; }
+.badge { background: var(--blue); color: #fff; font-size: 11px; font-weight: 700; padding: 4px 14px; border-radius: 20px; white-space: nowrap; }
+
+/* ── TABS ── */
+.nav-tabs { background: var(--mid); display: flex; gap: 0; padding: 0 32px; overflow-x: auto; scrollbar-width: none; }
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tab { padding: 11px 16px; font-size: 13px; color: #9ca3af; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: color .15s; }
+.nav-tab:hover { color: #e5e7eb; }
+.nav-tab.active { color: #fff; border-bottom-color: var(--blue); font-weight: 600; }
+
+/* ── SECTIONS ── */
+.section { display: none; padding: 24px 32px; }
+.section.active { display: block; }
+.sec-title { font-size: 15px; font-weight: 700; color: var(--dark); margin-bottom: 18px; padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+
+/* ── KPI GRID ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; margin-bottom: 22px; }
+.kpi { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; position: relative; overflow: hidden; }
+.kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.kpi.c-blue::before   { background: var(--blue); }
+.kpi.c-green::before  { background: var(--green); }
+.kpi.c-red::before    { background: var(--red); }
+.kpi.c-purple::before { background: var(--purple); }
+.kpi.c-amber::before  { background: var(--amber); }
+.kpi.c-teal::before   { background: var(--teal); }
+.kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 5px; }
+.kpi-val   { font-size: 24px; font-weight: 700; color: var(--dark); line-height: 1.1; }
+.kpi-sub   { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.kpi-delta { font-size: 11px; font-weight: 600; margin-top: 3px; }
+.kpi-delta.up   { color: var(--green); }
+.kpi-delta.down { color: var(--red); }
+.kpi-delta.nn   { color: var(--amber); }
+
+/* ── CARD / GRID ── */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 20px; }
+.card-title { font-size: 13px; font-weight: 700; color: var(--dark); margin-bottom: 14px; }
+
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 20px; }
+@media (max-width: 760px) { .g2 { grid-template-columns: 1fr; } }
+
+/* ── CHART WRAPPER — always give Chart.js a sized box ── */
+.ch { position: relative; width: 100%; height: 260px; }
+.ch-tall { position: relative; width: 100%; height: 320px; }
+.ch-sm   { position: relative; width: 100%; height: 200px; }
+
+/* ── TABLE ── */
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { background: #f8f9fc; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding: 8px 10px; text-align: left; border-bottom: 2px solid var(--border); }
+td { padding: 7px 10px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #f8f9fc; }
+.tbl-wrap { overflow-x: auto; }
+
+/* ── PILLS ── */
+.pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+.pill.g { background: #d1fae5; color: #065f46; }
+.pill.r { background: #fee2e2; color: #991b1b; }
+.pill.a { background: #fef3c7; color: #92400e; }
+.pill.b { background: #dbeafe; color: #1e40af; }
+.pill.p { background: #ede9fe; color: #5b21b6; }
+
+/* ── CHIPS ── */
+.chip { display: inline-flex; align-items: center; font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 4px; }
+.chip.up { background: #d1fae5; color: #065f46; }
+.chip.dn { background: #fee2e2; color: #991b1b; }
+.chip.nn { background: #f3f4f6; color: #374151; }
+
+/* ── CALLOUTS ── */
+.insight { background: #eff6ff; border-left: 4px solid var(--blue); border-radius: 0 8px 8px 0; padding: 11px 15px; margin-top: 14px; font-size: 12px; color: #1e40af; }
+.insight strong { display: block; margin-bottom: 3px; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; }
+.alert   { background: #fef2f2; border-left: 4px solid var(--red);  border-radius: 0 8px 8px 0; padding: 11px 15px; margin-top: 14px; font-size: 12px; color: #991b1b; }
+.alert strong   { display: block; margin-bottom: 3px; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; }
+.warn { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 9px 13px; font-size: 12px; color: #78350f; margin-bottom: 16px; display: flex; gap: 8px; }
+
+.footer { text-align: center; font-size: 11px; color: var(--muted); padding: 18px 32px; border-top: 1px solid var(--border); margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="sub">OPTIMIZELY CUSTOMER SUCCESS · EXPERIENCE OPTIMIZATION</div>
+    <h1>EO Portfolio Deep Dive</h1>
+    <div class="sub">Dec 2025 – May 2026 · Snowflake Production</div>
+  </div>
+  <div class="badge">EO ANALYSIS · MAY 2026</div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="showTab('overview',this)">Overview</div>
+  <div class="nav-tab" onclick="showTab('arr',this)">ARR Trends</div>
+  <div class="nav-tab" onclick="showTab('renewal',this)">Renewal Rates</div>
+  <div class="nav-tab" onclick="showTab('regional',this)">Regional</div>
+  <div class="nav-tab" onclick="showTab('tester',this)">High/Low Tester</div>
+  <div class="nav-tab" onclick="showTab('portfolio',this)">Portfolio Mix</div>
+  <div class="nav-tab" onclick="showTab('churn',this)">Churn</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ OVERVIEW ═══════════════════════════════════════════ -->
+<div class="section active" id="overview">
+  <div class="warn"><span>⚠️</span><span>Q2 2026 renewal data is partial (in progress as of early June 2026). Use Q1 2026 as the most recent complete quarter.</span></div>
+  <div class="sec-title"><span class="dot"></span>EO Portfolio Snapshot — May 2026</div>
+
+  <div class="kpi-grid">
+    <div class="kpi c-blue">
+      <div class="kpi-label">Total EO ARR</div>
+      <div class="kpi-val">$163.9M</div>
+      <div class="kpi-sub">May 2026 · All EO products</div>
+      <div class="kpi-delta down">▼ $1.9M vs Dec 2025 ($165.8M)</div>
+    </div>
+    <div class="kpi c-green">
+      <div class="kpi-label">EO Customers</div>
+      <div class="kpi-val">1,329</div>
+      <div class="kpi-sub">Active in May 2026</div>
+    </div>
+    <div class="kpi c-red">
+      <div class="kpi-label">Q1 2026 Blended RR</div>
+      <div class="kpi-val">68.3%</div>
+      <div class="kpi-sub">Weighted across all EO products</div>
+      <div class="kpi-delta down">▼ 4.6pp vs Q4 2025 (72.9%)</div>
+    </div>
+    <div class="kpi c-purple">
+      <div class="kpi-label">WebEx ARR (May 26)</div>
+      <div class="kpi-val">$83.5M</div>
+      <div class="kpi-sub">51% of EO · 1,072 customers</div>
+      <div class="kpi-delta down">▼ $3.9M since Dec 2025</div>
+    </div>
+    <div class="kpi c-amber">
+      <div class="kpi-label">Feature Exp ARR (May 26)</div>
+      <div class="kpi-val">$56.3M</div>
+      <div class="kpi-sub">34% of EO · 411 customers</div>
+      <div class="kpi-delta down">▼ $0.7M since Dec 2025</div>
+    </div>
+    <div class="kpi c-teal">
+      <div class="kpi-label">Zero-Experiment Customers</div>
+      <div class="kpi-val">65%</div>
+      <div class="kpi-sub">1,341 / 2,059 active (Dec 2025)</div>
+      <div class="kpi-delta down">▼ Leading churn indicator</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">EO ARR by Product — May 2026 ($M)</div>
+      <div class="ch"><canvas id="eoArrOverview"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Renewal Rate Trend — Key EO Products (Last 3 Quarters)</div>
+      <div class="ch"><canvas id="eoRRLine"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Top-Line Summary Table</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>Q4 2025</th><th>Q1 2026</th><th>Q2 2026 (partial)</th><th>Trend</th></tr></thead>
+        <tbody>
+          <tr><td>WebEx Renewal Rate</td><td>72.3%</td><td><strong>66.7%</strong></td><td>85.1%</td><td><span class="chip dn">▼ Q1 low</span></td></tr>
+          <tr><td>FX Renewal Rate</td><td>72.3%</td><td><strong>65.7%</strong></td><td>88.4%</td><td><span class="chip dn">▼ Q1 low</span></td></tr>
+          <tr><td>Personalization RR</td><td>78.2%</td><td><strong>67.3%</strong></td><td>88.2%</td><td><span class="chip dn">▼ Q1 low</span></td></tr>
+          <tr><td>Segmentation RR</td><td>48.1%</td><td><strong>79.8%</strong></td><td>85.9%</td><td><span class="chip up">▲ Recovering</span></td></tr>
+          <tr><td>Total EO ARR</td><td>$165.8M</td><td>$164.8M</td><td><strong>$163.9M</strong></td><td><span class="chip dn">▼ Slow decline</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert">
+      <strong>Critical Signal</strong>
+      WebEx and FX renewal rates hit multi-quarter lows in Q1 2026 at 66.7% and 65.7%. EMEA is the primary driver — WebEx EMEA renewals came in at 58.9% in Q1 2026, down 17pp from Q4 2025.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ ARR TRENDS ═══════════════════════════════════════════ -->
+<div class="section" id="arr">
+  <div class="sec-title"><span class="dot"></span>EO ARR Trends — Dec 2025 to May 2026</div>
+
+  <div class="card">
+    <div class="card-title">Total EO ARR by Product Group — Monthly Stacked ($M)</div>
+    <div class="ch-tall"><canvas id="arrStacked"></canvas></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">WebEx & FX ARR — Monthly ($M)</div>
+      <div class="ch"><canvas id="webFxLine"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Other EO Products — Monthly ($M)</div>
+      <div class="ch"><canvas id="otherEoLine"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">ARR Change: Dec 2025 → May 2026</div>
+    <div class="ch-sm"><canvas id="arrChangeBar"></canvas></div>
+    <div class="tbl-wrap" style="margin-top:16px">
+      <table>
+        <thead><tr><th>Product</th><th>Dec 2025</th><th>May 2026</th><th>Δ ARR</th><th>Δ %</th><th>Customers</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Web Experimentation</strong></td><td>$87.4M</td><td>$83.5M</td><td style="color:var(--red)">–$3.9M</td><td><span class="chip dn">▼ 4.4%</span></td><td>1,072</td></tr>
+          <tr><td><strong>Feature Experimentation</strong></td><td>$57.0M</td><td>$56.3M</td><td style="color:var(--red)">–$0.7M</td><td><span class="chip dn">▼ 1.2%</span></td><td>411</td></tr>
+          <tr><td><strong>Personalization</strong></td><td>$10.3M</td><td>$11.1M</td><td style="color:var(--green)">+$0.8M</td><td><span class="chip up">▲ 7.6%</span></td><td>482</td></tr>
+          <tr><td><strong>Segmentation</strong></td><td>$8.3M</td><td>$8.7M</td><td style="color:var(--green)">+$0.4M</td><td><span class="chip up">▲ 4.5%</span></td><td>265</td></tr>
+          <tr><td><strong>Analytics</strong></td><td>$1.7M</td><td>$2.6M</td><td style="color:var(--green)">+$0.9M</td><td><span class="chip up">▲ 50%</span></td><td>84</td></tr>
+          <tr><td><strong>Exp Addons</strong></td><td>$1.1M</td><td>$1.7M</td><td style="color:var(--green)">+$0.6M</td><td><span class="chip up">▲ 61%</span></td><td>73</td></tr>
+          <tr style="font-weight:700;background:#f8f9fc"><td>Total EO</td><td>$165.8M</td><td>$163.9M</td><td style="color:var(--red)">–$1.9M</td><td><span class="chip dn">▼ 1.1%</span></td><td>1,329</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="insight">
+      <strong>Takeaway</strong>
+      WebEx ARR contraction (–$3.9M) is the dominant story. Personalization, Analytics, and Addons are growing but too small to offset. Protecting WebEx is the top EO revenue priority.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ RENEWAL RATES ═══════════════════════════════════════════ -->
+<div class="section" id="renewal">
+  <div class="sec-title"><span class="dot"></span>EO Renewal Rates — Q4 2025 → Q1 2026 → Q2 2026</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Renewal Rate by Product — Last 3 Quarters (%)</div>
+      <div class="ch"><canvas id="rrGrouped"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Q1 2026 — ARR Renewed vs Churned ($M)</div>
+      <div class="ch"><canvas id="rrArrBar"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Renewal Rate Detail</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Product</th><th>Q4 2025 RR</th><th>Q1 2026 RR</th><th>Q1 Accounts</th><th>Q1 Churned Accts</th><th>Q1 ARR Churned</th><th>Q2 2026 RR*</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Web Experimentation</strong></td><td>72.3%</td><td><span class="pill r">66.7%</span></td><td>288</td><td>143</td><td>$6.3M</td><td><span class="pill g">85.1%</span></td></tr>
+          <tr><td><strong>Feature Experimentation</strong></td><td>72.3%</td><td><span class="pill r">65.7%</span></td><td>81</td><td>34</td><td>$3.0M</td><td><span class="pill g">88.4%</span></td></tr>
+          <tr><td><strong>Personalization</strong></td><td>78.2%</td><td><span class="pill r">67.3%</span></td><td>77</td><td>28</td><td>$0.6M</td><td><span class="pill g">88.2%</span></td></tr>
+          <tr><td><strong>Segmentation</strong></td><td>48.1%</td><td><span class="pill a">79.8%</span></td><td>39</td><td>18</td><td>$0.2M</td><td><span class="pill g">85.9%</span></td></tr>
+          <tr><td><strong>Analytics</strong></td><td>0.0%</td><td><span class="pill g">100%</span></td><td>1</td><td>0</td><td>—</td><td><span class="pill g">90.5%</span></td></tr>
+          <tr><td><strong>Exp Addons</strong></td><td>—</td><td><span class="pill r">28.2%</span></td><td>3</td><td>1</td><td>$19K</td><td><span class="pill a">55.0%</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert">
+      <strong>Q1 2026 Warning</strong>
+      WebEx churned 143 accounts and $6.3M ARR in one quarter. FX churned 34 accounts and $3.0M. Combined, WebEx + FX drove $9.3M of EO churn in Q1 2026 — the worst single-quarter EO result in this 6-month window.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ REGIONAL ═══════════════════════════════════════════ -->
+<div class="section" id="regional">
+  <div class="sec-title"><span class="dot"></span>EO Renewal Rates by Region</div>
+
+  <div class="kpi-grid">
+    <div class="kpi c-red">
+      <div class="kpi-label">EMEA WebEx — Q1 2026</div>
+      <div class="kpi-val">58.9%</div>
+      <div class="kpi-sub">102 accounts · $6.9M at renewal</div>
+      <div class="kpi-delta down">▼ 17pp vs Q4 2025 (76.2%)</div>
+    </div>
+    <div class="kpi c-blue">
+      <div class="kpi-label">NA WebEx — Q1 2026</div>
+      <div class="kpi-val">70.2%</div>
+      <div class="kpi-sub">167 accounts · $11.3M at renewal</div>
+      <div class="kpi-delta down">▼ 2pp vs Q4 2025 (72.0%)</div>
+    </div>
+    <div class="kpi c-green">
+      <div class="kpi-label">APJ WebEx — Q1 2026</div>
+      <div class="kpi-val">86.0%</div>
+      <div class="kpi-sub">19 accounts · $0.75M at renewal</div>
+      <div class="kpi-delta up">▲ 26pp vs Q4 2025 (60.5%)</div>
+    </div>
+    <div class="kpi c-red">
+      <div class="kpi-label">EMEA FX — Q1 2026</div>
+      <div class="kpi-val">56.6%</div>
+      <div class="kpi-sub">28 accounts · $3.9M at renewal</div>
+      <div class="kpi-delta down">▼ 20pp vs Q4 2025 (76.7%)</div>
+    </div>
+    <div class="kpi c-blue">
+      <div class="kpi-label">NA FX — Q1 2026</div>
+      <div class="kpi-val">71.9%</div>
+      <div class="kpi-sub">46 accounts · $4.4M at renewal</div>
+      <div class="kpi-delta up">▲ 4pp vs Q4 2025 (68.4%)</div>
+    </div>
+    <div class="kpi c-green">
+      <div class="kpi-label">APJ FX — Q1 2026</div>
+      <div class="kpi-val">83.0%</div>
+      <div class="kpi-sub">7 accounts · $0.49M at renewal</div>
+      <div class="kpi-delta down">▼ 9pp vs Q4 2025 (91.7%)</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">WebEx Renewal Rate by Region — Last 3 Quarters (%)</div>
+      <div class="ch"><canvas id="webRegionLine"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">FX Renewal Rate by Region — Last 3 Quarters (%)</div>
+      <div class="ch"><canvas id="fxRegionLine"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Q1 2026 — ARR Churned by Region ($M, WebEx + FX)</div>
+    <div class="ch-sm"><canvas id="regionChurnBar"></canvas></div>
+    <div class="alert" style="margin-top:14px">
+      <strong>EMEA Is the Epicentre</strong>
+      EMEA drove the Q1 2026 EO collapse: WebEx EMEA –17pp QoQ and FX EMEA –20pp QoQ. That means roughly 4 in 10 EMEA EO customers that came up for renewal in Q1 churned. Requires immediate EMEA-specific investigation: competitive displacement, CSM coverage gaps, or pricing issues.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ HIGH/LOW TESTER ═══════════════════════════════════════════ -->
+<div class="section" id="tester">
+  <div class="sec-title"><span class="dot"></span>High / Low Tester — Usage vs Renewal Rate</div>
+  <div class="warn"><span>ℹ️</span><span>Tester data uses EXP_CUSTOMER_ADOPTION_BRAVE through Dec 2025. Renewal comparison uses Q1 2026 WebEx + FX accounts.</span></div>
+
+  <div class="kpi-grid">
+    <div class="kpi c-green">
+      <div class="kpi-label">High Tester RR (≥9/mo)</div>
+      <div class="kpi-val">80.8%</div>
+      <div class="kpi-sub">46 accounts · $5.9M at renewal</div>
+    </div>
+    <div class="kpi c-amber">
+      <div class="kpi-label">Low Tester RR (1–8/mo)</div>
+      <div class="kpi-val">80.2%</div>
+      <div class="kpi-sub">188 accounts · $15.5M at renewal</div>
+    </div>
+    <div class="kpi c-red">
+      <div class="kpi-label">No / Unknown Usage RR</div>
+      <div class="kpi-val">19.3%</div>
+      <div class="kpi-sub">82 accounts · $6.3M at renewal</div>
+      <div class="kpi-delta down">▼ 61pp below active testers</div>
+    </div>
+    <div class="kpi c-blue">
+      <div class="kpi-label">Active vs Inactive Gap</div>
+      <div class="kpi-val">61pp</div>
+      <div class="kpi-sub">Biggest churn predictor in EO</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Renewal Rate by Tester Type — Q1 2026 (%)</div>
+      <div class="ch"><canvas id="testerRR"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">ARR at Renewal by Tester Type — Q1 2026 ($M)</div>
+      <div class="ch"><canvas id="testerArr"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Tester Segment Detail</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Type</th><th>Accounts</th><th>ARR at Renewal</th><th>ARR Churned</th><th>Renewal Rate</th><th>Risk</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pill g">High Tester</span> ≥9/mo</td><td>46</td><td>$5.9M</td><td>($1.1M)</td><td><strong>80.8%</strong></td><td><span class="pill g">Low</span></td></tr>
+          <tr><td><span class="pill a">Low Tester</span> 1–8/mo</td><td>188</td><td>$15.5M</td><td>($3.1M)</td><td><strong>80.2%</strong></td><td><span class="pill a">Moderate</span></td></tr>
+          <tr><td><span class="pill r">No / Unknown Usage</span></td><td>82</td><td>$6.3M</td><td>($5.1M)</td><td><strong style="color:var(--red)">19.3%</strong></td><td><span class="pill r">Critical</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert">
+      <strong>Zero Usage = Near-Certain Churn</strong>
+      82 accounts with $6.3M at renewal had no detectable experimentation activity. 80% of that ARR was lost. The binary distinction to act on is active vs inactive — not high vs low tester (those renew at nearly identical rates). Build a usage-based health alert for any EO customer with 0 experiments in the trailing 60 days.
+    </div>
+    <div class="insight">
+      <strong>Observation</strong>
+      High Testers and Low Testers renew at statistically similar rates (80.8% vs 80.2%). The experimentation frequency threshold matters far less than simply having any active usage.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ PORTFOLIO MIX ═══════════════════════════════════════════ -->
+<div class="section" id="portfolio">
+  <div class="sec-title"><span class="dot"></span>EO Portfolio Mix — Solution Overlap (May 2026)</div>
+
+  <div class="kpi-grid">
+    <div class="kpi c-blue">
+      <div class="kpi-label">EO Only</div>
+      <div class="kpi-val">833</div>
+      <div class="kpi-sub">63% of EO base · $106.4M EO ARR</div>
+    </div>
+    <div class="kpi c-green">
+      <div class="kpi-label">EO + EC</div>
+      <div class="kpi-val">319</div>
+      <div class="kpi-sub">24% · $34.6M EO ARR</div>
+    </div>
+    <div class="kpi c-purple">
+      <div class="kpi-label">EO + Opal (no EC)</div>
+      <div class="kpi-val">83</div>
+      <div class="kpi-sub">6% · $11.5M EO ARR</div>
+    </div>
+    <div class="kpi c-amber">
+      <div class="kpi-label">EO + EC + Opal</div>
+      <div class="kpi-val">94</div>
+      <div class="kpi-sub">7% · $11.5M EO ARR</div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">EO Customer Count by Portfolio Type</div>
+      <div class="ch"><canvas id="portCustomers"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">EO ARR by Portfolio Type ($M)</div>
+      <div class="ch"><canvas id="portArr"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Portfolio Type Summary</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Portfolio Type</th><th>Customers</th><th>% of Base</th><th>EO ARR</th><th>Avg EO ARR/Customer</th><th>Priority</th></tr></thead>
+        <tbody>
+          <tr><td><strong>EO Only</strong></td><td>833</td><td>63%</td><td>$106.4M</td><td>$127K</td><td><span class="pill b">Cross-sell EC / Opal</span></td></tr>
+          <tr><td><strong>EO + EC</strong></td><td>319</td><td>24%</td><td>$34.6M</td><td>$108K</td><td><span class="pill a">Opal upsell target</span></td></tr>
+          <tr><td><strong>EO + Opal</strong></td><td>83</td><td>6%</td><td>$11.5M</td><td>$138K</td><td><span class="pill p">Expand to EC</span></td></tr>
+          <tr><td><strong>EO + EC + Opal</strong></td><td>94</td><td>7%</td><td>$11.5M</td><td>$122K</td><td><span class="pill g">Full platform — protect</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="insight">
+      <strong>Cross-Sell Opportunity</strong>
+      833 EO-only customers ($106.4M ARR) have no EC or Opal — largest untapped cross-sell pool. The 319 EO+EC customers with no Opal are the highest-probability Opal pipeline (they already trust Optimizely across two solutions). Opal is attached to only 177 EO customers today (13% of the base).
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ CHURN ═══════════════════════════════════════════ -->
+<div class="section" id="churn">
+  <div class="sec-title"><span class="dot"></span>EO Churn Analysis — Q4 2025 + Q1 + Q2 2026</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">EO Churned ARR by Reason — per Quarter ($M)</div>
+      <div class="ch-tall"><canvas id="churnQtr"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Total EO Churned ARR by Category — All 3 Quarters ($M)</div>
+      <div class="ch-tall"><canvas id="churnTotal"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Churn Reason Detail</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Reason</th><th>Q4 2025</th><th>Q1 2026</th><th>Q2 2026*</th><th>Total Accounts</th><th>Total ARR Lost</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Not Specified</strong> <span class="pill a">Hygiene ⚠</span></td><td>$2.3M / 20</td><td>$2.8M / 25</td><td>$0.1M / 2</td><td>47</td><td><strong>$5.2M</strong></td></tr>
+          <tr><td><strong>Other / Unclassified</strong></td><td>$2.2M / 34</td><td>$1.9M / 27</td><td>$2.0M / 27</td><td>88</td><td><strong>$6.1M</strong></td></tr>
+          <tr><td><strong>Competitor</strong></td><td>$1.3M / 4</td><td>$0.3M / 3</td><td>$0.1M / 1</td><td>8</td><td><strong>$1.6M</strong></td></tr>
+          <tr><td><strong>Price / Budget</strong></td><td>$1.1M / 9</td><td>$0.8M / 10</td><td>$1.1M / 10</td><td>29</td><td><strong>$3.0M</strong></td></tr>
+          <tr><td><strong>Consolidated / Duplicate</strong></td><td>$0.1M / 2</td><td>$1.8M / 5</td><td>$0.1M / 2</td><td>9</td><td><strong>$2.0M</strong></td></tr>
+          <tr><td><strong>Migration</strong></td><td>$0.1M / 1</td><td>$0.5M / 2</td><td>—</td><td>3</td><td><strong>$0.5M</strong></td></tr>
+          <tr><td><strong>Build In-House</strong></td><td>$0.2M / 1</td><td>—</td><td>$0.03M / 1</td><td>2</td><td><strong>$0.2M</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert">
+      <strong>$5.2M with No Reason Code</strong>
+      47 accounts representing $5.2M in lost EO ARR have no churn reason on record. This is the single most actionable data quality fix: mandate REASON_LOST_DETAIL completion for all EO closed-lost opportunities.
+    </div>
+    <div class="insight">
+      <strong>Price/Budget Pressure Is Persistent</strong>
+      Price/Budget churn runs at roughly $1M per quarter across all three tracked periods. Competitor churn peaked in Q4 2025 at $1.3M (4 accounts) — worth investigating which competitors are winning EMEA WebEx deals.
+    </div>
+  </div>
+</div>
+
+<div class="footer">EO Portfolio Analysis · June 2026 · Data: Snowflake REPORTING.GTM_ANALYTICS + REPORTING.ARR_SST · despi.evangelakou@optimizely.com</div>
+
+<script>
+Chart.defaults.font.family = "'Segoe UI', Arial, sans-serif";
+Chart.defaults.font.size   = 12;
+Chart.defaults.color       = '#6b7280';
+
+function showTab(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+const MONTHS = ['Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26'];
+
+const webArr  = [87.4, 87.7, 85.3, 84.3, 84.0, 83.5];
+const fxArr   = [57.0, 57.3, 57.4, 56.6, 56.6, 56.3];
+const persArr = [10.3, 10.8, 10.6, 10.8, 11.0, 11.1];
+const segArr  = [ 8.3,  8.5,  8.6,  8.6,  8.7,  8.7];
+const anlArr  = [ 1.7,  2.1,  2.3,  2.3,  2.3,  2.6];
+const addArr  = [ 1.1,  1.1,  1.2,  1.3,  1.6,  1.7];
+
+const baseOpts = { responsive: true, maintainAspectRatio: false };
+const noGrid   = { x: { grid: { display: false } } };
+const pctY     = (min,max) => ({ y: { min, max, ticks: { callback: v => v + '%' } }, ...noGrid });
+const dollarY  = () => ({ y: { ticks: { callback: v => '$' + Math.abs(v) + 'M' } }, ...noGrid });
+const leg      = (pos='bottom') => ({ legend: { position: pos, labels: { boxWidth: 12, font: { size: 11 } } } });
+
+/* ─── OVERVIEW ─── */
+new Chart('eoArrOverview', { type: 'bar',
+  data: { labels: ['Web Exp','Feature Exp','Personalization','Segmentation','Analytics','Exp Addons'],
+    datasets: [{ label: 'ARR ($M)', data: [83.5, 56.3, 11.1, 8.7, 2.6, 1.7],
+      backgroundColor: ['#0037ff','#7c3aed','#10b981','#0d9488','#f59e0b','#f97316'], borderRadius: 4 }] },
+  options: { ...baseOpts, indexAxis: 'y',
+    scales: { x: { ticks: { callback: v => '$' + v + 'M' } }, y: { grid: { display: false } } },
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` $${c.parsed.x}M` } } } }
+});
+
+new Chart('eoRRLine', { type: 'line',
+  data: { labels: ['Q4 2025','Q1 2026','Q2 2026*'],
+    datasets: [
+      { label: 'Web Exp',        data: [72.3, 66.7, 85.1], borderColor: '#0037ff', tension: .3, pointRadius: 5, fill: false },
+      { label: 'Feature Exp',    data: [72.3, 65.7, 88.4], borderColor: '#7c3aed', tension: .3, pointRadius: 5, fill: false },
+      { label: 'Personalization',data: [78.2, 67.3, 88.2], borderColor: '#10b981', tension: .3, pointRadius: 5, fill: false },
+      { label: 'Segmentation',   data: [48.1, 79.8, 85.9], borderColor: '#f59e0b', tension: .3, pointRadius: 5, fill: false }
+    ] },
+  options: { ...baseOpts, scales: pctY(40,95), plugins: leg() }
+});
+
+/* ─── ARR TRENDS ─── */
+new Chart('arrStacked', { type: 'bar',
+  data: { labels: MONTHS,
+    datasets: [
+      { label: 'Web Exp',      data: webArr,  backgroundColor: '#0037ff', borderRadius: 2 },
+      { label: 'Feature Exp',  data: fxArr,   backgroundColor: '#7c3aed', borderRadius: 2 },
+      { label: 'Personalization', data: persArr, backgroundColor: '#10b981', borderRadius: 2 },
+      { label: 'Segmentation', data: segArr,  backgroundColor: '#0d9488', borderRadius: 2 },
+      { label: 'Analytics',    data: anlArr,  backgroundColor: '#f59e0b', borderRadius: 2 },
+      { label: 'Exp Addons',   data: addArr,  backgroundColor: '#f97316', borderRadius: 2 }
+    ] },
+  options: { ...baseOpts, stacked: true,
+    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, ticks: { callback: v => '$' + v + 'M' } } },
+    plugins: leg() }
+});
+
+new Chart('webFxLine', { type: 'line',
+  data: { labels: MONTHS,
+    datasets: [
+      { label: 'Web Experimentation', data: webArr, borderColor: '#0037ff', backgroundColor: 'rgba(0,55,255,.07)', fill: true, tension: .3, pointRadius: 4 },
+      { label: 'Feature Experimentation', data: fxArr,  borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,.07)', fill: true, tension: .3, pointRadius: 4 }
+    ] },
+  options: { ...baseOpts,
+    scales: { y: { min: 50, ticks: { callback: v => '$' + v + 'M' } }, ...noGrid },
+    plugins: leg() }
+});
+
+new Chart('otherEoLine', { type: 'line',
+  data: { labels: MONTHS,
+    datasets: [
+      { label: 'Personalization', data: persArr, borderColor: '#10b981', tension: .3, fill: false, pointRadius: 4 },
+      { label: 'Segmentation',    data: segArr,  borderColor: '#0d9488', tension: .3, fill: false, pointRadius: 4 },
+      { label: 'Analytics',       data: anlArr,  borderColor: '#f59e0b', tension: .3, fill: false, pointRadius: 4 },
+      { label: 'Exp Addons',      data: addArr,  borderColor: '#f97316', tension: .3, fill: false, pointRadius: 4 }
+    ] },
+  options: { ...baseOpts,
+    scales: { y: { min: 0, ticks: { callback: v => '$' + v + 'M' } }, ...noGrid },
+    plugins: leg() }
+});
+
+new Chart('arrChangeBar', { type: 'bar',
+  data: { labels: ['Web Exp','Feature Exp','Personalization','Segmentation','Analytics','Addons'],
+    datasets: [{ label: 'ARR Δ Dec 25 → May 26 ($M)',
+      data: [-3.9, -0.7, 0.8, 0.4, 0.9, 0.6],
+      backgroundColor: d => d.raw < 0 ? 'rgba(239,68,68,.75)' : 'rgba(16,185,129,.75)',
+      borderRadius: 4 }] },
+  options: { ...baseOpts,
+    scales: { y: { ticks: { callback: v => (v >= 0 ? '+' : '') + '$' + v + 'M' } }, ...noGrid },
+    plugins: { legend: { display: false } } }
+});
+
+/* ─── RENEWAL RATES ─── */
+new Chart('rrGrouped', { type: 'bar',
+  data: { labels: ['Web Exp','Feature Exp','Personalization','Segmentation'],
+    datasets: [
+      { label: 'Q4 2025', data: [72.3, 72.3, 78.2, 48.1], backgroundColor: 'rgba(156,163,175,.75)', borderRadius: 3 },
+      { label: 'Q1 2026', data: [66.7, 65.7, 67.3, 79.8], backgroundColor: 'rgba(239,68,68,.75)',   borderRadius: 3 },
+      { label: 'Q2 2026*',data: [85.1, 88.4, 88.2, 85.9], backgroundColor: 'rgba(16,185,129,.75)',  borderRadius: 3 }
+    ] },
+  options: { ...baseOpts, scales: pctY(40,100), plugins: leg() }
+});
+
+new Chart('rrArrBar', { type: 'bar',
+  data: { labels: ['Web Exp','Feature Exp','Personalization','Segmentation'],
+    datasets: [
+      { label: 'Renewed', data: [12.6, 5.8, 1.1, 0.9], backgroundColor: 'rgba(0,55,255,.7)',  borderRadius: 3 },
+      { label: 'Churned', data: [-6.3,-3.0,-0.55,-0.24], backgroundColor: 'rgba(239,68,68,.7)', borderRadius: 3 }
+    ] },
+  options: { ...baseOpts, scales: dollarY(), plugins: leg() }
+});
+
+/* ─── REGIONAL ─── */
+const regQ = ['Q4 2025','Q1 2026','Q2 2026*'];
+new Chart('webRegionLine', { type: 'line',
+  data: { labels: regQ,
+    datasets: [
+      { label: 'NA',   data: [72.0, 70.2, 85.2], borderColor: '#0037ff', tension:.3, pointRadius:5, fill:false },
+      { label: 'EMEA', data: [76.2, 58.9, 82.8], borderColor: '#ef4444', tension:.3, pointRadius:5, fill:false },
+      { label: 'APJ',  data: [60.5, 86.0, 93.4], borderColor: '#10b981', tension:.3, pointRadius:5, fill:false }
+    ] },
+  options: { ...baseOpts, scales: pctY(50,100), plugins: leg() }
+});
+
+new Chart('fxRegionLine', { type: 'line',
+  data: { labels: regQ,
+    datasets: [
+      { label: 'NA',   data: [68.4, 71.9, 87.6], borderColor: '#0037ff', tension:.3, pointRadius:5, fill:false },
+      { label: 'EMEA', data: [76.7, 56.6, 89.1], borderColor: '#ef4444', tension:.3, pointRadius:5, fill:false },
+      { label: 'APJ',  data: [91.7, 83.0,100.0], borderColor: '#10b981', tension:.3, pointRadius:5, fill:false }
+    ] },
+  options: { ...baseOpts, scales: pctY(50,105), plugins: leg() }
+});
+
+new Chart('regionChurnBar', { type: 'bar',
+  data: { labels: ['EMEA WebEx','NA WebEx','APJ WebEx','EMEA FX','NA FX','APJ FX'],
+    datasets: [{ label: 'Churned ARR ($M)', data: [-2.83,-3.37,-0.11,-1.69,-1.23,-0.08],
+      backgroundColor: ['rgba(239,68,68,.8)','rgba(245,158,11,.8)','rgba(16,185,129,.8)',
+                        'rgba(239,68,68,.6)','rgba(245,158,11,.6)','rgba(16,185,129,.6)'],
+      borderRadius: 4 }] },
+  options: { ...baseOpts, indexAxis: 'y',
+    scales: { x: { ticks: { callback: v => '$' + Math.abs(v) + 'M' } }, y: { grid: { display: false } } },
+    plugins: { legend: { display: false } } }
+});
+
+/* ─── HIGH/LOW TESTER ─── */
+new Chart('testerRR', { type: 'bar',
+  data: { labels: ['High Tester (≥9/mo)','Low Tester (1–8/mo)','No / Unknown Usage'],
+    datasets: [{ label: 'Renewal Rate',
+      data: [80.8, 80.2, 19.3],
+      backgroundColor: ['rgba(16,185,129,.8)','rgba(245,158,11,.8)','rgba(239,68,68,.8)'],
+      borderRadius: 4 }] },
+  options: { ...baseOpts,
+    scales: { y: { min: 0, max: 100, ticks: { callback: v => v + '%' } }, ...noGrid },
+    plugins: { legend: { display: false } } }
+});
+
+new Chart('testerArr', { type: 'bar',
+  data: { labels: ['High Tester','Low Tester','No/Unknown Usage'],
+    datasets: [
+      { label: 'ARR Renewed', data: [4.8, 12.4, 1.2], backgroundColor: 'rgba(0,55,255,.7)',  borderRadius: 3 },
+      { label: 'ARR Churned', data: [-1.1,-3.1,-5.1], backgroundColor: 'rgba(239,68,68,.7)', borderRadius: 3 }
+    ] },
+  options: { ...baseOpts,
+    scales: { y: { ticks: { callback: v => '$' + Math.abs(v) + 'M' } }, ...noGrid },
+    plugins: leg() }
+});
+
+/* ─── PORTFOLIO MIX ─── */
+new Chart('portCustomers', { type: 'bar',
+  data: { labels: ['EO Only','EO + EC','EO + EC + Opal','EO + Opal'],
+    datasets: [{ label: 'Customers',
+      data: [833, 319, 94, 83],
+      backgroundColor: ['#0037ff','#10b981','#f59e0b','#7c3aed'], borderRadius: 4 }] },
+  options: { ...baseOpts, indexAxis: 'y',
+    scales: { x: {}, y: { grid: { display: false } } },
+    plugins: { legend: { display: false } } }
+});
+
+new Chart('portArr', { type: 'bar',
+  data: { labels: ['EO Only','EO + EC','EO + EC + Opal','EO + Opal'],
+    datasets: [{ label: 'EO ARR ($M)',
+      data: [106.4, 34.6, 11.5, 11.5],
+      backgroundColor: ['#0037ff','#10b981','#f59e0b','#7c3aed'], borderRadius: 4 }] },
+  options: { ...baseOpts, indexAxis: 'y',
+    scales: { x: { ticks: { callback: v => '$' + v + 'M' } }, y: { grid: { display: false } } },
+    plugins: { legend: { display: false } } }
+});
+
+/* ─── CHURN ─── */
+const churnLabels = ['Not Specified','Other','Competitor','Price/Budget','Consolidated','Migration','Build In-House'];
+new Chart('churnQtr', { type: 'bar',
+  data: { labels: churnLabels,
+    datasets: [
+      { label: 'Q4 2025', data: [2.28,2.19,1.27,1.12,0.14,0.06,0.18], backgroundColor: 'rgba(156,163,175,.8)', borderRadius: 2 },
+      { label: 'Q1 2026', data: [2.83,1.91,0.27,0.78,1.76,0.49,0.00], backgroundColor: 'rgba(239,68,68,.8)',   borderRadius: 2 },
+      { label: 'Q2 2026*',data: [0.12,1.97,0.08,1.06,0.13,0.00,0.03], backgroundColor: 'rgba(245,158,11,.8)',  borderRadius: 2 }
+    ] },
+  options: { ...baseOpts,
+    scales: { y: { ticks: { callback: v => '$' + v + 'M' } }, x: { ticks: { font: { size: 10 } }, grid: { display: false } } },
+    plugins: leg() }
+});
+
+const totalChurn = [5.23, 6.07, 1.62, 2.96, 2.03, 0.55, 0.21];
+new Chart('churnTotal', { type: 'bar',
+  data: { labels: churnLabels,
+    datasets: [{ label: 'Total Churned ARR ($M)', data: totalChurn,
+      backgroundColor: ['#f59e0b','#9ca3af','#7c3aed','#ef4444','#60a5fa','#0d9488','#6b7280'],
+      borderRadius: 4 }] },
+  options: { ...baseOpts, indexAxis: 'y',
+    scales: { x: { ticks: { callback: v => '$' + v + 'M' } }, y: { grid: { display: false } } },
+    plugins: { legend: { display: false } } }
+});
+</script>
+</body>
+</html>

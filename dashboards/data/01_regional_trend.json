@@ -1,0 +1,10 @@
+[
+  {"quarter":"2025-Q3","region":"EMEA","renewal_count":594,"renewal_arr":28379823.93,"churn_arr":-3836024.0,"renewal_rate":0.8648},
+  {"quarter":"2025-Q3","region":"NA",  "renewal_count":335,"renewal_arr":36115180.53,"churn_arr":-8490323.0,"renewal_rate":0.7649},
+  {"quarter":"2025-Q4","region":"EMEA","renewal_count":722,"renewal_arr":35576927.47,"churn_arr":-5167631.0,"renewal_rate":0.8547},
+  {"quarter":"2025-Q4","region":"NA",  "renewal_count":335,"renewal_arr":39658489.87,"churn_arr":-7286778.0,"renewal_rate":0.8163},
+  {"quarter":"2026-Q1","region":"EMEA","renewal_count":693,"renewal_arr":36820651.43,"churn_arr":-7371530.0,"renewal_rate":0.7998},
+  {"quarter":"2026-Q1","region":"NA",  "renewal_count":324,"renewal_arr":36732035.54,"churn_arr":-6784187.0,"renewal_rate":0.8153},
+  {"quarter":"2026-Q2","region":"EMEA","renewal_count":619,"renewal_arr":26559192.58,"churn_arr":-1998491.0,"renewal_rate":0.9248},
+  {"quarter":"2026-Q2","region":"NA",  "renewal_count":302,"renewal_arr":37320343.27,"churn_arr":-2948279.0,"renewal_rate":0.9210}
+]

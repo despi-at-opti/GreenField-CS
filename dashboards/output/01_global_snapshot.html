@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Snapshot — 2026-Q2</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@40,300,0,0" rel="stylesheet" />
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+:root {
+  --forest:  #1A3D2B;
+  --lime:    #AAEE44;
+  --sky:     #8ECFDB;
+  --pink:    #F0A0A8;
+  --teal:    #2A6650;
+  --frost:   #EEF2E8;
+  --sage:    #E8EEE0;
+  --green:   #4A9A3C;
+  --red:     #EF4444;
+  --amber:   #F59E0B;
+  --purple:  #7A3D5A;
+  --dark:    #1A3D2B;
+  --card:    #FFFFFF;
+  --bg:      #EEF2E8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'VC Nudge', Inter, Arial, sans-serif; background: var(--bg); color: var(--dark); }
+
+/* ── Header ── */
+.top-bar {
+  background: var(--forest); color: #fff; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.top-bar h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.top-bar .quarter-badge {
+  background: var(--lime); color: var(--forest); padding: 4px 14px;
+  border-radius: 20px; font-size: 13px; font-weight: 700;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 220px; background: #fff; border-right: 2px solid var(--sage);
+  padding: 24px 0; position: sticky; top: 56px; height: calc(100vh - 56px);
+  overflow-y: auto; flex-shrink: 0;
+}
+.sidebar a {
+  display: block; padding: 9px 20px; font-size: 13px; color: var(--dark);
+  text-decoration: none; border-left: 3px solid transparent;
+  transition: all .15s;
+}
+.sidebar a:hover, .sidebar a.active {
+  background: var(--frost); border-left-color: var(--lime); color: var(--forest);
+  font-weight: 600;
+}
+.main { flex: 1; padding: 28px; max-width: 1280px; overflow-x: hidden; }
+
+/* ── Section cards ── */
+.section { margin-bottom: 32px; }
+.section h2 {
+  font-size: 16px; font-weight: 700; color: var(--forest);
+  padding-bottom: 8px; border-bottom: 3px solid var(--lime);
+  margin-bottom: 16px;
+}
+.card {
+  background: var(--card); border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1); padding: 20px; margin-bottom: 16px;
+}
+
+/* ── KPI tiles ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 16px; }
+.kpi-card {
+  background: var(--card); border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1); padding: 18px 20px;
+  border-left: 4px solid var(--lime);
+}
+.kpi-card.green  { border-left-color: var(--green); }
+.kpi-card.red    { border-left-color: var(--red);   }
+.kpi-card.sky    { border-left-color: var(--sky);   }
+.kpi-card.teal   { border-left-color: var(--teal);  }
+.kpi-card.amber  { border-left-color: var(--amber); }
+.kpi-card.purple { border-left-color: var(--purple);}
+.kpi-card.orange { border-left-color: var(--sky);   }
+.kpi-label { font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.kpi-value { font-size: 26px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+.kpi-meta  { font-size: 12px; color: #9CA3AF; }
+.delta { font-size: 12px; font-weight: 600; }
+.delta.pos { color: var(--green); }
+.delta.neg { color: var(--red);   }
+.delta.neu { color: var(--amber); }
+
+/* ── Tabs ── */
+.tab-bar { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab-btn {
+  padding: 6px 16px; border-radius: 20px; border: 1px solid var(--sage);
+  background: #fff; cursor: pointer; font-size: 13px; color: #6B7280;
+  transition: all .15s;
+}
+.tab-btn.active { background: var(--forest); color: #fff; border-color: var(--forest); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── Tables ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: var(--forest); color: #fff; padding: 10px 12px;
+  text-align: left; font-weight: 600; position: sticky; top: 0; cursor: pointer;
+}
+thead th:hover { background: var(--teal); }
+tbody tr:nth-child(even) { background: var(--frost); }
+tbody tr:hover { background: var(--sage); }
+tbody td { padding: 8px 12px; border-bottom: 1px solid #F3F4F6; }
+
+/* ── Download button ── */
+.dl-btn {
+  display: inline-block; margin-top: 12px; padding: 7px 16px; border-radius: 8px;
+  background: var(--forest); color: var(--lime); font-size: 12px; font-weight: 700;
+  cursor: pointer; border: none; text-decoration: none;
+}
+.dl-btn:hover { background: var(--teal); color: #fff; }
+
+/* ── Insights box ── */
+.insight {
+  border-left: 4px solid var(--lime); background: var(--frost);
+  padding: 12px 16px; border-radius: 0 12px 12px 0; font-size: 13px;
+  color: var(--forest); margin-top: 12px; line-height: 1.6;
+}
+.insight strong { color: var(--forest); }
+
+/* ── Period badge ── */
+.period-badge {
+  display: inline-block; background: var(--lime); color: var(--forest);
+  padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  margin-left: 10px; vertical-align: middle;
+}
+
+/* ── Source footnote ── */
+.source { font-size: 11px; color: #9CA3AF; margin-top: 8px; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-value { font-size: 20px; }
+}
+
+/* ── Print ── */
+@media print {
+  .sidebar, .top-bar { display: none; }
+  .main { padding: 0; }
+  .card { box-shadow: none; border: 1px solid var(--sage); }
+}
+
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <h1>📊 CS Global Snapshot</h1>
+  <span class="quarter-badge">2026-Q2</span>
+</div>
+
+<div class="layout">
+
+<nav class="sidebar">
+  <a href="#kpis">KPI Summary</a>
+  <a href="#global_trend">Global Trend</a>
+  <a href="#regional_trend">NA &amp; EMEA Trend</a>
+</nav>
+<div class="main">
+
+<section class="section" id="kpis">
+  <h2>Global KPIs <span class="period-badge">2026-Q2</span></h2>
+  
+<div style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;
+  border-radius:20px;background:#4A9A3C22;color:#4A9A3C;
+  font-weight:700;font-size:14px;margin-bottom:16px;">
+  ▲ Renewal Rate is <strong>UP</strong> vs prior quarter
+</div>
+  <div class="kpi-grid">
+<div class="kpi-card ">
+  <div class="kpi-label">Total Renewal ARR</div>
+  <div class="kpi-value">$66.2M</div>
+  <div class="kpi-meta">QoQ <span class="delta neg">▼ $12.5M</span> &nbsp;|&nbsp; YoY <span class="delta pos">▲ $3.7M</span></div>
+</div>
+<div class="kpi-card green">
+  <div class="kpi-label">Active Accounts</div>
+  <div class="kpi-value">925</div>
+  <div class="kpi-meta">QoQ <span class="delta neg">▼ 117</span></div>
+</div>
+<div class="kpi-card red">
+  <div class="kpi-label">Total Churn ARR</div>
+  <div class="kpi-value">$5.0M</div>
+  <div class="kpi-meta">QoQ <span class="delta pos">▲ $9.9M</span> &nbsp;|&nbsp; 7.5% of renewal ARR</div>
+</div>
+<div class="kpi-card teal">
+  <div class="kpi-label">Overall Renewal Rate</div>
+  <div class="kpi-value">92.5%</div>
+  <div class="kpi-meta">QoQ <span class="delta pos">▲ 11.4pp</span> &nbsp;|&nbsp; 8.3% above 6Q avg (84.2%)</div>
+</div>
+<div class="kpi-card sky">
+  <div class="kpi-label">EO Renewal Rate</div>
+  <div class="kpi-value">86.4%</div>
+  <div class="kpi-meta">Experimentation Optimization</div>
+</div>
+<div class="kpi-card purple">
+  <div class="kpi-label">EC Renewal Rate</div>
+  <div class="kpi-value">92.8%</div>
+  <div class="kpi-meta">Experience Commerce</div>
+</div>
+<div class="kpi-card amber">
+  <div class="kpi-label">Opal Attach Rate</div>
+  <div class="kpi-value">13.2%</div>
+  <div class="kpi-meta">EO customers: 1,343 &nbsp;|&nbsp; Opal attached: 177</div>
+</div>
+<div class="kpi-card amber">
+  <div class="kpi-label">Opal Active Accounts</div>
+  <div class="kpi-value">177</div>
+  <div class="kpi-meta">of 1,343 EO accounts &nbsp;|&nbsp; 13.2% attach rate</div>
+</div>
+<div class="kpi-card teal">
+  <div class="kpi-label">Opal Renewal ARR</div>
+  <div class="kpi-value">$195K</div>
+  <div class="kpi-meta">5 accounts &nbsp;·&nbsp; RR 91.4% (QoQ <span class="delta pos">▲ 0.2pp</span>, prior 91.2%)</div>
+</div></div>
+  
+<div class="insight">
+  <strong>Key Insights — 2026-Q2:</strong><br>
+  Overall renewal rate is <strong>92.5%</strong>,
+  ▲ up <strong>11.4%pp</strong>
+  vs prior quarter (81.1%).
+  Total churn ARR ($5.0M) represents <strong>7.5%</strong> of renewal ARR.
+  See Trend section for multi-quarter context.
+  Drill into the Breakdowns and Deep Analyses dashboards for dimension-level and account-level drivers.
+</div>
+  <p class="source" style="margin-top:12px;">
+    Source: EXEC_DECK_RENEWAL_RATES_CUSTOMER &nbsp;·&nbsp;
+    Prior quarter: 2026-Q1 &nbsp;·&nbsp;
+    YoY quarter: 2025-Q2
+  </p>
+</section>
+
+<section class="section" id="global_trend">
+  <h2>Global Trend Analysis <span class="period-badge">2026-Q2</span></h2>
+  
+<div class="card">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div>
+<div id="trend_arr" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'trend_arr',
+  [{"type": "bar", "name": "Renewal ARR", "x": ["2025-Q1", "2025-Q2", "2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [77287690.56, 62512840.82, 68895436.45, 79925565.19, 78669247.09, 66209335.64], "marker": {"color": "#1A3D2B"}, "hovertemplate": "%{x}<br>Renewal ARR: $%{y:,.0f}<extra></extra>"}, {"type": "bar", "name": "Churn ARR", "x": ["2025-Q1", "2025-Q2", "2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [12671151.0, 10538115.0, 12969164.0, 13212150.0, 14713194.0, 5009524.0], "marker": {"color": "#EF4444", "opacity": 0.75}, "hovertemplate": "%{x}<br>Churn ARR: $%{y:,.0f}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "ARR ($)", "tickformat": "$,.0f", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 300, "title": {"text": "Global ARR & Churn by Quarter", "font": {"size": 14, "color": "#1A3D2B"}}, "barmode": "group"},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    <div>
+<div id="trend_rr" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'trend_rr',
+  [{"type": "scatter", "mode": "lines+markers", "name": "Renewal Rate", "x": ["2025-Q1", "2025-Q2", "2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [83.6, 83.1, 81.2, 83.5, 81.3, 92.4], "line": {"color": "#AAEE44", "width": 3}, "marker": {"size": 9, "color": "#1A3D2B"}, "hovertemplate": "%{x}<br>Renewal Rate: %{y:.1f}%<extra></extra>"}, {"type": "scatter", "mode": "lines", "name": "Avg 84.2%", "x": ["2025-Q1", "2025-Q2", "2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [84.2, 84.2, 84.2, 84.2, 84.2, 84.2], "line": {"color": "#F59E0B", "width": 2, "dash": "dash"}, "hoverinfo": "skip"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "automargin": true, "range": [70, 100]}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 300, "title": {"text": "Global Renewal Rate Trend", "font": {"size": 14, "color": "#1A3D2B"}}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+  </div>
+  <p class="source">Source: EXEC_DECK_RENEWAL_RATES_CUSTOMER — 6 quarters (2025-Q1 → 2026-Q2)</p>
+</div>
+</section>
+
+<section class="section" id="regional_trend">
+  <h2>Regional Trend — NA &amp; EMEA <span class="period-badge">2026-Q2</span></h2>
+  
+<div class="card">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div>
+<div id="arr_reg_trend" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'arr_reg_trend',
+  [{"type": "bar", "name": "NA Renewal ARR", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [36115180.53, 39658489.87, 36732035.54, 37320343.27], "marker": {"color": "#1A3D2B"}, "hovertemplate": "<b>NA</b> %{x}<br>Renewal ARR: $%{y:,.0f}<extra></extra>"}, {"type": "bar", "name": "NA Churn ARR", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [8490323.0, 7286778.0, 6784187.0, 2948279.0], "marker": {"color": "#EF4444", "opacity": 0.7}, "hovertemplate": "<b>NA</b> %{x}<br>Churn ARR: $%{y:,.0f}<extra></extra>"}, {"type": "bar", "name": "EMEA Renewal ARR", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [28379823.93, 35576927.47, 36820651.43, 26559192.58], "marker": {"color": "#8ECFDB"}, "hovertemplate": "<b>EMEA</b> %{x}<br>Renewal ARR: $%{y:,.0f}<extra></extra>"}, {"type": "bar", "name": "EMEA Churn ARR", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [3836024.0, 5167631.0, 7371530.0, 1998491.0], "marker": {"color": "#F59E0B", "opacity": 0.7}, "hovertemplate": "<b>EMEA</b> %{x}<br>Churn ARR: $%{y:,.0f}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "ARR ($)", "tickformat": "$,.0f", "automargin": true}, "legend": {"orientation": "h", "y": 1.08, "x": 0}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 300, "barmode": "group", "title": {"text": "ARR & Churn \u2014 NA vs EMEA", "font": {"size": 14}}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    <div>
+<div id="rr_reg_trend" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'rr_reg_trend',
+  [{"type": "scatter", "mode": "lines+markers", "name": "NA", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [76.5, 81.6, 81.5, 92.1], "line": {"color": "#1A3D2B", "width": 3}, "marker": {"size": 9}, "hovertemplate": "<b>NA</b> %{x}<br>RR: %{y:.1f}%<extra></extra>"}, {"type": "scatter", "mode": "lines+markers", "name": "EMEA", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [86.5, 85.5, 80.0, 92.5], "line": {"color": "#8ECFDB", "width": 3}, "marker": {"size": 9}, "hovertemplate": "<b>EMEA</b> %{x}<br>RR: %{y:.1f}%<extra></extra>"}, {"type": "scatter", "mode": "lines", "name": "90% target", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [90, 90, 90, 90], "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dash"}, "hoverinfo": "skip"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "automargin": true, "range": [70, 100]}, "legend": {"orientation": "h", "y": 1.08, "x": 0}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 300, "title": {"text": "Renewal Rate Trend \u2014 NA vs EMEA", "font": {"size": 14}}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+  </div>
+  <div style="margin-top:16px"><div class="table-wrap"><table id="tbl_reg_trend"><thead><tr><th>Quarter</th><th>Region</th><th>Renewals</th><th>Renewal ARR</th><th>Churn ARR</th><th>Renewal Rate</th></tr></thead><tbody><tr><td>2025-Q3</td><td>NA</td><td>335</td><td>$36.1M</td><td>$8.5M</td><td>76.5%</td></tr><tr><td>2025-Q3</td><td>EMEA</td><td>594</td><td>$28.4M</td><td>$3.8M</td><td>86.5%</td></tr><tr><td>2025-Q4</td><td>NA</td><td>335</td><td>$39.7M</td><td>$7.3M</td><td>81.6%</td></tr><tr><td>2025-Q4</td><td>EMEA</td><td>722</td><td>$35.6M</td><td>$5.2M</td><td>85.5%</td></tr><tr><td>2026-Q1</td><td>NA</td><td>324</td><td>$36.7M</td><td>$6.8M</td><td>81.5%</td></tr><tr><td>2026-Q1</td><td>EMEA</td><td>693</td><td>$36.8M</td><td>$7.4M</td><td>80.0%</td></tr><tr><td>2026-Q2</td><td>NA</td><td>302</td><td>$37.3M</td><td>$2.9M</td><td>92.1%</td></tr><tr><td>2026-Q2</td><td>EMEA</td><td>619</td><td>$26.6M</td><td>$2.0M</td><td>92.5%</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_reg_trend');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script></div>
+  <p class="source">Source: EXEC_DECK_RENEWAL_RATES_CUSTOMER (NA &amp; EMEA, 2025-Q3 → 2026-Q2)</p>
+</div>
+</section>
+
+</div>
+</div>
+<footer style="text-align:center; padding:24px; font-size:12px; color:#9CA3AF; border-top:2px solid #AAEE44; margin-top:32px; background:#EEF2E8;">
+  Generated 22 Jun 2026 | Optimizely CS Analytics<br>Sources: EXEC_DECK_RENEWAL_RATES_CUSTOMER · RENEWAL_OPPORTUNITY · SST_REPORT
+</footer>
+</body></html>

@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Cs Analytics Assistant",
+  "schemaVersion": 1,
+  "description": "CS Analytics assistant — 20 live analyses: scorecard, renewals by region/territory/segment/ARR band/product group/product solution/quarter, Opal attach & pipeline, OA pipeline, EO deep dive, CSMs portfolio, single vs multi-solution, churn codes, top churned accounts, cross-upsell, product swaps, QoQ & YoY comparisons.",
+  "mcpTools": ["mcp__snowflake__run_snowflake_query"],
+  "mcpServerNames": ["snowflake"]
+}
+</script>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS Analytics — Optimizely</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridjs@5.0.2/dist/theme/mermaid.min.css" integrity="sha384-jZvDSsmGB9oGGT/4l9bHXGoAv1OxvG/cFmSo0dZaSqmBgvQTKDBFAMftlXTmMbNW" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/gridjs@5.0.2/dist/gridjs.umd.js" integrity="sha384-/XXDzxe4FsGiAe50i/u9pY/Vy/uX654MHB1xoc1BJNnH1WXHhqHga9g3q5tF4gj7" crossorigin="anonymous"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: Arial, sans-serif; background: #F5F8F0; }
+#app { display: flex; flex-direction: column; height: 100vh; }
+
+.header { background: #AAEE44; padding: 10px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #1A3D2B; flex-shrink: 0; }
+.hlogo { width: 28px; height: 28px; background: #1A3D2B; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hlogo svg { width: 16px; height: 16px; }
+.htitles h1 { font-size: 14px; font-weight: 700; color: #1A3D2B; }
+.htitles p  { font-size: 10px; color: #2A6650; }
+.qtr-wrap { margin-left: auto; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.qtr-wrap label { font-size: 10px; color: #2A6650; font-weight: 600; }
+.qtr-input { background: #1A3D2B; color: #AAEE44; border: none; border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 600; width: 96px; outline: none; text-align: center; cursor: pointer; }
+
+.chat-area { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+
+.msg { max-width: 96%; }
+.msg.assistant { align-self: flex-start; }
+.msg.user { align-self: flex-end; }
+.msg-label { font-size: 10px; color: #8A9A80; margin-bottom: 3px; padding: 0 4px; text-transform: uppercase; letter-spacing: 0.4px; }
+.msg-bubble { padding: 9px 13px; border-radius: 12px; font-size: 13px; line-height: 1.6; color: #1A3D2B; }
+.msg.assistant .msg-bubble { background: white; border: 1px solid #E8EEE0; border-radius: 4px 12px 12px 12px; }
+.msg.user .msg-bubble { background: #1A3D2B; color: white; border-radius: 12px 4px 12px 12px; }
+
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 7px; margin: 9px 0; }
+.stat-card { background: #EEF2E8; border-radius: 9px; padding: 10px 12px; }
+.stat-label { font-size: 10px; color: #5F6B5A; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px; }
+.stat-value { font-size: 19px; font-weight: 700; color: #1A3D2B; }
+.stat-delta { font-size: 11px; margin-top: 2px; }
+.up { color: #22C55E; } .dn { color: #EF4444; } .neu { color: #F59E0B; }
+
+.insight { font-size: 12px; color: #2A6650; margin: 8px 0; line-height: 1.6; padding: 9px 11px; background: #EEF2E8; border-radius: 8px; border-left: 3px solid #4A9A3C; }
+
+.chart-wrap { background: white; border-radius: 9px; padding: 12px; margin: 9px 0; border: 1px solid #E8EEE0; }
+.chart-title { font-size: 10px; font-weight: 600; color: #1A3D2B; margin-bottom: 9px; text-transform: uppercase; letter-spacing: 0.4px; }
+.chart-canvas-wrap { position: relative; width: 100%; height: 220px; display: block; }
+.chart-canvas-wrap canvas { display: block; }
+
+.table-wrap { margin: 9px 0; border-radius: 9px; overflow: hidden; border: 1px solid #E8EEE0; }
+
+.cmp-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 9px 0; border-radius: 9px; overflow: hidden; border: 1px solid #E8EEE0; }
+.cmp-table thead tr { background: #EEF2E8; }
+.cmp-table th { padding: 7px 10px; text-align: left; font-size: 10px; color: #1A3D2B; text-transform: uppercase; letter-spacing: 0.3px; }
+.cmp-table th:not(:first-child) { text-align: right; }
+.cmp-table td { padding: 7px 10px; border-bottom: 1px solid #F0F4EA; }
+.cmp-table td:not(:first-child) { text-align: right; }
+.cmp-table tr:last-child td { border-bottom: none; }
+.cmp-table tr:nth-child(even) td { background: #FAFDF5; }
+
+.export-row { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+.btn-export { background: transparent; border: 1px solid #C8D4C0; color: #2A6650; border-radius: 20px; padding: 3px 11px; font-size: 11px; cursor: pointer; transition: background 0.12s; }
+.btn-export:hover { background: #E8EEE0; }
+
+.thinking { display: flex; gap: 5px; align-items: center; padding: 10px 13px; background: white; border: 1px solid #E8EEE0; border-radius: 4px 12px 12px 12px; width: fit-content; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: #8A9A80; animation: blink 1.4s infinite ease-in-out; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100%{opacity:0.3;transform:scale(1)} 40%{opacity:1;transform:scale(1.15)} }
+
+.error-box { font-size: 12px; color: #B91C1C; background: #FEF2F2; border-radius: 8px; padding: 7px 11px; margin-top: 5px; border: 1px solid #FECACA; }
+
+.qtr-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.chip { background: #EEF2E8; border: 1px solid #C8D4C0; color: #1A3D2B; border-radius: 20px; padding: 3px 12px; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.12s; }
+.chip:hover { background: #AAEE44; border-color: #AAEE44; }
+.chip.active { background: #1A3D2B; color: #AAEE44; border-color: #1A3D2B; font-weight: 700; }
+
+.quick-actions { padding: 8px 14px 8px; background: white; border-top: 1px solid #E8EEE0; flex-shrink: 0; }
+.qa-label { font-size: 10px; color: #8A9A80; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.4px; }
+.btn-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.btn-action { background: #F5F8F0; border: 1px solid #C8D4C0; color: #1A3D2B; border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: all 0.12s; }
+.btn-action:hover { background: #AAEE44; border-color: #AAEE44; }
+.btn-action:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.input-area { display: flex; gap: 7px; padding: 8px 14px; background: white; border-top: 1px solid #E8EEE0; flex-shrink: 0; }
+.chat-input { flex: 1; border: 1px solid #C8D4C0; border-radius: 20px; padding: 7px 13px; font-size: 13px; color: #1A3D2B; background: #F5F8F0; outline: none; }
+.chat-input:focus { border-color: #1A3D2B; background: white; }
+.btn-send { background: #1A3D2B; color: #AAEE44; border: none; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 17px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity 0.12s; }
+.btn-send:hover { opacity: 0.82; }
+.btn-send:disabled { opacity: 0.38; cursor: not-allowed; }
+
+.gridjs-wrapper { border-radius: 0 !important; }
+.gridjs-table { font-size: 11px !important; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<div class="header">
+  <div class="hlogo">
+    <svg viewBox="0 0 18 18" fill="none">
+      <rect x="2" y="10" width="3" height="6" fill="#AAEE44" rx="1"/>
+      <rect x="7.5" y="6" width="3" height="10" fill="#AAEE44" rx="1"/>
+      <rect x="13" y="2" width="3" height="14" fill="#AAEE44" rx="1"/>
+    </svg>
+  </div>
+  <div class="htitles">
+    <h1>CS Analytics</h1>
+    <p id="status-txt">Ready — pick an analysis or ask a question</p>
+  </div>
+  <div class="qtr-wrap">
+    <label>Quarter</label>
+    <input class="qtr-input" id="qtr" type="text" maxlength="7" placeholder="YYYY-QN" title="e.g. 2026-Q2">
+  </div>
+</div>
+
+<div class="chat-area" id="chat"></div>
+
+<div class="quick-actions">
+  <div class="qa-label">Quick analyses</div>
+  <div class="btn-grid">
+    <button class="btn-action" onclick="go('scorecard')">📊 Scorecard</button>
+    <button class="btn-action" onclick="go('by_region')">🌍 By region</button>
+    <button class="btn-action" onclick="go('by_product_group')">📦 By product group</button>
+    <button class="btn-action" onclick="go('by_product_solution')">🔷 By product solution</button>
+    <button class="btn-action" onclick="go('by_quarter')">📅 By quarter</button>
+    <button class="btn-action" onclick="go('opal_attach')">🟢 Opal attach</button>
+    <button class="btn-action" onclick="go('opal_pipeline')">🔵 Opal pipeline</button>
+    <button class="btn-action" onclick="go('oa_pipeline')">📈 OA pipeline</button>
+    <button class="btn-action" onclick="go('csms_portfolio')">👤 CSMs portfolio</button>
+    <button class="btn-action" onclick="go('by_rev_segment')">💼 By revenue segment</button>
+    <button class="btn-action" onclick="go('by_arr_band')">💰 By ARR band</button>
+    <button class="btn-action" onclick="go('by_territory')">🗺️ By territory</button>
+    <button class="btn-action" onclick="go('single_multi')">🔗 Single or multi-solution</button>
+    <button class="btn-action" onclick="go('churn_codes')">🔍 Churn codes</button>
+    <button class="btn-action" onclick="go('cross_upsell')">⬆️ Cross-/upsell</button>
+    <button class="btn-action" onclick="go('product_swaps')">🔄 Product swaps</button>
+    <button class="btn-action" onclick="go('eo_deep_dive')">🔬 EO Deep Dive</button>
+    <button class="btn-action" onclick="go('top_churn')">📉 Top churned accounts</button>
+    <button class="btn-action" onclick="go('qoq')">↔️ QoQ comparison</button>
+    <button class="btn-action" onclick="go('yoy')">📆 YoY comparison</button>
+  </div>
+</div>
+
+<div class="input-area">
+  <input class="chat-input" id="chat-in" type="text" placeholder="Ask about renewals, churn, Opal, EO, CSMs…" onkeydown="if(event.key==='Enter')send()">
+  <button class="btn-send" id="send-btn" onclick="send()">↑</button>
+</div>
+
+</div>
+<script>
+/* ── Quarter helpers ─────────────────────────────────────────── */
+function computeCurrentQtr() {
+  const now = new Date();
+  return `${now.getFullYear()}-Q${Math.ceil((now.getMonth()+1)/3)}`;
+}
+function buildQtrOptions(current) {
+  const [yr, qPart] = current.split('-Q');
+  const y = parseInt(yr, 10), qn = parseInt(qPart, 10);
+  const opts = [];
+  for (let d = -2; d <= 2; d++) {
+    let q = qn + d, y2 = y;
+    while (q < 1) { q += 4; y2--; }
+    while (q > 4) { q -= 4; y2++; }
+    opts.push(`${y2}-Q${q}`);
+  }
+  return opts;
+}
+// prior quarter string
+function priorQtr(qstr) {
+  const yr = parseInt(qstr.slice(0,4), 10);
+  const qn = parseInt(qstr.slice(-1), 10);
+  return qn === 1 ? `${yr-1}-Q4` : `${yr}-Q${qn-1}`;
+}
+// same quarter prior year
+function priorYearQtr(qstr) {
+  return `${parseInt(qstr.slice(0,4),10)-1}-Q${qstr.slice(-1)}`;
+}
+
+const CURRENT_QTR = computeCurrentQtr();
+document.getElementById('qtr').value = CURRENT_QTR;
+
+const chatEl   = document.getElementById('chat');
+const qtrEl    = document.getElementById('qtr');
+const statusEl = document.getElementById('status-txt');
+let busy = false;
+const charts = {};
+let activeChipEl = null;
+
+function q()  { return qtrEl.value.trim() || CURRENT_QTR; }
+function rq() { return q().replace('-Q', ' Q'); }
+function pq() { return priorQtr(q()); }
+function pyq(){ return priorYearQtr(q()); }
+
+function setBusy(v) {
+  busy = v;
+  document.querySelectorAll('.btn-action, #send-btn').forEach(b => b.disabled = v);
+  statusEl.textContent = v ? 'Running query…' : 'Ready — pick an analysis or ask a question';
+}
+
+function setQtr(val, chipEl) {
+  qtrEl.value = val;
+  if (activeChipEl) activeChipEl.classList.remove('active');
+  if (chipEl) { chipEl.classList.add('active'); activeChipEl = chipEl; }
+  addMsg('assistant', `Quarter set to <strong>${val}</strong>. Pick an analysis below or type a question.`);
+}
+
+/* ── string extraction from askClaude ───────────────────────── */
+function extractString(v) {
+  if (!v) return null;
+  if (typeof v === 'string') return v.trim() || null;
+  if (typeof v === 'object') {
+    const s = v.text || v.content || v.message || v.response || v.output;
+    if (typeof s === 'string') return s.trim() || null;
+    if (Array.isArray(v)) return v.map(x => extractString(x)).filter(Boolean).join(' ') || null;
+  }
+  return null;
+}
+
+/* ── DOM helpers ─────────────────────────────────────────────── */
+function addMsg(role, html) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + role;
+  d.innerHTML = `<div class="msg-label">${role==='assistant'?'CS Analytics':'You'}</div><div class="msg-bubble">${html}</div>`;
+  chatEl.appendChild(d);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  return d.querySelector('.msg-bubble');
+}
+function addThinking() {
+  const d = document.createElement('div');
+  d.className = 'msg assistant';
+  d.innerHTML = '<div class="msg-label">CS Analytics</div><div class="thinking"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+  chatEl.appendChild(d); chatEl.scrollTop = chatEl.scrollHeight;
+  return d;
+}
+function addStatGrid(bubble, stats) {
+  const g = document.createElement('div'); g.className = 'stat-grid';
+  stats.forEach(s => {
+    if (!s) return;
+    const c = document.createElement('div'); c.className = 'stat-card';
+    c.innerHTML = `<div class="stat-label">${s.label||''}</div><div class="stat-value">${s.value||'—'}</div>`
+      + (s.delta ? `<div class="stat-delta ${s.cls||''}">${s.delta}</div>` : '');
+    g.appendChild(c);
+  });
+  bubble.appendChild(g);
+}
+function addInsight(bubble, text) {
+  const str = typeof text === 'string' ? text.trim() : null;
+  if (!str) return;
+  const p = document.createElement('div'); p.className = 'insight'; p.textContent = str;
+  bubble.appendChild(p);
+}
+function addChart(bubble, id, labels, datasets, opts) {
+  const w = document.createElement('div'); w.className = 'chart-wrap';
+  w.innerHTML = `<div class="chart-title">${opts.title||''}</div><div class="chart-canvas-wrap"><canvas id="${id}"></canvas></div>`;
+  bubble.appendChild(w);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    const wr = canvas.parentElement;
+    if (!wr.offsetWidth) { canvas.style.width='100%'; canvas.style.height='220px'; }
+    if (charts[id]) { try { charts[id].destroy(); } catch(e){} }
+    charts[id] = new Chart(canvas, {
+      type: opts.type || 'bar',
+      data: { labels, datasets },
+      options: {
+        indexAxis: opts.h ? 'y' : 'x',
+        responsive: true, maintainAspectRatio: false,
+        animation: { duration: 450 },
+        plugins: {
+          legend: { display: datasets.length > 1, labels: { color:'#1A3D2B', font:{size:11} } },
+          tooltip: { callbacks: { label: ctx => opts.pct
+            ? (ctx.raw*100).toFixed(1)+'%'
+            : '$'+(Math.abs(ctx.raw)/1e6).toFixed(2)+'M' } }
+        },
+        scales: (() => {
+          // value axis gets the number formatter; category axis shows labels as-is
+          const numFmt = v => typeof v==='number'
+            ? (opts.pct ? (v*100).toFixed(0)+'%' : '$'+(v/1e6).toFixed(1)+'M') : v;
+          const valAxis = { grid:{color:'#E8EEE0'}, ticks:{color:'#5F6B5A', font:{size:10}, callback: numFmt} };
+          const catAxis = { grid:{color:'#E8EEE0'}, ticks:{color:'#5F6B5A', font:{size:10}} };
+          // horizontal bar: x=value, y=category; vertical bar/line: x=category, y=value
+          return opts.h ? { x: valAxis, y: catAxis } : { x: catAxis, y: valAxis };
+        })()
+      }
+    });
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }));
+  return id;
+}
+function addTable(bubble, columns, rows, tableId) {
+  const w = document.createElement('div'); w.className = 'table-wrap'; w.id = tableId;
+  bubble.appendChild(w);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    new gridjs.Grid({ columns, data: rows, search:true, pagination:{limit:10}, sort:true })
+      .render(document.getElementById(tableId));
+  }));
+}
+function addCompareTable(bubble, rows, col1Label, col2Label) {
+  const t = document.createElement('table'); t.className = 'cmp-table';
+  t.innerHTML = `<thead><tr>
+    <th>Metric</th><th>${col1Label}</th><th>${col2Label}</th><th>Delta</th>
+  </tr></thead>`;
+  const tb = document.createElement('tbody');
+  rows.forEach(r => {
+    const delta = parseFloat(r.DELTA) || 0;
+    const isChurn = (r.METRIC||'').toLowerCase().includes('churn');
+    const good = isChurn ? delta < 0 : delta > 0;
+    const dColor = delta === 0 ? '#8A9A80' : (good ? '#22C55E' : '#EF4444');
+    const arrow  = delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '→ ';
+    let cv = r.CURRENT_VAL, pv = r.PRIOR_VAL, dv;
+    if (r.UNIT === '%') {
+      cv = parseFloat(cv).toFixed(1)+'%';
+      pv = parseFloat(pv).toFixed(1)+'%';
+      dv = arrow + Math.abs(parseFloat(r.DELTA)).toFixed(1)+'pp';
+    } else if (r.UNIT === '$') {
+      cv = fmtArr(cv); pv = fmtArr(pv);
+      dv = arrow + fmtArr(Math.abs(parseFloat(r.DELTA)));
+    } else {
+      cv = fmtNum(cv); pv = fmtNum(pv);
+      dv = arrow + Math.abs(parseInt(r.DELTA));
+    }
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td style="font-weight:500;color:#1A3D2B">${r.METRIC}</td>
+      <td style="text-align:right;font-weight:600;color:#1A3D2B">${cv}</td>
+      <td style="text-align:right;color:#8A9A80">${pv}</td>
+      <td style="text-align:right;font-weight:600;color:${dColor}">${dv}</td>`;
+    tb.appendChild(tr);
+  });
+  t.appendChild(tb);
+  bubble.appendChild(t);
+}
+function addExports(bubble, chartId, rawData, fileLabel) {
+  const row = document.createElement('div'); row.className = 'export-row';
+  if (chartId) {
+    const b = document.createElement('button'); b.className = 'btn-export'; b.textContent = '📷 PNG';
+    b.onclick = () => { const c = charts[chartId]; if(c){const a=document.createElement('a');a.href=c.toBase64Image();a.download=`cs_${fileLabel}_${q()}.png`;a.click();} };
+    row.appendChild(b);
+  }
+  if (rawData) {
+    const b = document.createElement('button'); b.className = 'btn-export'; b.textContent = '📄 CSV';
+    b.onclick = () => {
+      const keys = Object.keys(rawData[0]||{});
+      const csv = [keys.join(','), ...rawData.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))].join('\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+      a.download = `cs_${fileLabel}_${q()}.csv`; a.click();
+    };
+    row.appendChild(b);
+  }
+  bubble.appendChild(row);
+}
+
+/* ── Snowflake ───────────────────────────────────────────────── */
+async function runSQL(sql) {
+  const r = await window.cowork.callMcpTool('mcp__snowflake__run_snowflake_query', { statement: sql });
+  if (r.isError) throw new Error(r.content?.[0]?.text || 'Query failed');
+  if (r.structuredContent && Array.isArray(r.structuredContent)) return r.structuredContent;
+  const txt = r.content?.[0]?.text || '[]';
+  try { const p = JSON.parse(txt); return Array.isArray(p) ? p : [p]; } catch(e) { return []; }
+}
+
+/* ── AI insight ──────────────────────────────────────────────── */
+async function ai(type, data) {
+  try {
+    const raw = await window.cowork.askClaude(
+      `You are a CS analytics expert for Optimizely. Analyse this ${type} data for quarter ${q()}. Give 2-4 sentences of direct business insight: highlight key metrics, standout trends, and what the CS chief should focus on next. Be specific and concise — no preamble.`,
+      Array.isArray(data) ? data.slice(0,20) : [data]
+    );
+    return extractString(raw);
+  } catch(e) { return null; }
+}
+
+/* ── Formatters ──────────────────────────────────────────────── */
+function fmtPct(v) { if(v==null)return'—'; return (parseFloat(v)*100).toFixed(1)+'%'; }
+function fmtArr(v) { if(v==null)return'—'; const n=parseFloat(v); if(isNaN(n))return'—'; const abs=Math.abs(n); return (n<0?'-':'')+'$'+(abs>=1e6?(abs/1e6).toFixed(1)+'M':abs>=1e3?(abs/1e3).toFixed(0)+'K':abs.toFixed(0)); }
+function fmtNum(v) { if(v==null)return'—'; return parseFloat(v).toLocaleString(); }
+function pp(v)     { if(v==null)return null; const n=parseFloat(v); return (n>=0?'▲ +':'▼ ')+(Math.abs(n)*100).toFixed(1)+'pp'; }
+function ppCls(v)  { if(v==null)return''; return parseFloat(v)>=0?'up':'dn'; }
+
+/* helper: prior quarter string for SST queries */
+function pqStr() {
+  const qn = parseInt(q().slice(-1), 10);
+  const yr = parseInt(q().slice(0,4), 10);
+  return qn===1 ? `${yr-1}-Q4` : `${yr}-Q${qn-1}`;
+}
+
+/* ── SQL builders ────────────────────────────────────────────── */
+const SQL = {
+
+  scorecard: () => `
+WITH qp AS (SELECT '${q()}' AS tq, CAST(LEFT('${q()}',4) AS INT) AS yr, CAST(RIGHT('${q()}',1) AS INT) AS qn),
+ql AS (SELECT tq, CASE WHEN qn=1 THEN (yr-1)||'-Q4' ELSE yr||'-Q'||(qn-1) END AS pq FROM qp),
+base AS (
+  SELECT DATE_YQ,
+    COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS rc,
+    SUM(ARR_RENEWAL) AS ra, SUM(ARR_CHURN) AS ca,
+    COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS cc,
+    DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)) AS rr
+  FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER GROUP BY DATE_YQ
+)
+SELECT c.DATE_YQ AS CQ, p.DATE_YQ AS PQ,
+  c.rc AS CRC, p.rc AS PRC, c.cc AS CCC, p.cc AS PCC,
+  ROUND(c.ra,0) AS CRA, ROUND(p.ra,0) AS PRA,
+  ROUND(c.ca,0) AS CCA, ROUND(p.ca,0) AS PCA,
+  ROUND(c.rr,4) AS CRR, ROUND(p.rr,4) AS PRR, ROUND(c.rr-p.rr,4) AS DELTA
+FROM base c CROSS JOIN base p JOIN ql l ON c.DATE_YQ=l.tq AND p.DATE_YQ=l.pq`,
+
+  by_region: () => `
+WITH d AS (
+  SELECT REGION, MASTER_CUSTOMER_ID, ARR_RENEWAL, ARR_CHURN
+  FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP
+  WHERE DATE_YQ='${q()}'
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY MASTER_CUSTOMER_ID,PRODUCT_GROUP_CLEANED,DATE_YM ORDER BY DATE_YM DESC)=1
+)
+SELECT COALESCE(REGION,'Unknown') AS REGION,
+  COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RENEWAL_COUNT,
+  ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+  COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CHURN_COUNT,
+  ROUND(SUM(ARR_CHURN),0) AS CHURN_ARR,
+  ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE
+FROM d GROUP BY REGION ORDER BY RENEWAL_ARR DESC`,
+
+  by_product_group: () => `
+WITH d AS (
+  SELECT *,
+    CASE
+      WHEN PRODUCT_GROUP_CLEANED IN ('Analytics','Feature Experimentation','Web Experimentation','Experimentation Platform','Experimentation Addons','Personalization','Segmentation') THEN 'EO'
+      WHEN PRODUCT_GROUP_CLEANED IN ('Commerce Connect Non-Retail','Product Recommendations','Content Recommendations','Content Management PaaS','Content Management SaaS','Content Management Addons') THEN 'EC'
+      WHEN PRODUCT_GROUP_CLEANED='Opal' THEN 'AI / Opal'
+      WHEN PRODUCT_GROUP_CLEANED IN ('Content Management Platform','Content Marketing Platform','Digital Asset Management','Configured Commerce') THEN 'CMP'
+    END AS PG
+  FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP
+  WHERE DATE_YQ='${q()}' AND PRODUCT_GROUP_CLEANED NOT LIKE 'EOL%'
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY MASTER_CUSTOMER_ID,PRODUCT_GROUP_CLEANED,DATE_YM ORDER BY DATE_YM DESC)=1
+)
+SELECT PG AS PRODUCT_GROUP,
+  COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RENEWAL_COUNT,
+  ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+  COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CHURN_COUNT,
+  ROUND(SUM(ARR_CHURN),0) AS CHURN_ARR,
+  ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE
+FROM d WHERE PG IS NOT NULL GROUP BY PG ORDER BY RENEWAL_ARR DESC`,
+
+  by_product_solution: () => `
+WITH d AS (
+  SELECT PRODUCT_GROUP_CLEANED, MASTER_CUSTOMER_ID, ARR_RENEWAL, ARR_CHURN
+  FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP
+  WHERE DATE_YQ='${q()}' AND PRODUCT_GROUP_CLEANED NOT LIKE 'EOL%'
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY MASTER_CUSTOMER_ID,PRODUCT_GROUP_CLEANED,DATE_YM ORDER BY DATE_YM DESC)=1
+)
+SELECT PRODUCT_GROUP_CLEANED AS PRODUCT,
+  COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RENEWAL_COUNT,
+  ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+  COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CHURN_COUNT,
+  ROUND(SUM(ARR_CHURN),0) AS CHURN_ARR,
+  ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE
+FROM d GROUP BY PRODUCT ORDER BY RENEWAL_ARR DESC LIMIT 20`,
+
+  by_quarter: () => `
+WITH ranked AS (
+  SELECT DATE_YQ,
+    COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RENEWAL_COUNT,
+    ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+    COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CHURN_COUNT,
+    ROUND(SUM(ARR_CHURN),0) AS CHURN_ARR,
+    ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE,
+    ROW_NUMBER() OVER (ORDER BY DATE_YQ DESC) AS RN
+  FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER
+  WHERE DATE_YQ <= '${q()}'
+  GROUP BY DATE_YQ
+)
+SELECT DATE_YQ, RENEWAL_COUNT, RENEWAL_ARR, CHURN_COUNT, CHURN_ARR, RENEWAL_RATE
+FROM ranked WHERE RN <= 8 ORDER BY DATE_YQ ASC`,
+
+  opal_overall: () => `
+WITH snap AS (
+  SELECT MCID, UPDATED_PRODUCT_GROUP FROM REPORTING.ARR_SST.SST_REPORT
+  WHERE DAY(SNAPSHOT_DATE)>=28 AND NEW_PRODUCT_SOLUTION!='EOL'
+  AND TO_CHAR(SNAPSHOT_DATE,'YYYY')||'-Q'||QUARTER(SNAPSHOT_DATE)::VARCHAR='${q()}'
+),
+eo AS (SELECT DISTINCT MCID FROM snap WHERE UPDATED_PRODUCT_GROUP IN ('Analytics','Feature Experimentation','Web Experimentation','Experimentation Platform','Experimentation Addons','Personalization','Segmentation')),
+op AS (SELECT DISTINCT MCID FROM snap WHERE UPDATED_PRODUCT_GROUP='Opal'),
+eo_op AS (SELECT eo.MCID FROM eo INNER JOIN op ON eo.MCID=op.MCID)
+SELECT COUNT(DISTINCT e.MCID) AS EO_COUNT, COUNT(DISTINCT w.MCID) AS OPAL_COUNT,
+  ROUND(DIV0(COUNT(DISTINCT w.MCID),COUNT(DISTINCT e.MCID)),4) AS ATTACH_RATE
+FROM eo e LEFT JOIN eo_op w ON e.MCID=w.MCID`,
+
+  opal_regional: () => `
+WITH snap AS (
+  SELECT MCID, UPDATED_PRODUCT_GROUP FROM REPORTING.ARR_SST.SST_REPORT
+  WHERE DAY(SNAPSHOT_DATE)>=28 AND NEW_PRODUCT_SOLUTION!='EOL'
+  AND TO_CHAR(SNAPSHOT_DATE,'YYYY')||'-Q'||QUARTER(SNAPSHOT_DATE)::VARCHAR='${q()}'
+),
+eo AS (SELECT DISTINCT MCID FROM snap WHERE UPDATED_PRODUCT_GROUP IN ('Analytics','Feature Experimentation','Web Experimentation','Experimentation Platform','Experimentation Addons','Personalization','Segmentation')),
+op AS (SELECT DISTINCT MCID FROM snap WHERE UPDATED_PRODUCT_GROUP='Opal'),
+eo_op AS (SELECT eo.MCID FROM eo INNER JOIN op ON eo.MCID=op.MCID),
+reg AS (
+  SELECT MASTER_CUSTOMER_ID, REGION FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER
+  WHERE DATE_YQ='${q()}'
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY MASTER_CUSTOMER_ID ORDER BY DATE_YQ DESC)=1
+)
+SELECT COALESCE(r.REGION,'Unknown') AS REGION,
+  COUNT(DISTINCT e.MCID) AS EO_COUNT, COUNT(DISTINCT w.MCID) AS OPAL_COUNT,
+  ROUND(DIV0(COUNT(DISTINCT w.MCID),COUNT(DISTINCT e.MCID)),4) AS ATTACH_RATE
+FROM eo e LEFT JOIN eo_op w ON e.MCID=w.MCID LEFT JOIN reg r ON e.MCID=r.MASTER_CUSTOMER_ID
+GROUP BY COALESCE(r.REGION,'Unknown') ORDER BY ATTACH_RATE DESC`,
+
+  opal_pipeline: () => `
+WITH opps AS (
+  SELECT MCID, OPPORTUNITY_ID, OPPORTUNITY_STAGE, MAX(RENEWAL_FINAL_AMOUNT) AS ARR
+  FROM REPORTING.GTM_ANALYTICS.RENEWAL_OPPORTUNITY
+  WHERE IS_OPAL=TRUE AND CLOSE_DATE_QUARTER='${rq()}'
+  GROUP BY MCID, OPPORTUNITY_ID, OPPORTUNITY_STAGE
+)
+SELECT COALESCE(OPPORTUNITY_STAGE,'Unknown') AS STAGE,
+  COUNT(DISTINCT MCID) AS ACCOUNTS, COUNT(DISTINCT OPPORTUNITY_ID) AS OPPS,
+  ROUND(SUM(ARR),0) AS TOTAL_ARR
+FROM opps GROUP BY OPPORTUNITY_STAGE ORDER BY TOTAL_ARR DESC`,
+
+  oa_pipeline: () => `
+WITH oa_mcids AS (
+  SELECT DISTINCT MCID FROM REPORTING.ARR_SST.SST_REPORT
+  WHERE UPDATED_PRODUCT_GROUP='Analytics' AND NEW_PRODUCT_SOLUTION!='EOL'
+  AND DAY(SNAPSHOT_DATE)>=28
+  AND TO_CHAR(SNAPSHOT_DATE,'YYYY')||'-Q'||QUARTER(SNAPSHOT_DATE)::VARCHAR='${q()}'
+)
+SELECT COALESCE(r.OPPORTUNITY_STAGE,'No Opportunity') AS STAGE,
+  COUNT(DISTINCT r.MCID) AS ACCOUNTS,
+  COUNT(DISTINCT r.OPPORTUNITY_ID) AS OPPS,
+  ROUND(SUM(r.RENEWAL_FINAL_AMOUNT),0) AS PIPELINE_ARR
+FROM REPORTING.GTM_ANALYTICS.RENEWAL_OPPORTUNITY r
+INNER JOIN oa_mcids m ON r.MCID=m.MCID
+WHERE r.CLOSE_DATE_QUARTER='${rq()}'
+GROUP BY r.OPPORTUNITY_STAGE ORDER BY PIPELINE_ARR DESC NULLS LAST`,
+
+  csms_portfolio: () => `
+SELECT COALESCE(CSM,'Unassigned') AS CSM,
+  COUNT(DISTINCT MASTER_CUSTOMER_ID) AS TOTAL_ACCOUNTS,
+  COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RENEWING,
+  COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CHURNED,
+  ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+  ROUND(SUM(CASE WHEN ARR_CHURN<0 THEN ARR_CHURN ELSE 0 END),0) AS CHURN_ARR,
+  ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE
+FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER
+WHERE DATE_YQ='${q()}'
+GROUP BY CSM ORDER BY RENEWAL_ARR DESC LIMIT 50`,
+
+  by_rev_segment: () => `
+SELECT COALESCE(SFDC_SEGMENT,'Unknown') AS SEGMENT,
+  COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RENEWAL_COUNT,
+  COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CHURN_COUNT,
+  ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+  ROUND(SUM(ARR_CHURN),0) AS CHURN_ARR,
+  ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE
+FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER
+WHERE DATE_YQ='${q()}'
+GROUP BY SFDC_SEGMENT ORDER BY RENEWAL_ARR DESC`,
+
+  by_arr_band: () => `
+WITH d AS (
+  SELECT MASTER_CUSTOMER_ID, ARR_RENEWAL, ARR_CHURN,
+    CASE
+      WHEN ARR_RENEWAL>=500000 THEN '1_$500K+'
+      WHEN ARR_RENEWAL>=250000 THEN '2_$250K–$500K'
+      WHEN ARR_RENEWAL>=100000 THEN '3_$100K–$250K'
+      ELSE                          '4_≤$100K'
+    END AS BAND_KEY
+  FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER
+  WHERE DATE_YQ='${q()}'
+)
+SELECT SUBSTRING(BAND_KEY,3) AS ARR_BAND,
+  COUNT(DISTINCT MASTER_CUSTOMER_ID) AS ACCOUNTS,
+  COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RENEWING,
+  COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CHURNED,
+  ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+  ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE
+FROM d GROUP BY BAND_KEY, SUBSTRING(BAND_KEY,3) ORDER BY BAND_KEY`,
+
+  by_territory: () => `
+SELECT COALESCE(TERRITORY,'Unknown') AS TERRITORY,
+  COALESCE(REGION,'Unknown') AS REGION,
+  COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RENEWAL_COUNT,
+  COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CHURN_COUNT,
+  ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+  ROUND(SUM(ARR_CHURN),0) AS CHURN_ARR,
+  ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE
+FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER
+WHERE DATE_YQ='${q()}'
+GROUP BY TERRITORY, REGION ORDER BY RENEWAL_ARR DESC LIMIT 40`,
+
+  single_multi: () => `
+WITH prod_count AS (
+  SELECT MCID, COUNT(DISTINCT UPDATED_PRODUCT_GROUP) AS PROD_COUNT
+  FROM REPORTING.ARR_SST.SST_REPORT
+  WHERE NEW_PRODUCT_SOLUTION!='EOL' AND DAY(SNAPSHOT_DATE)>=28
+  AND TO_CHAR(SNAPSHOT_DATE,'YYYY')||'-Q'||QUARTER(SNAPSHOT_DATE)::VARCHAR='${q()}'
+  GROUP BY MCID
+),
+d AS (
+  SELECT c.MASTER_CUSTOMER_ID, c.ARR_RENEWAL, c.ARR_CHURN,
+    CASE WHEN COALESCE(p.PROD_COUNT,1)=1 THEN 'Single-solution' ELSE 'Multi-solution' END AS SOLUTION_TYPE
+  FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER c
+  LEFT JOIN prod_count p ON c.MASTER_CUSTOMER_ID=p.MCID
+  WHERE c.DATE_YQ='${q()}'
+)
+SELECT SOLUTION_TYPE,
+  COUNT(DISTINCT MASTER_CUSTOMER_ID) AS ACCOUNTS,
+  COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RENEWING,
+  COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CHURNED,
+  ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+  ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE
+FROM d GROUP BY SOLUTION_TYPE ORDER BY SOLUTION_TYPE`,
+
+  churn_codes: () => `
+WITH opp AS (
+  SELECT ACCOUNT_ID, TYPE_OF_CHURN_C, CHURN_CATEGORY_C, CLOSE_DATE,
+    ROW_NUMBER() OVER (PARTITION BY ACCOUNT_ID ORDER BY CLOSE_DATE DESC) AS rn
+  FROM REPORTING.SALESFORCE.RAW_OPPORTUNITY_REPORT
+  WHERE STAGE_NAME='Closed Lost'
+  AND TO_CHAR(DATE_TRUNC('YEAR',CLOSE_DATE),'YYYY')||'-Q'||QUARTER(CLOSE_DATE)='${q()}'
+),
+lo AS (SELECT ACCOUNT_ID, TYPE_OF_CHURN_C, CHURN_CATEGORY_C FROM opp WHERE rn=1),
+ch AS (SELECT MASTER_CUSTOMER_ID, ARR_CHURN FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER WHERE DATE_YQ='${q()}' AND ARR_CHURN<0)
+SELECT COALESCE(o.TYPE_OF_CHURN_C,'Not Captured') AS CHURN_TYPE,
+  COALESCE(o.CHURN_CATEGORY_C,'Not Captured') AS CHURN_CATEGORY,
+  COUNT(DISTINCT c.MASTER_CUSTOMER_ID) AS ACCOUNT_COUNT,
+  ROUND(SUM(c.ARR_CHURN),0) AS TOTAL_CHURN_ARR
+FROM ch c LEFT JOIN lo o ON o.ACCOUNT_ID=c.MASTER_CUSTOMER_ID
+GROUP BY COALESCE(o.TYPE_OF_CHURN_C,'Not Captured'), COALESCE(o.CHURN_CATEGORY_C,'Not Captured')
+ORDER BY TOTAL_CHURN_ARR ASC`,
+
+  cross_upsell: () => `
+WITH prev_prods AS (
+  SELECT DISTINCT MCID, UPDATED_PRODUCT_GROUP
+  FROM REPORTING.ARR_SST.SST_REPORT
+  WHERE TO_CHAR(SNAPSHOT_DATE,'YYYY')||'-Q'||QUARTER(SNAPSHOT_DATE)::VARCHAR='${pqStr()}'
+  AND DAY(SNAPSHOT_DATE)>=28 AND NEW_PRODUCT_SOLUTION!='EOL'
+),
+curr_prods AS (
+  SELECT DISTINCT MCID, UPDATED_PRODUCT_GROUP
+  FROM REPORTING.ARR_SST.SST_REPORT
+  WHERE TO_CHAR(SNAPSHOT_DATE,'YYYY')||'-Q'||QUARTER(SNAPSHOT_DATE)::VARCHAR='${q()}'
+  AND DAY(SNAPSHOT_DATE)>=28 AND NEW_PRODUCT_SOLUTION!='EOL'
+),
+new_attach AS (
+  SELECT c.MCID, c.UPDATED_PRODUCT_GROUP
+  FROM curr_prods c
+  LEFT JOIN prev_prods p ON c.MCID=p.MCID AND c.UPDATED_PRODUCT_GROUP=p.UPDATED_PRODUCT_GROUP
+  WHERE p.MCID IS NULL
+  AND EXISTS (SELECT 1 FROM prev_prods pp WHERE pp.MCID=c.MCID)
+)
+SELECT n.UPDATED_PRODUCT_GROUP AS PRODUCT_ADDED,
+  COUNT(DISTINCT n.MCID) AS ACCOUNTS_CROSS_SOLD
+FROM new_attach n GROUP BY n.UPDATED_PRODUCT_GROUP ORDER BY ACCOUNTS_CROSS_SOLD DESC`,
+
+  /* product swaps split into 2 queries — MCP blocks UNION statements */
+  product_swaps_added: () => `
+WITH prev_prods AS (
+  SELECT DISTINCT MCID, UPDATED_PRODUCT_GROUP FROM REPORTING.ARR_SST.SST_REPORT
+  WHERE TO_CHAR(SNAPSHOT_DATE,'YYYY')||'-Q'||QUARTER(SNAPSHOT_DATE)::VARCHAR='${pqStr()}'
+  AND DAY(SNAPSHOT_DATE)>=28 AND NEW_PRODUCT_SOLUTION!='EOL'
+),
+curr_prods AS (
+  SELECT DISTINCT MCID, UPDATED_PRODUCT_GROUP FROM REPORTING.ARR_SST.SST_REPORT
+  WHERE TO_CHAR(SNAPSHOT_DATE,'YYYY')||'-Q'||QUARTER(SNAPSHOT_DATE)::VARCHAR='${q()}'
+  AND DAY(SNAPSHOT_DATE)>=28 AND NEW_PRODUCT_SOLUTION!='EOL'
+)
+SELECT c.UPDATED_PRODUCT_GROUP AS PRODUCT, COUNT(DISTINCT c.MCID) AS ACCOUNTS
+FROM curr_prods c
+LEFT JOIN prev_prods p ON c.MCID=p.MCID AND c.UPDATED_PRODUCT_GROUP=p.UPDATED_PRODUCT_GROUP
+WHERE p.MCID IS NULL
+AND EXISTS (SELECT 1 FROM prev_prods pp WHERE pp.MCID=c.MCID)
+GROUP BY c.UPDATED_PRODUCT_GROUP ORDER BY ACCOUNTS DESC`,
+
+  product_swaps_dropped: () => `
+WITH prev_prods AS (
+  SELECT DISTINCT MCID, UPDATED_PRODUCT_GROUP FROM REPORTING.ARR_SST.SST_REPORT
+  WHERE TO_CHAR(SNAPSHOT_DATE,'YYYY')||'-Q'||QUARTER(SNAPSHOT_DATE)::VARCHAR='${pqStr()}'
+  AND DAY(SNAPSHOT_DATE)>=28 AND NEW_PRODUCT_SOLUTION!='EOL'
+),
+curr_prods AS (
+  SELECT DISTINCT MCID, UPDATED_PRODUCT_GROUP FROM REPORTING.ARR_SST.SST_REPORT
+  WHERE TO_CHAR(SNAPSHOT_DATE,'YYYY')||'-Q'||QUARTER(SNAPSHOT_DATE)::VARCHAR='${q()}'
+  AND DAY(SNAPSHOT_DATE)>=28 AND NEW_PRODUCT_SOLUTION!='EOL'
+)
+SELECT p.UPDATED_PRODUCT_GROUP AS PRODUCT, COUNT(DISTINCT p.MCID) AS ACCOUNTS
+FROM prev_prods p
+LEFT JOIN curr_prods c ON p.MCID=c.MCID AND p.UPDATED_PRODUCT_GROUP=c.UPDATED_PRODUCT_GROUP
+WHERE c.MCID IS NULL
+AND EXISTS (SELECT 1 FROM curr_prods cc WHERE cc.MCID=p.MCID)
+GROUP BY p.UPDATED_PRODUCT_GROUP ORDER BY ACCOUNTS DESC`,
+
+  eo_deep_dive: () => `
+WITH d AS (
+  SELECT PRODUCT_GROUP_CLEANED AS PRODUCT, MASTER_CUSTOMER_ID, ARR_RENEWAL, ARR_CHURN
+  FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP
+  WHERE DATE_YQ='${q()}' AND PRODUCT_GROUP_CLEANED IN (
+    'Analytics','Feature Experimentation','Web Experimentation',
+    'Experimentation Platform','Experimentation Addons','Personalization','Segmentation'
+  )
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY MASTER_CUSTOMER_ID,PRODUCT_GROUP_CLEANED,DATE_YM ORDER BY DATE_YM DESC)=1
+)
+SELECT PRODUCT,
+  COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RENEWAL_COUNT,
+  COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CHURN_COUNT,
+  ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+  ROUND(SUM(ARR_CHURN),0) AS CHURN_ARR,
+  ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE
+FROM d GROUP BY PRODUCT ORDER BY RENEWAL_ARR DESC`,
+
+  top_churn: () => `
+SELECT MASTER_CUSTOMER_ID, ACCOUNT_NAME, CSM, REGION, TERRITORY,
+  ROUND(ARR_RENEWAL,0) AS ARR_RENEWAL, ROUND(ARR_CHURN,0) AS ARR_CHURN,
+  CASE WHEN ARR_RENEWAL>=250000 THEN 'Enterprise' WHEN ARR_RENEWAL>=100000 THEN 'Mid-Market' ELSE 'Digital' END AS SEG
+FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER
+WHERE DATE_YQ='${q()}' AND ARR_CHURN<0 ORDER BY ARR_CHURN ASC LIMIT 50`,
+
+  /* QoQ/YoY — single wide row (no UNION; MCP blocks UNION statements) */
+  qoq: () => `
+WITH base AS (
+  SELECT DATE_YQ,
+    COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RC,
+    ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+    ROUND(SUM(ARR_CHURN),0) AS CHURN_ARR,
+    COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CC,
+    ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE
+  FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER
+  WHERE DATE_YQ IN ('${q()}','${pqStr()}')
+  GROUP BY DATE_YQ
+),
+piv AS (
+  SELECT
+    MAX(CASE WHEN DATE_YQ='${q()}' THEN RENEWAL_RATE END) AS C_RR,
+    MAX(CASE WHEN DATE_YQ='${pqStr()}' THEN RENEWAL_RATE END) AS P_RR,
+    MAX(CASE WHEN DATE_YQ='${q()}' THEN RENEWAL_ARR  END) AS C_RA,
+    MAX(CASE WHEN DATE_YQ='${pqStr()}' THEN RENEWAL_ARR  END) AS P_RA,
+    MAX(CASE WHEN DATE_YQ='${q()}' THEN CHURN_ARR    END) AS C_CA,
+    MAX(CASE WHEN DATE_YQ='${pqStr()}' THEN CHURN_ARR    END) AS P_CA,
+    MAX(CASE WHEN DATE_YQ='${q()}' THEN RC            END) AS C_RC,
+    MAX(CASE WHEN DATE_YQ='${pqStr()}' THEN RC            END) AS P_RC,
+    MAX(CASE WHEN DATE_YQ='${q()}' THEN CC            END) AS C_CC,
+    MAX(CASE WHEN DATE_YQ='${pqStr()}' THEN CC            END) AS P_CC
+  FROM base
+)
+SELECT
+  ROUND(C_RR*100,2)    AS RR_CUR, ROUND(P_RR*100,2)    AS RR_PRI, ROUND((C_RR-P_RR)*100,2)    AS RR_DLT,
+  C_RA                 AS RA_CUR, P_RA                 AS RA_PRI, C_RA-P_RA                    AS RA_DLT,
+  C_CA                 AS CA_CUR, P_CA                 AS CA_PRI, C_CA-P_CA                    AS CA_DLT,
+  C_RC                 AS RC_CUR, P_RC                 AS RC_PRI, C_RC-P_RC                    AS RC_DLT,
+  C_CC                 AS CC_CUR, P_CC                 AS CC_PRI, C_CC-P_CC                    AS CC_DLT
+FROM piv`,
+
+  yoy: () => `
+WITH base AS (
+  SELECT DATE_YQ,
+    COUNT(DISTINCT CASE WHEN ARR_RENEWAL>0 THEN MASTER_CUSTOMER_ID END) AS RC,
+    ROUND(SUM(ARR_RENEWAL),0) AS RENEWAL_ARR,
+    ROUND(SUM(ARR_CHURN),0) AS CHURN_ARR,
+    COUNT(DISTINCT CASE WHEN ARR_CHURN<0 THEN MASTER_CUSTOMER_ID END) AS CC,
+    ROUND(DIV0(SUM(ARR_RENEWAL)+SUM(ARR_CHURN),SUM(ARR_RENEWAL)),4) AS RENEWAL_RATE
+  FROM REPORTING.GTM_ANALYTICS.EXEC_DECK_RENEWAL_RATES_CUSTOMER
+  WHERE DATE_YQ IN ('${q()}','${pyq()}')
+  GROUP BY DATE_YQ
+),
+piv AS (
+  SELECT
+    MAX(CASE WHEN DATE_YQ='${q()}' THEN RENEWAL_RATE END) AS C_RR,
+    MAX(CASE WHEN DATE_YQ='${pyq()}' THEN RENEWAL_RATE END) AS P_RR,
+    MAX(CASE WHEN DATE_YQ='${q()}' THEN RENEWAL_ARR  END) AS C_RA,
+    MAX(CASE WHEN DATE_YQ='${pyq()}' THEN RENEWAL_ARR  END) AS P_RA,
+    MAX(CASE WHEN DATE_YQ='${q()}' THEN CHURN_ARR    END) AS C_CA,
+    MAX(CASE WHEN DATE_YQ='${pyq()}' THEN CHURN_ARR    END) AS P_CA,
+    MAX(CASE WHEN DATE_YQ='${q()}' THEN RC            END) AS C_RC,
+    MAX(CASE WHEN DATE_YQ='${pyq()}' THEN RC            END) AS P_RC,
+    MAX(CASE WHEN DATE_YQ='${q()}' THEN CC            END) AS C_CC,
+    MAX(CASE WHEN DATE_YQ='${pyq()}' THEN CC            END) AS P_CC
+  FROM base
+)
+SELECT
+  ROUND(C_RR*100,2)    AS RR_CUR, ROUND(P_RR*100,2)    AS RR_PRI, ROUND((C_RR-P_RR)*100,2)    AS RR_DLT,
+  C_RA                 AS RA_CUR, P_RA                 AS RA_PRI, C_RA-P_RA                    AS RA_DLT,
+  C_CA                 AS CA_CUR, P_CA                 AS CA_PRI, C_CA-P_CA                    AS CA_DLT,
+  C_RC                 AS RC_CUR, P_RC                 AS RC_PRI, C_RC-P_RC                    AS RC_DLT,
+  C_CC                 AS CC_CUR, P_CC                 AS CC_PRI, C_CC-P_CC                    AS CC_DLT
+FROM piv`
+};
+
+/* ── Handlers ────────────────────────────────────────────────── */
+const handlers = {
+
+  async scorecard() {
+    const rows = await runSQL(SQL.scorecard());
+    if (!rows.length) throw new Error('No scorecard data for ' + q());
+    const d = rows[0];
+    const stats = [
+      { label:'Renewal rate',    value: fmtPct(d.CRR), delta: pp(d.DELTA),    cls: ppCls(d.DELTA) },
+      { label:'Prior qtr RR',   value: fmtPct(d.PRR) },
+      { label:'QoQ delta',      value: d.DELTA!=null ? (parseFloat(d.DELTA)>=0?'+':'')+((+d.DELTA)*100).toFixed(1)+'pp' : '—' },
+      { label:'Renewal ARR',    value: fmtArr(d.CRA) },
+      { label:'Churn ARR',      value: fmtArr(d.CCA) },
+      { label:'Renewing accts', value: fmtNum(d.CRC) },
+      { label:'Churned accts',  value: fmtNum(d.CCC) },
+    ];
+    const insight = await ai('renewal scorecard', rows);
+    const b = addMsg('assistant','');
+    addStatGrid(b, stats); addInsight(b, insight); addExports(b, null, rows, 'scorecard');
+  },
+
+  async by_region() {
+    const rows = await runSQL(SQL.by_region());
+    if (!rows.length) throw new Error('No regional data for ' + q());
+    const insight = await ai('renewal rate by region', rows);
+    const b = addMsg('assistant','');
+    addInsight(b, insight);
+    const cid = 'by-reg-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.REGION),
+      [{ label:'Renewal rate', data:rows.map(r=>+r.RENEWAL_RATE||0), backgroundColor:'#AAEE44', borderColor:'#1A3D2B', borderWidth:1 }],
+      { title:'Renewal rate by region', h:true, pct:true }
+    );
+    addExports(b, cid, rows, 'by_region');
+  },
+
+  async by_product_group() {
+    const rows = await runSQL(SQL.by_product_group());
+    if (!rows.length) throw new Error('No product group data for ' + q());
+    const insight = await ai('renewal by product group (EO/EC/CMP/AI)', rows);
+    const b = addMsg('assistant','');
+    addInsight(b, insight);
+    const cid = 'by-pg-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.PRODUCT_GROUP),
+      [{ label:'Renewal rate', data:rows.map(r=>+r.RENEWAL_RATE||0), backgroundColor:['#1A3D2B','#4A9A3C','#AAEE44','#8ECFDB'] }],
+      { title:'Renewal rate by product group', pct:true }
+    );
+    addTable(b, ['Product Group','Renewing','Renewal ARR','Churned','Churn ARR','RR'],
+      rows.map(r=>[r.PRODUCT_GROUP, fmtNum(r.RENEWAL_COUNT), fmtArr(r.RENEWAL_ARR), fmtNum(r.CHURN_COUNT), fmtArr(r.CHURN_ARR), fmtPct(r.RENEWAL_RATE)]),
+      'tbl-pg-'+Date.now());
+    addExports(b, cid, rows, 'by_product_group');
+  },
+
+  async by_product_solution() {
+    const rows = await runSQL(SQL.by_product_solution());
+    if (!rows.length) throw new Error('No product solution data for ' + q());
+    const insight = await ai('renewal by product solution', rows);
+    const b = addMsg('assistant','');
+    addInsight(b, insight);
+    const cid = 'by-ps-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.PRODUCT),
+      [{ label:'Renewal rate', data:rows.map(r=>+r.RENEWAL_RATE||0), backgroundColor:'#4A9A3C' }],
+      { title:'Renewal rate by product solution', h:true, pct:true }
+    );
+    addTable(b, ['Product','Renewing','Renewal ARR','Churned','Churn ARR','RR'],
+      rows.map(r=>[r.PRODUCT, fmtNum(r.RENEWAL_COUNT), fmtArr(r.RENEWAL_ARR), fmtNum(r.CHURN_COUNT), fmtArr(r.CHURN_ARR), fmtPct(r.RENEWAL_RATE)]),
+      'tbl-ps-'+Date.now());
+    addExports(b, cid, rows, 'by_product_solution');
+  },
+
+  async by_quarter() {
+    const rows = await runSQL(SQL.by_quarter());
+    if (!rows.length) throw new Error('No quarterly trend data');
+    const insight = await ai('renewal rate trend over quarters', rows);
+    const b = addMsg('assistant','');
+    addInsight(b, insight);
+    const cid = 'by-qtr-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.DATE_YQ),
+      [{ label:'Renewal rate', data:rows.map(r=>+r.RENEWAL_RATE||0),
+         backgroundColor:'rgba(170,238,68,0.35)', borderColor:'#1A3D2B', borderWidth:2,
+         pointBackgroundColor:'#AAEE44', pointBorderColor:'#1A3D2B', pointRadius:4, fill:true, tension:0.25 }],
+      { title:'Renewal rate trend (last 8 quarters)', pct:true, type:'line' }
+    );
+    addTable(b, ['Quarter','Renewing','Renewal ARR','Churned','Churn ARR','RR'],
+      rows.map(r=>[r.DATE_YQ, fmtNum(r.RENEWAL_COUNT), fmtArr(r.RENEWAL_ARR), fmtNum(r.CHURN_COUNT), fmtArr(r.CHURN_ARR), fmtPct(r.RENEWAL_RATE)]),
+      'tbl-qtr-'+Date.now());
+    addExports(b, cid, rows, 'by_quarter');
+  },
+
+  async opal_attach() {
+    const [r1, r2] = await Promise.all([runSQL(SQL.opal_overall()), runSQL(SQL.opal_regional())]);
+    const ov = r1[0]||{};
+    const stats = [
+      { label:'Opal attach rate', value: fmtPct(ov.ATTACH_RATE) },
+      { label:'EO customers',     value: fmtNum(ov.EO_COUNT) },
+      { label:'Opal attached',    value: fmtNum(ov.OPAL_COUNT) },
+    ];
+    const insight = await ai('Opal attach rate', [ov, ...r2]);
+    const b = addMsg('assistant','');
+    addStatGrid(b, stats); addInsight(b, insight);
+    if (r2.length) {
+      const cid = 'opal-reg-'+Date.now();
+      addChart(b, cid, r2.map(r=>r.REGION),
+        [{ label:'Attach rate', data:r2.map(r=>+r.ATTACH_RATE||0), backgroundColor:'#4A9A3C' }],
+        { title:'Attach rate by region', h:true, pct:true }
+      );
+      addExports(b, cid, [...r1,...r2], 'opal_attach');
+    } else { addExports(b, null, r1, 'opal_attach'); }
+  },
+
+  async opal_pipeline() {
+    const rows = await runSQL(SQL.opal_pipeline());
+    if (!rows.length) throw new Error('No Opal pipeline data for ' + q());
+    const total = rows.reduce((s,r)=>s+(+r.TOTAL_ARR||0),0);
+    const stats = [
+      { label:'Pipeline ARR',  value: fmtArr(total) },
+      { label:'Stages',        value: rows.length },
+      { label:'Accounts',      value: fmtNum(rows.reduce((s,r)=>s+(+r.ACCOUNTS||0),0)) },
+    ];
+    const insight = await ai('Opal pipeline by stage', rows);
+    const b = addMsg('assistant','');
+    addStatGrid(b, stats); addInsight(b, insight);
+    const cid = 'opal-pip-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.STAGE),
+      [{ label:'Pipeline ARR', data:rows.map(r=>+r.TOTAL_ARR||0), backgroundColor:'#1A3D2B' }],
+      { title:'Opal pipeline by stage', h:true }
+    );
+    addExports(b, cid, rows, 'opal_pipeline');
+  },
+
+  async oa_pipeline() {
+    const rows = await runSQL(SQL.oa_pipeline());
+    if (!rows.length) throw new Error('No OA pipeline data for ' + q());
+    const total = rows.reduce((s,r)=>s+(+r.PIPELINE_ARR||0),0);
+    const stats = [
+      { label:'OA pipeline ARR', value: fmtArr(total) },
+      { label:'Stages',          value: rows.length },
+      { label:'Accounts',        value: fmtNum(rows.reduce((s,r)=>s+(+r.ACCOUNTS||0),0)) },
+    ];
+    const insight = await ai('Optimizely Analytics renewal pipeline by stage', rows);
+    const b = addMsg('assistant','');
+    addStatGrid(b, stats); addInsight(b, insight);
+    const cid = 'oa-pip-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.STAGE),
+      [{ label:'Pipeline ARR', data:rows.map(r=>+r.PIPELINE_ARR||0), backgroundColor:'#8ECFDB', borderColor:'#1A3D2B', borderWidth:1 }],
+      { title:'OA pipeline by stage', h:true }
+    );
+    addExports(b, cid, rows, 'oa_pipeline');
+  },
+
+  async csms_portfolio() {
+    const rows = await runSQL(SQL.csms_portfolio());
+    if (!rows.length) throw new Error('No CSM data for ' + q());
+    const stats = [
+      { label:'CSMs covered', value: rows.length+(rows.length===50?'+':'') },
+      { label:'Total renewal ARR', value: fmtArr(rows.reduce((s,r)=>s+(+r.RENEWAL_ARR||0),0)) },
+      { label:'Avg RR', value: fmtPct(rows.reduce((s,r)=>s+(+r.RENEWAL_RATE||0),0)/rows.length) },
+    ];
+    const insight = await ai('CSM portfolio performance', rows.slice(0,15));
+    const b = addMsg('assistant','');
+    addStatGrid(b, stats); addInsight(b, insight);
+    addTable(b, ['CSM','Accounts','Renewing','Churned','Renewal ARR','Churn ARR','RR'],
+      rows.map(r=>[r.CSM, fmtNum(r.TOTAL_ACCOUNTS), fmtNum(r.RENEWING), fmtNum(r.CHURNED), fmtArr(r.RENEWAL_ARR), fmtArr(r.CHURN_ARR), fmtPct(r.RENEWAL_RATE)]),
+      'tbl-csm-'+Date.now());
+    addExports(b, null, rows, 'csms_portfolio');
+  },
+
+  async by_rev_segment() {
+    const rows = await runSQL(SQL.by_rev_segment());
+    if (!rows.length) throw new Error('No segment data for ' + q());
+    const insight = await ai('renewal by revenue segment', rows);
+    const b = addMsg('assistant','');
+    addInsight(b, insight);
+    const cid = 'by-seg-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.SEGMENT),
+      [{ label:'Renewal rate', data:rows.map(r=>+r.RENEWAL_RATE||0), backgroundColor:'#AAEE44', borderColor:'#1A3D2B', borderWidth:1 }],
+      { title:'Renewal rate by revenue segment', h:true, pct:true }
+    );
+    addTable(b, ['Segment','Renewing','Renewal ARR','Churned','Churn ARR','RR'],
+      rows.map(r=>[r.SEGMENT, fmtNum(r.RENEWAL_COUNT), fmtArr(r.RENEWAL_ARR), fmtNum(r.CHURN_COUNT), fmtArr(r.CHURN_ARR), fmtPct(r.RENEWAL_RATE)]),
+      'tbl-seg-'+Date.now());
+    addExports(b, cid, rows, 'by_rev_segment');
+  },
+
+  async by_arr_band() {
+    const rows = await runSQL(SQL.by_arr_band());
+    if (!rows.length) throw new Error('No ARR band data for ' + q());
+    const insight = await ai('renewal by ARR band', rows);
+    const b = addMsg('assistant','');
+    addInsight(b, insight);
+    const cid = 'by-band-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.ARR_BAND),
+      [{ label:'Renewal rate', data:rows.map(r=>+r.RENEWAL_RATE||0), backgroundColor:'#4A9A3C' }],
+      { title:'Renewal rate by ARR band', h:true, pct:true }
+    );
+    addTable(b, ['ARR Band','Accounts','Renewing','Churned','Renewal ARR','RR'],
+      rows.map(r=>[r.ARR_BAND, fmtNum(r.ACCOUNTS), fmtNum(r.RENEWING), fmtNum(r.CHURNED), fmtArr(r.RENEWAL_ARR), fmtPct(r.RENEWAL_RATE)]),
+      'tbl-band-'+Date.now());
+    addExports(b, cid, rows, 'by_arr_band');
+  },
+
+  async by_territory() {
+    const rows = await runSQL(SQL.by_territory());
+    if (!rows.length) throw new Error('No territory data for ' + q());
+    const insight = await ai('renewal by territory', rows);
+    const b = addMsg('assistant','');
+    addInsight(b, insight);
+    addTable(b, ['Territory','Region','Renewing','Renewal ARR','Churned','Churn ARR','RR'],
+      rows.map(r=>[r.TERRITORY, r.REGION, fmtNum(r.RENEWAL_COUNT), fmtArr(r.RENEWAL_ARR), fmtNum(r.CHURN_COUNT), fmtArr(r.CHURN_ARR), fmtPct(r.RENEWAL_RATE)]),
+      'tbl-ter-'+Date.now());
+    addExports(b, null, rows, 'by_territory');
+  },
+
+  async single_multi() {
+    const rows = await runSQL(SQL.single_multi());
+    if (!rows.length) throw new Error('No data for ' + q());
+    const insight = await ai('single vs multi-solution customer renewal rates', rows);
+    const b = addMsg('assistant','');
+    addInsight(b, insight);
+    const cid = 'sm-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.SOLUTION_TYPE),
+      [{ label:'Renewal rate', data:rows.map(r=>+r.RENEWAL_RATE||0), backgroundColor:['#1A3D2B','#AAEE44'] }],
+      { title:'Single vs multi-solution renewal rate', pct:true }
+    );
+    addTable(b, ['Type','Accounts','Renewing','Churned','Renewal ARR','RR'],
+      rows.map(r=>[r.SOLUTION_TYPE, fmtNum(r.ACCOUNTS), fmtNum(r.RENEWING), fmtNum(r.CHURNED), fmtArr(r.RENEWAL_ARR), fmtPct(r.RENEWAL_RATE)]),
+      'tbl-sm-'+Date.now());
+    addExports(b, cid, rows, 'single_multi');
+  },
+
+  async churn_codes() {
+    const rows = await runSQL(SQL.churn_codes());
+    if (!rows.length) throw new Error('No churn code data for ' + q());
+    const insight = await ai('churn codes and categories', rows);
+    const b = addMsg('assistant','');
+    addInsight(b, insight);
+    const cid = 'cc-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.CHURN_TYPE||'Unknown'),
+      [{ label:'Churn ARR', data:rows.map(r=>Math.abs(+r.TOTAL_CHURN_ARR||0)), backgroundColor:'#EF4444' }],
+      { title:'Churn ARR by type', h:true }
+    );
+    addTable(b, ['Churn Type','Category','Accounts','Churn ARR'],
+      rows.map(r=>[r.CHURN_TYPE, r.CHURN_CATEGORY, fmtNum(r.ACCOUNT_COUNT), fmtArr(r.TOTAL_CHURN_ARR)]),
+      'tbl-cc-'+Date.now());
+    addExports(b, cid, rows, 'churn_codes');
+  },
+
+  async cross_upsell() {
+    const rows = await runSQL(SQL.cross_upsell());
+    if (!rows.length) throw new Error('No cross-sell data for ' + q() + ' vs ' + pqStr());
+    const total = rows.reduce((s,r)=>s+(+r.ACCOUNTS_CROSS_SOLD||0),0);
+    const stats = [
+      { label:'Products attached', value: rows.length },
+      { label:'Total accounts',    value: fmtNum(total) },
+    ];
+    const insight = await ai('cross-sell and new product attach', rows);
+    const b = addMsg('assistant','');
+    addStatGrid(b, stats); addInsight(b, insight);
+    const cid = 'xu-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.PRODUCT_ADDED),
+      [{ label:'Accounts', data:rows.map(r=>+r.ACCOUNTS_CROSS_SOLD||0), backgroundColor:'#4A9A3C' }],
+      { title:`Cross-sell: new product attachments vs ${pqStr()}`, h:true }
+    );
+    addExports(b, cid, rows, 'cross_upsell');
+  },
+
+  async product_swaps() {
+    const [added, dropped] = await Promise.all([
+      runSQL(SQL.product_swaps_added()),
+      runSQL(SQL.product_swaps_dropped())
+    ]);
+    if (!added.length && !dropped.length) throw new Error('No product swap data for ' + q() + ' vs ' + pqStr());
+    const combined = [
+      ...added.map(r=>({...r, DIRECTION:'Added'})),
+      ...dropped.map(r=>({...r, DIRECTION:'Dropped'}))
+    ];
+    const insight = await ai('product swaps — products added and dropped vs prior quarter', combined);
+    const b = addMsg('assistant','');
+    addInsight(b, insight);
+    if (added.length) {
+      const cid = 'sw-add-'+Date.now();
+      addChart(b, cid, added.map(r=>r.PRODUCT),
+        [{ label:'Accounts', data:added.map(r=>+r.ACCOUNTS||0), backgroundColor:'#22C55E' }],
+        { title:'Products added this quarter vs '+pqStr(), h:true }
+      );
+    }
+    if (dropped.length) {
+      const cid = 'sw-drp-'+Date.now();
+      addChart(b, cid, dropped.map(r=>r.PRODUCT),
+        [{ label:'Accounts', data:dropped.map(r=>+r.ACCOUNTS||0), backgroundColor:'#EF4444' }],
+        { title:'Products dropped this quarter vs '+pqStr(), h:true }
+      );
+    }
+    addExports(b, null, combined, 'product_swaps');
+  },
+
+  async eo_deep_dive() {
+    const rows = await runSQL(SQL.eo_deep_dive());
+    if (!rows.length) throw new Error('No EO data for ' + q());
+    const insight = await ai('EO (Experimentation Organization) product deep dive', rows);
+    const b = addMsg('assistant','');
+    addInsight(b, insight);
+    const cid = 'eo-'+Date.now();
+    addChart(b, cid, rows.map(r=>r.PRODUCT),
+      [{ label:'Renewal rate', data:rows.map(r=>+r.RENEWAL_RATE||0), backgroundColor:'#1A3D2B' }],
+      { title:'EO renewal rate by product', h:true, pct:true }
+    );
+    addTable(b, ['Product','Renewing','Churned','Renewal ARR','Churn ARR','RR'],
+      rows.map(r=>[r.PRODUCT, fmtNum(r.RENEWAL_COUNT), fmtNum(r.CHURN_COUNT), fmtArr(r.RENEWAL_ARR), fmtArr(r.CHURN_ARR), fmtPct(r.RENEWAL_RATE)]),
+      'tbl-eo-'+Date.now());
+    addExports(b, cid, rows, 'eo_deep_dive');
+  },
+
+  async top_churn() {
+    const rows = await runSQL(SQL.top_churn());
+    if (!rows.length) throw new Error('No churned accounts for ' + q());
+    const total = rows.reduce((s,r)=>s+(+r.ARR_CHURN||0),0);
+    const stats = [
+      { label:'Churned accounts', value: rows.length+(rows.length===50?'+':'') },
+      { label:'Total churn ARR',  value: fmtArr(total) },
+      { label:'Avg per account',  value: fmtArr(total/rows.length) },
+    ];
+    const insight = await ai('top churned accounts', rows.slice(0,10));
+    const b = addMsg('assistant','');
+    addStatGrid(b, stats); addInsight(b, insight);
+    addTable(b, ['Account','CSM','Region','Churn ARR','Renewal ARR','Segment'],
+      rows.map(r=>[r.ACCOUNT_NAME, r.CSM, r.REGION, fmtArr(r.ARR_CHURN), fmtArr(r.ARR_RENEWAL), r.SEG]),
+      'tbl-tc-'+Date.now());
+    addExports(b, null, rows, 'top_churn');
+  },
+
+  async qoq() {
+    const rows = await runSQL(SQL.qoq());
+    if (!rows.length) throw new Error('No QoQ data for ' + q() + ' vs ' + pqStr());
+    const d = rows[0];
+    // expand wide row into metric array for table + AI
+    const metrics = [
+      { METRIC:'Renewal Rate',      CURRENT_VAL: d.RR_CUR, PRIOR_VAL: d.RR_PRI, DELTA: d.RR_DLT, UNIT:'%' },
+      { METRIC:'Renewal ARR',       CURRENT_VAL: d.RA_CUR, PRIOR_VAL: d.RA_PRI, DELTA: d.RA_DLT, UNIT:'$' },
+      { METRIC:'Churn ARR',         CURRENT_VAL: d.CA_CUR, PRIOR_VAL: d.CA_PRI, DELTA: d.CA_DLT, UNIT:'$' },
+      { METRIC:'Renewing Accounts', CURRENT_VAL: d.RC_CUR, PRIOR_VAL: d.RC_PRI, DELTA: d.RC_DLT, UNIT:'#' },
+      { METRIC:'Churned Accounts',  CURRENT_VAL: d.CC_CUR, PRIOR_VAL: d.CC_PRI, DELTA: d.CC_DLT, UNIT:'#' },
+    ];
+    const deltaRR = parseFloat(d.RR_DLT)||0;
+    const stats = [
+      { label:'Renewal rate ('+q()+')', value: d.RR_CUR!=null ? parseFloat(d.RR_CUR).toFixed(1)+'%' : '—',
+        delta: d.RR_DLT!=null ? (deltaRR>=0?'▲ +':'▼ ')+Math.abs(deltaRR).toFixed(1)+'pp vs '+pqStr() : null, cls: deltaRR>=0?'up':'dn' },
+      { label:'Renewal ARR',       value: fmtArr(d.RA_CUR) },
+      { label:'Churn ARR',         value: fmtArr(d.CA_CUR) },
+      { label:'Renewing accounts', value: fmtNum(d.RC_CUR) },
+      { label:'Churned accounts',  value: fmtNum(d.CC_CUR) },
+    ];
+    const insight = await ai('quarter-over-quarter KPI comparison', metrics);
+    const b = addMsg('assistant','');
+    addStatGrid(b, stats);
+    addInsight(b, insight);
+    addCompareTable(b, metrics, q(), pqStr());
+    addExports(b, null, metrics, 'qoq');
+  },
+
+  async yoy() {
+    const rows = await runSQL(SQL.yoy());
+    if (!rows.length) throw new Error('No YoY data for ' + q() + ' vs ' + pyq());
+    const d = rows[0];
+    const metrics = [
+      { METRIC:'Renewal Rate',      CURRENT_VAL: d.RR_CUR, PRIOR_VAL: d.RR_PRI, DELTA: d.RR_DLT, UNIT:'%' },
+      { METRIC:'Renewal ARR',       CURRENT_VAL: d.RA_CUR, PRIOR_VAL: d.RA_PRI, DELTA: d.RA_DLT, UNIT:'$' },
+      { METRIC:'Churn ARR',         CURRENT_VAL: d.CA_CUR, PRIOR_VAL: d.CA_PRI, DELTA: d.CA_DLT, UNIT:'$' },
+      { METRIC:'Renewing Accounts', CURRENT_VAL: d.RC_CUR, PRIOR_VAL: d.RC_PRI, DELTA: d.RC_DLT, UNIT:'#' },
+      { METRIC:'Churned Accounts',  CURRENT_VAL: d.CC_CUR, PRIOR_VAL: d.CC_PRI, DELTA: d.CC_DLT, UNIT:'#' },
+    ];
+    const deltaRR = parseFloat(d.RR_DLT)||0;
+    const stats = [
+      { label:'Renewal rate ('+q()+')', value: d.RR_CUR!=null ? parseFloat(d.RR_CUR).toFixed(1)+'%' : '—',
+        delta: d.RR_DLT!=null ? (deltaRR>=0?'▲ +':'▼ ')+Math.abs(deltaRR).toFixed(1)+'pp vs '+pyq() : null, cls: deltaRR>=0?'up':'dn' },
+      { label:'Renewal ARR',       value: fmtArr(d.RA_CUR) },
+      { label:'Churn ARR',         value: fmtArr(d.CA_CUR) },
+      { label:'Renewing accounts', value: fmtNum(d.RC_CUR) },
+      { label:'Churned accounts',  value: fmtNum(d.CC_CUR) },
+    ];
+    const insight = await ai('year-over-year KPI comparison', metrics);
+    const b = addMsg('assistant','');
+    addStatGrid(b, stats);
+    addInsight(b, insight);
+    addCompareTable(b, metrics, q(), pyq());
+    addExports(b, null, metrics, 'yoy');
+  }
+};
+
+/* ── Entry points ────────────────────────────────────────────── */
+const LABELS = {
+  scorecard:'Scorecard', by_region:'By region', by_product_group:'By product group',
+  by_product_solution:'By product solution', by_quarter:'By quarter',
+  opal_attach:'Opal attach', opal_pipeline:'Opal pipeline', oa_pipeline:'OA pipeline',
+  csms_portfolio:'CSMs portfolio', by_rev_segment:'By revenue segment',
+  by_arr_band:'By ARR band', by_territory:'By territory',
+  single_multi:'Single or multi-solution', churn_codes:'Churn codes',
+  cross_upsell:'Cross-/upsell', product_swaps:'Product swaps',
+  eo_deep_dive:'EO Deep Dive', top_churn:'Top churned accounts',
+  qoq:'QoQ comparison', yoy:'YoY comparison'
+};
+
+async function go(type) {
+  if (busy) return;
+  addMsg('user', `${LABELS[type]} — ${q()}`);
+  const t = addThinking();
+  setBusy(true);
+  try {
+    await handlers[type]();
+  } catch(e) {
+    const b = addMsg('assistant','');
+    const err = document.createElement('div'); err.className = 'error-box';
+    err.textContent = 'Error: ' + e.message; b.appendChild(err);
+  } finally {
+    t.remove(); setBusy(false);
+  }
+}
+
+async function send() {
+  if (busy) return;
+  const inp = document.getElementById('chat-in');
+  const txt = inp.value.trim(); if (!txt) return;
+  inp.value = '';
+  const t = txt.toLowerCase();
+  let action = null;
+  if      (t.includes('scorecard')||t.includes('renewal rate')||t.includes('overall')) action='scorecard';
+  else if (t.includes('by quarter')||t.includes('trend')||t.includes('over time'))    action='by_quarter';
+  else if (t.includes('qoq')||t.includes('quarter over quarter')||t.includes('q-o-q')) action='qoq';
+  else if (t.includes('yoy')||t.includes('year over year')||t.includes('y-o-y'))       action='yoy';
+  else if (t.includes('eo deep')||t.includes('experimentation deep'))                  action='eo_deep_dive';
+  else if (t.includes('product swap'))                                                  action='product_swaps';
+  else if (t.includes('cross') || t.includes('upsell'))                               action='cross_upsell';
+  else if (t.includes('churn code')||t.includes('churn reason')||t.includes('why churn')) action='churn_codes';
+  else if (t.includes('top churn')||t.includes('churned account'))                     action='top_churn';
+  else if (t.includes('opal attach')||t.includes('attach rate'))                       action='opal_attach';
+  else if (t.includes('opal pipeline')||t.includes('opal deal'))                       action='opal_pipeline';
+  else if (t.includes(' oa ')||t.includes('oa pipeline')||t.includes('optimizely analytics')) action='oa_pipeline';
+  else if (t.includes('opal'))                                                          action='opal_attach';
+  else if (t.includes('csm')||t.includes('csms'))                                      action='csms_portfolio';
+  else if (t.includes('arr band')||t.includes('arr size'))                             action='by_arr_band';
+  else if (t.includes('territory'))                                                     action='by_territory';
+  else if (t.includes('segment')||t.includes('sfdc'))                                  action='by_rev_segment';
+  else if (t.includes('single')||t.includes('multi-solution')||t.includes('multi solution')) action='single_multi';
+  else if (t.includes('product solution'))                                              action='by_product_solution';
+  else if (t.includes('product group'))                                                 action='by_product_group';
+  else if (t.includes('product')||t.includes('solution'))                              action='by_product_group';
+  else if (t.includes('region'))                                                        action='by_region';
+  else if (t.includes('eo ')||t.includes('experimentation'))                           action='eo_deep_dive';
+  if (action) { await go(action); return; }
+  addMsg('user', txt);
+  const th = addThinking(); setBusy(true);
+  try {
+    const rawReply = await window.cowork.askClaude(
+      `You are a CS analytics assistant. Answer this question about Optimizely CS metrics (quarter ${q()}): "${txt}". Suggest the most relevant quick-action button: Scorecard, By region, By product group, By product solution, By quarter, Opal attach, Opal pipeline, OA pipeline, CSMs portfolio, By revenue segment, By ARR band, By territory, Single or multi-solution, Churn codes, Cross-/upsell, Product swaps, EO Deep Dive, Top churned accounts, QoQ comparison, YoY comparison. Keep it concise.`, []
+    );
+    const reply = extractString(rawReply);
+    th.remove();
+    addMsg('assistant', reply || 'Use one of the quick analysis buttons above to pull live data.');
+  } catch(e) {
+    th.remove();
+    addMsg('assistant','Use one of the quick analysis buttons above to pull live data from Snowflake.');
+  } finally { setBusy(false); }
+}
+
+/* ── Welcome ─────────────────────────────────────────────────── */
+(function showWelcome() {
+  const opts = buildQtrOptions(CURRENT_QTR);
+  const b = addMsg('assistant', 'Hi! Live Snowflake access ready. Which quarter would you like to analyse?');
+  const chipsDiv = document.createElement('div'); chipsDiv.className = 'qtr-chips';
+  opts.forEach(val => {
+    const chip = document.createElement('button'); chip.className = 'chip' + (val===CURRENT_QTR?' active':'');
+    chip.textContent = val + (val===CURRENT_QTR?' ✦ current':'');
+    chip.onclick = () => setQtr(val, chip); chipsDiv.appendChild(chip);
+    if (val===CURRENT_QTR) activeChipEl = chip;
+  });
+  b.appendChild(chipsDiv);
+  const note = document.createElement('p'); note.style.cssText='font-size:11px;color:#8A9A80;margin-top:7px;';
+  note.textContent = 'Or type a custom quarter in the field above. Then pick any of the 20 analyses below.';
+  b.appendChild(note);
+})();
+</script>
+</body>
+</html>

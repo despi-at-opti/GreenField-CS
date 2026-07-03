@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Experimentation &amp; Feature Experimentation Deep Dive — Q1 &amp; Q2 2026</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue:    #0037FF;
+    --orange:  #FF5100;
+    --dark:    #1A1A2E;
+    --green:   #22C55E;
+    --red:     #EF4444;
+    --amber:   #F59E0B;
+    --purple:  #8B5CF6;
+    --cyan:    #06B6D4;
+    --teal:    #10B981;
+    --bg:      #F4F6FB;
+    --card:    #FFFFFF;
+    --border:  #E2E8F0;
+    --text:    #1A1A2E;
+    --muted:   #64748B;
+    --sidebar: 240px;
+  }
+  body { font-family: Inter, Arial, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: var(--sidebar); flex-shrink: 0; position: fixed; top: 0; left: 0;
+    height: 100vh; background: #0A0F2E; overflow-y: auto; z-index: 100;
+    display: flex; flex-direction: column;
+  }
+  #sidebar .logo {
+    padding: 20px 18px 14px; font-size: 13px; font-weight: 700;
+    color: #fff; letter-spacing: .5px; border-bottom: 1px solid rgba(255,255,255,.08);
+    line-height: 1.4;
+  }
+  #sidebar .logo span { display: block; font-size: 11px; font-weight: 400; color: rgba(255,255,255,.5); margin-top: 2px; }
+  #sidebar nav { padding: 12px 0; flex: 1; }
+  #sidebar nav a {
+    display: block; padding: 9px 18px; font-size: 12.5px; color: rgba(255,255,255,.65);
+    text-decoration: none; border-left: 3px solid transparent; transition: all .15s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  #sidebar nav a:hover, #sidebar nav a.active {
+    color: #fff; background: rgba(0,55,255,.25); border-left-color: var(--blue);
+  }
+  #sidebar nav .nav-group {
+    font-size: 10px; font-weight: 700; color: rgba(255,255,255,.3);
+    padding: 14px 18px 4px; text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  /* ── MAIN ── */
+  #main { margin-left: var(--sidebar); flex: 1; display: flex; flex-direction: column; }
+
+  /* header */
+  #header {
+    background: var(--blue); color: #fff; padding: 18px 32px;
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  #header h1 { font-size: 17px; font-weight: 700; }
+  #header .meta { font-size: 12px; color: rgba(255,255,255,.7); }
+
+  /* content */
+  #content { padding: 28px 32px 48px; max-width: 1200px; }
+
+  /* section cards */
+  .section { margin-bottom: 36px; }
+  .section-title {
+    font-size: 18px; font-weight: 700; color: var(--text);
+    margin-bottom: 16px; padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .badge {
+    background: var(--blue); color: #fff; font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px; letter-spacing: .5px;
+  }
+  .card {
+    background: var(--card); border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.10), 0 1px 8px rgba(0,0,0,.04);
+    padding: 20px 24px; margin-bottom: 16px;
+  }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* KPI grid */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .kpi-card {
+    background: var(--card); border-radius: 10px; padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.10);
+    border-left: 4px solid var(--blue);
+  }
+  .kpi-card.green  { border-left-color: var(--green); }
+  .kpi-card.red    { border-left-color: var(--red); }
+  .kpi-card.amber  { border-left-color: var(--amber); }
+  .kpi-card.purple { border-left-color: var(--purple); }
+  .kpi-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .kpi-value { font-size: 26px; font-weight: 700; color: var(--text); line-height: 1; }
+  .kpi-delta { font-size: 12px; margin-top: 5px; }
+  .kpi-delta.up   { color: var(--green); }
+  .kpi-delta.down { color: var(--red); }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* quarter toggle */
+  .toggle-group {
+    display: flex; gap: 0; margin-bottom: 16px; border-radius: 6px;
+    overflow: hidden; border: 1px solid var(--border); width: fit-content;
+  }
+  .toggle-btn {
+    padding: 7px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+    background: var(--card); color: var(--muted); border: none;
+    transition: all .15s;
+  }
+  .toggle-btn.active { background: var(--blue); color: #fff; }
+
+  /* insight box */
+  .insight {
+    background: #EFF6FF; border-left: 4px solid var(--blue);
+    padding: 12px 16px; border-radius: 0 6px 6px 0;
+    font-size: 13px; line-height: 1.6; color: var(--dark);
+    margin-top: 14px;
+  }
+  .insight strong { color: var(--blue); }
+
+  /* table */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: var(--blue); color: #fff; padding: 9px 12px;
+    text-align: left; font-weight: 600; font-size: 12px;
+    position: sticky; top: 0; cursor: pointer; user-select: none;
+    white-space: nowrap;
+  }
+  thead th:hover { background: #0029CC; }
+  tbody tr:nth-child(even) { background: #F8FAFF; }
+  tbody tr:hover { background: #EFF6FF; }
+  tbody td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  .rate-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 12px;
+    font-size: 12px; font-weight: 700;
+  }
+  .rate-high  { background: #DCFCE7; color: #166534; }
+  .rate-mid   { background: #FEF9C3; color: #854D0E; }
+  .rate-low   { background: #FEE2E2; color: #991B1B; }
+
+  /* comparison table */
+  .comp-table th.q1 { background: #1e40af; }
+  .comp-table th.q2 { background: #0037FF; }
+  .comp-table th.delta { background: #0f172a; }
+
+  /* responsive */
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    #main { margin-left: 0; }
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    #content { padding: 16px; }
+  }
+  @media print {
+    #sidebar, #header { display: none; }
+    #main { margin-left: 0; }
+    .card { box-shadow: none; border: 1px solid var(--border); page-break-inside: avoid; }
+  }
+
+  /* footer */
+  footer { font-size: 11px; color: var(--muted); text-align: center; padding: 20px; border-top: 1px solid var(--border); margin-top: 20px; }
+
+  /* chart container */
+  .chart { width: 100%; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="logo">
+    Web Ex &amp; FX Deep Dive
+    <span>Q1 2026 · Q2 2026 (through May)</span>
+  </div>
+  <nav>
+    <div class="nav-group">Overview</div>
+    <a href="#kpis">📊 KPI Summary</a>
+    <div class="nav-group">Analysis</div>
+    <a href="#regional">🌍 Regional Renewals</a>
+    <a href="#opal">🔮 Opal Attach Lift</a>
+    <a href="#testers">🧪 Tester Depth</a>
+    <a href="#nextproduct">➡️ Next Product</a>
+    <div class="nav-group">Data</div>
+    <a href="#rawdata">📋 Raw Data</a>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="header">
+    <h1>Web Experimentation &amp; Feature Experimentation — Deep Dive</h1>
+    <span class="meta">Q1 2026 vs Q2 2026 (through May) &nbsp;·&nbsp; Constant-currency USD &nbsp;·&nbsp; Snowflake live data</span>
+  </div>
+
+  <div id="content">
+
+    <!-- ── KPI SUMMARY ── -->
+    <section class="section" id="kpis">
+      <div class="section-title">📊 KPI Summary <span class="badge">OVERVIEW</span></div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-label">Q1 2026 EO Renewal Rate</div>
+          <div class="kpi-value">66.9%</div>
+          <div class="kpi-delta down">▼ vs Q4 2025</div>
+          <div class="kpi-sub">342 accounts renewing</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Q2 2026 EO Renewal Rate</div>
+          <div class="kpi-value">86.4%</div>
+          <div class="kpi-delta up">▲ +19.5pp QoQ</div>
+          <div class="kpi-sub">239 accounts renewing</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">High Tester Renewal Lift</div>
+          <div class="kpi-value">+8.0pp</div>
+          <div class="kpi-delta up">▲ High vs Low (Q2 2026)</div>
+          <div class="kpi-sub">90.0% vs 82.0%</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-label">Opal Attach Renewal Lift</div>
+          <div class="kpi-value">+13.7pp</div>
+          <div class="kpi-delta up">▲ With vs Without Opal (Q2)</div>
+          <div class="kpi-sub">100% vs 86.2%</div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card red">
+          <div class="kpi-label">Q1 EMEA WebEx Renewal</div>
+          <div class="kpi-value">58.9%</div>
+          <div class="kpi-delta down">▼ Highest risk region/product</div>
+          <div class="kpi-sub">102 accounts · $6.9M ARR</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Q2 EMEA WebEx Renewal</div>
+          <div class="kpi-value">82.8%</div>
+          <div class="kpi-delta up">▲ +23.9pp recovery QoQ</div>
+          <div class="kpi-sub">46 accounts · $3.3M ARR</div>
+        </div>
+        <div class="kpi-card amber">
+          <div class="kpi-label">WebEx → Personalization</div>
+          <div class="kpi-value">3.5%</div>
+          <div class="kpi-delta">→ Top cross-sell conversion (Q1)</div>
+          <div class="kpi-sub">24 of 679 eligible accounts</div>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">Opal Attach Rate (EO)</div>
+          <div class="kpi-value">2.1%</div>
+          <div class="kpi-delta up">▲ 5 of 239 EO accounts</div>
+          <div class="kpi-sub">Large whitespace opportunity</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── REGIONAL RENEWALS ── -->
+    <section class="section" id="regional">
+      <div class="section-title">🌍 Regional Renewals by Product <span class="badge">EMEA · NA · APJ</span></div>
+
+      <div class="card">
+        <div class="card-title">Renewal Rate — Web Experimentation by Region (Q1 vs Q2 2026)</div>
+        <div id="chart-webex-regional" class="chart" style="height:340px;"></div>
+        <div class="insight">
+          <strong>Key insight:</strong> EMEA Web Experimentation recovered sharply from <strong>58.9% in Q1</strong> to <strong>82.8% in Q2</strong> — a +23.9pp swing. NA and APJ also improved materially. The Q1 EMEA trough appears to have been driven by a concentrated cohort of large accounts churning (see raw data); the Q2 cohort is smaller but higher-quality.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Renewal Rate — Feature Experimentation by Region (Q1 vs Q2 2026)</div>
+        <div id="chart-fx-regional" class="chart" style="height:340px;"></div>
+        <div class="insight">
+          <strong>Key insight:</strong> Feature Experimentation mirrors the WebEx recovery. EMEA FX jumped from <strong>56.6% to 89.1%</strong>, and NA from <strong>71.9% to 87.6%</strong>. APJ hit <strong>100%</strong> in Q2 (5 accounts, no churn). The EMEA improvement is the standout — worth investigating whether specific retention plays or CSM interventions drove this.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">ARR at Renewal by Product &amp; Region — Q1 vs Q2 Comparison</div>
+        <div id="chart-arr-compare" class="chart" style="height:380px;"></div>
+        <div class="insight">
+          <strong>Key insight:</strong> NA Web Experimentation carries the largest absolute ARR ($11.3M in Q1, $9.8M in Q2), making it the single most important cohort for EO renewal health. A 1pp improvement in NA WebEx renewal is worth ~$113k in retained ARR.
+        </div>
+      </div>
+    </section>
+
+    <!-- ── OPAL ATTACH ── -->
+    <section class="section" id="opal">
+      <div class="section-title">🔮 Opal Attach Correlation <span class="badge">ATTACH LIFT</span></div>
+
+      <div class="card">
+        <div class="card-title">EO Renewal Rate: Opal Attached vs Not Attached (Q1 &amp; Q2 2026)</div>
+        <div id="chart-opal" class="chart" style="height:340px;"></div>
+        <div class="insight">
+          <strong>Key insight:</strong> Opal-attached EO accounts renew at a dramatically higher rate — <strong>88.9% (Q1) and 99.9% (Q2)</strong> vs 66.4% and 86.2% for non-attached accounts. The lift is <strong>+22pp in Q1 and +14pp in Q2</strong>. With only 5–6 Opal-attached EO accounts (2.1% attach rate), this represents a massive expansion opportunity: attaching Opal is a strong predictor of retention.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Opal Attach: ARR &amp; Account Count</div>
+        <div class="table-wrap">
+          <table id="tbl-opal">
+            <thead>
+              <tr>
+                <th onclick="sortTable('tbl-opal',0)">Quarter</th>
+                <th onclick="sortTable('tbl-opal',1)">Opal Attached</th>
+                <th onclick="sortTable('tbl-opal',2)">Accounts</th>
+                <th onclick="sortTable('tbl-opal',3)">Renewal ARR</th>
+                <th onclick="sortTable('tbl-opal',4)">Churn ARR</th>
+                <th onclick="sortTable('tbl-opal',5)">Renewal Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Q1 2026</td><td>Yes</td><td>6</td><td>$717k</td><td>-$80k</td><td><span class="rate-pill rate-high">88.9%</span></td></tr>
+              <tr><td>Q1 2026</td><td>No</td><td>336</td><td>$29.9M</td><td>-$10.0M</td><td><span class="rate-pill rate-low">66.4%</span></td></tr>
+              <tr><td>Q2 2026</td><td>Yes</td><td>5</td><td>$414k</td><td>-$1k</td><td><span class="rate-pill rate-high">99.9%</span></td></tr>
+              <tr><td>Q2 2026</td><td>No</td><td>234</td><td>$26.1M</td><td>-$3.6M</td><td><span class="rate-pill rate-mid">86.2%</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TESTER DEPTH ── -->
+    <section class="section" id="testers">
+      <div class="section-title">🧪 Tester Depth Analysis <span class="badge">HIGH vs LOW TESTER</span></div>
+
+      <div class="card">
+        <div class="card-title">EO Renewal Rate by Experimentation Depth (≥9 experiments/month = High Tester)</div>
+        <div id="chart-testers" class="chart" style="height:360px;"></div>
+        <div class="insight">
+          <strong>Key insight:</strong> High Testers (≥9 experiments/month avg) renew at <strong>83.9% in Q1</strong> and <strong>90.0% in Q2</strong> — consistently 6–8pp above Low Testers. Accounts with no usage data churn at alarming rates in Q1 (9.4% renewal). This confirms that driving experimentation depth directly protects ARR. The Q1→Q2 improvement is strongest for High Testers (+6.1pp) suggesting deeper users are accelerating.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Tester Type — Account &amp; ARR Detail</div>
+        <div class="table-wrap">
+          <table id="tbl-testers">
+            <thead>
+              <tr>
+                <th onclick="sortTable('tbl-testers',0)">Quarter</th>
+                <th onclick="sortTable('tbl-testers',1)">Tester Type</th>
+                <th onclick="sortTable('tbl-testers',2)">Accounts</th>
+                <th onclick="sortTable('tbl-testers',3)">Renewal ARR</th>
+                <th onclick="sortTable('tbl-testers',4)">Churn ARR</th>
+                <th onclick="sortTable('tbl-testers',5)">Renewal Rate</th>
+                <th onclick="sortTable('tbl-testers',6)">QoQ Δ Rate</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Q1 2026</td><td>High Tester</td><td>92</td><td>$10.9M</td><td>-$1.7M</td><td><span class="rate-pill rate-mid">83.9%</span></td><td>—</td></tr>
+              <tr><td>Q1 2026</td><td>Low Tester</td><td>179</td><td>$14.0M</td><td>-$3.1M</td><td><span class="rate-pill rate-mid">77.5%</span></td><td>—</td></tr>
+              <tr><td>Q1 2026</td><td>No Usage Data</td><td>71</td><td>$5.8M</td><td>-$5.2M</td><td><span class="rate-pill rate-low">9.4%</span></td><td>—</td></tr>
+              <tr><td>Q2 2026</td><td>High Tester</td><td>74</td><td>$16.1M</td><td>-$1.6M</td><td><span class="rate-pill rate-high">90.0%</span></td><td class="kpi-delta up">▲ +6.1pp</td></tr>
+              <tr><td>Q2 2026</td><td>Low Tester</td><td>130</td><td>$8.6M</td><td>-$1.5M</td><td><span class="rate-pill rate-high">82.0%</span></td><td class="kpi-delta up">▲ +4.5pp</td></tr>
+              <tr><td>Q2 2026</td><td>No Usage Data</td><td>35</td><td>$1.9M</td><td>-$0.5M</td><td><span class="rate-pill rate-low">75.4%</span></td><td class="kpi-delta up">▲ +66pp</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="insight">
+          <strong>Note on "No Usage Data":</strong> The dramatic Q1→Q2 improvement for "No Usage Data" (9.4% → 75.4%) is likely driven by fewer accounts in this cohort (71 → 35) and a different mix of renewal dates, not a genuine improvement in usage coverage. The Q1 figure of 9.4% indicates those accounts were functionally inactive and at very high churn risk.
+        </div>
+      </div>
+    </section>
+
+    <!-- ── NEXT PRODUCT ── -->
+    <section class="section" id="nextproduct">
+      <div class="section-title">➡️ Next Product from Web Experimentation <span class="badge">EXPANSION FUNNEL</span></div>
+
+      <div class="card">
+        <div class="card-title">Conversion Rate: WebEx accounts adding a new product (Q1: Dec→Mar · Q2: Mar→May)</div>
+        <div id="chart-nextproduct" class="chart" style="height:420px;"></div>
+        <div class="insight">
+          <strong>Key insight:</strong> <strong>Personalization is the top cross-sell</strong> from Web Experimentation in both quarters (3.5% Q1, 1.0% Q2). Opal fell sharply from 2.2% to 0.4% — consistent with the low overall attach rate (2.1%). Note: Q2 rates are naturally lower as it covers only 2 months (Mar–May) vs 3 months for Q1 (Dec–Mar). Annualised, Q2 Opal conversion is broadly in line with Q1.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Top 8 Next Products — Q1 vs Q2 Conversion Rate Detail</div>
+        <div class="table-wrap">
+          <table id="tbl-nextprod" class="comp-table">
+            <thead>
+              <tr>
+                <th>Next Product</th>
+                <th class="q1">Q1 Eligible Base</th>
+                <th class="q1">Q1 Added</th>
+                <th class="q1">Q1 Conv %</th>
+                <th class="q2">Q2 Eligible Base</th>
+                <th class="q2">Q2 Added</th>
+                <th class="q2">Q2 Conv %</th>
+                <th class="delta">Δ Conv pp</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-nextprod-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── RAW DATA ── -->
+    <section class="section" id="rawdata">
+      <div class="section-title">📋 Raw Data — Regional by Product <span class="badge">FULL TABLE</span></div>
+
+      <div class="card">
+        <div class="card-title">All EO Products by Region — Q1 &amp; Q2 2026 (click headers to sort)</div>
+        <div class="toggle-group">
+          <button class="toggle-btn active" onclick="filterTable('all')">All Quarters</button>
+          <button class="toggle-btn" onclick="filterTable('Q1')">Q1 2026 Only</button>
+          <button class="toggle-btn" onclick="filterTable('Q2')">Q2 2026 Only</button>
+        </div>
+        <div class="table-wrap">
+          <table id="tbl-regional">
+            <thead>
+              <tr>
+                <th onclick="sortTable('tbl-regional',0)">Quarter ▲</th>
+                <th onclick="sortTable('tbl-regional',1)">Region</th>
+                <th onclick="sortTable('tbl-regional',2)">Product</th>
+                <th onclick="sortTable('tbl-regional',3)">Accounts</th>
+                <th onclick="sortTable('tbl-regional',4)">Renewal ARR</th>
+                <th onclick="sortTable('tbl-regional',5)">Churn ARR</th>
+                <th onclick="sortTable('tbl-regional',6)">Renewal Rate</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-regional-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+
+  <footer>Generated 17 Jun 2026 &nbsp;·&nbsp; Optimizely CS Analytics &nbsp;·&nbsp; Data sourced from Snowflake (constant-currency USD) &nbsp;·&nbsp; Q2 2026 through 31 May 2026</footer>
+</div><!-- /main -->
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const REGIONAL_Q1 = [
+  {q:"2026-Q1",region:"APJ",product:"Feature Experimentation",accounts:7,renewal_arr:489944,churn_arr:-83349,renewal_rate:0.8299},
+  {q:"2026-Q1",region:"APJ",product:"Personalization",accounts:5,renewal_arr:42157,churn_arr:-5013,renewal_rate:0.8811},
+  {q:"2026-Q1",region:"APJ",product:"Segmentation",accounts:7,renewal_arr:160845,churn_arr:-28769,renewal_rate:0.8211},
+  {q:"2026-Q1",region:"APJ",product:"Web Experimentation",accounts:19,renewal_arr:753702,churn_arr:-105731,renewal_rate:0.8597},
+  {q:"2026-Q1",region:"EMEA",product:"Feature Experimentation",accounts:28,renewal_arr:3896970,churn_arr:-1691832,renewal_rate:0.5659},
+  {q:"2026-Q1",region:"EMEA",product:"Personalization",accounts:24,renewal_arr:600001,churn_arr:-191061,renewal_rate:0.6816},
+  {q:"2026-Q1",region:"EMEA",product:"Segmentation",accounts:10,renewal_arr:357806,churn_arr:-23106,renewal_rate:0.9354},
+  {q:"2026-Q1",region:"EMEA",product:"Web Experimentation",accounts:102,renewal_arr:6899665,churn_arr:-2833593,renewal_rate:0.5893},
+  {q:"2026-Q1",region:"NA",product:"Analytics",accounts:1,renewal_arr:16667,churn_arr:0,renewal_rate:1.0},
+  {q:"2026-Q1",region:"NA",product:"Experimentation Addons",accounts:3,renewal_arr:26442,churn_arr:-18992,renewal_rate:0.2817},
+  {q:"2026-Q1",region:"NA",product:"Feature Experimentation",accounts:46,renewal_arr:4384772,churn_arr:-1232495,renewal_rate:0.7189},
+  {q:"2026-Q1",region:"NA",product:"Personalization",accounts:48,renewal_arr:1049410,churn_arr:-357425,renewal_rate:0.6594},
+  {q:"2026-Q1",region:"NA",product:"Segmentation",accounts:22,renewal_arr:651834,churn_arr:-184398,renewal_rate:0.7171},
+  {q:"2026-Q1",region:"NA",product:"Web Experimentation",accounts:167,renewal_arr:11304282,churn_arr:-3369790,renewal_rate:0.7019},
+];
+
+const REGIONAL_Q2 = [
+  {q:"2026-Q2",region:"APJ",product:"Feature Experimentation",accounts:5,renewal_arr:326553,churn_arr:0,renewal_rate:1.0},
+  {q:"2026-Q2",region:"APJ",product:"Personalization",accounts:6,renewal_arr:97607,churn_arr:0,renewal_rate:1.0},
+  {q:"2026-Q2",region:"APJ",product:"Segmentation",accounts:3,renewal_arr:107027,churn_arr:-24723,renewal_rate:0.769},
+  {q:"2026-Q2",region:"APJ",product:"Web Experimentation",accounts:15,renewal_arr:893634,churn_arr:-58983,renewal_rate:0.934},
+  {q:"2026-Q2",region:"EMEA",product:"Analytics",accounts:1,renewal_arr:3420,churn_arr:0,renewal_rate:1.0},
+  {q:"2026-Q2",region:"EMEA",product:"Experimentation Addons",accounts:2,renewal_arr:118107,churn_arr:-53169,renewal_rate:0.5498},
+  {q:"2026-Q2",region:"EMEA",product:"Feature Experimentation",accounts:23,renewal_arr:2617188,churn_arr:-286137,renewal_rate:0.8907},
+  {q:"2026-Q2",region:"EMEA",product:"Personalization",accounts:11,renewal_arr:284261,churn_arr:-14742,renewal_rate:0.9481},
+  {q:"2026-Q2",region:"EMEA",product:"Segmentation",accounts:8,renewal_arr:399387,churn_arr:-158916,renewal_rate:0.6021},
+  {q:"2026-Q2",region:"EMEA",product:"Web Experimentation",accounts:46,renewal_arr:3346757,churn_arr:-575975,renewal_rate:0.8279},
+  {q:"2026-Q2",region:"NA",product:"Analytics",accounts:5,renewal_arr:288381,churn_arr:-27716,renewal_rate:0.9039},
+  {q:"2026-Q2",region:"NA",product:"Feature Experimentation",accounts:53,renewal_arr:6273693,churn_arr:-779236,renewal_rate:0.8758},
+  {q:"2026-Q2",region:"NA",product:"Personalization",accounts:51,renewal_arr:1197309,churn_arr:-172294,renewal_rate:0.8561},
+  {q:"2026-Q2",region:"NA",product:"Segmentation",accounts:21,renewal_arr:775616,churn_arr:2427,renewal_rate:1.0031},
+  {q:"2026-Q2",region:"NA",product:"Web Experimentation",accounts:122,renewal_arr:9754280,churn_arr:-1447032,renewal_rate:0.8517},
+];
+
+const OPAL_DATA = {
+  q1: [{opal:"Yes",accounts:6,renewal_arr:717492,churn_arr:-79924,rate:0.8886},{opal:"No",accounts:336,renewal_arr:29917005,churn_arr:-10045630,rate:0.6642}],
+  q2: [{opal:"Yes",accounts:5,renewal_arr:414001,churn_arr:-562,rate:0.9986},{opal:"No",accounts:234,renewal_arr:26069220,churn_arr:-3595934,rate:0.8621}],
+};
+
+const TESTER_DATA = {
+  q1: [
+    {type:"High Tester",accounts:92,renewal_arr:10888569,churn_arr:-1747249,rate:0.8395},
+    {type:"Low Tester",accounts:179,renewal_arr:13974965,churn_arr:-3149889,rate:0.7746},
+    {type:"No Usage Data",accounts:71,renewal_arr:5770963,churn_arr:-5228416,rate:0.094},
+  ],
+  q2: [
+    {type:"High Tester",accounts:74,renewal_arr:16057456,churn_arr:-1602204,rate:0.9002},
+    {type:"Low Tester",accounts:130,renewal_arr:8575680,churn_arr:-1539948,rate:0.8204},
+    {type:"No Usage Data",accounts:35,renewal_arr:1850085,churn_arr:-454344,rate:0.7544},
+  ],
+};
+
+const NEXT_Q1 = [
+  {product:"Personalization",base:679,added:24,conv:3.53},
+  {product:"Opal",base:1004,added:22,conv:2.19},
+  {product:"Analytics",base:1064,added:14,conv:1.32},
+  {product:"Experimentation Addons",base:1064,added:11,conv:1.03},
+  {product:"Other Services",base:1071,added:9,conv:0.84},
+  {product:"Segmentation",base:956,added:7,conv:0.73},
+  {product:"Content Mgmt PaaS",base:919,added:6,conv:0.65},
+  {product:"Feature Experimentation",base:813,added:5,conv:0.62},
+];
+
+const NEXT_Q2 = [
+  {product:"Personalization",base:624,added:6,conv:0.96},
+  {product:"Analytics",base:1025,added:8,conv:0.78},
+  {product:"Experimentation Addons",base:1030,added:7,conv:0.68},
+  {product:"Content Mgmt Addons",base:971,added:5,conv:0.51},
+  {product:"Other Services",base:1046,added:5,conv:0.48},
+  {product:"Content Mgmt PaaS",base:885,added:4,conv:0.45},
+  {product:"Opal",base:949,added:4,conv:0.42},
+  {product:"Feature Experimentation",base:795,added:3,conv:0.38},
+];
+
+// ── COLORS ────────────────────────────────────────────────────────────────────
+const C = {
+  blue:'#0037FF', orange:'#FF5100', green:'#22C55E', red:'#EF4444',
+  amber:'#F59E0B', purple:'#8B5CF6', cyan:'#06B6D4', teal:'#10B981',
+  q1:'#1e40af', q2:'#0037FF',
+};
+const layout_base = {
+  font:{family:'Inter, Arial', size:12, color:'#1A1A2E'},
+  paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)',
+  margin:{t:20,r:20,b:60,l:60},
+  legend:{orientation:'h', y:-0.15},
+  hoverlabel:{bgcolor:'#fff', font:{size:12}},
+};
+const axis_style = {
+  gridcolor:'#E2E8F0', linecolor:'#CBD5E1',
+  tickfont:{size:11}, titlefont:{size:12},
+};
+
+// ── CHART 1: WebEx regional ────────────────────────────────────────────────
+(function(){
+  const regions = ['EMEA','NA','APJ'];
+  const webex_q1 = regions.map(r => {
+    const d = REGIONAL_Q1.find(x=>x.region===r && x.product==='Web Experimentation');
+    return d ? +(d.renewal_rate*100).toFixed(1) : null;
+  });
+  const webex_q2 = regions.map(r => {
+    const d = REGIONAL_Q2.find(x=>x.region===r && x.product==='Web Experimentation');
+    return d ? +(d.renewal_rate*100).toFixed(1) : null;
+  });
+
+  Plotly.newPlot('chart-webex-regional', [
+    {name:'Q1 2026', x:regions, y:webex_q1, type:'bar', marker:{color:C.q1}, text:webex_q1.map(v=>v+'%'), textposition:'outside'},
+    {name:'Q2 2026', x:regions, y:webex_q2, type:'bar', marker:{color:C.q2}, text:webex_q2.map(v=>v+'%'), textposition:'outside'},
+  ], {
+    ...layout_base,
+    yaxis:{...axis_style, title:'Renewal Rate %', range:[0,115], ticksuffix:'%'},
+    xaxis:{...axis_style},
+    shapes:[{type:'line',x0:-0.5,x1:2.5,y0:80,y1:80,line:{color:C.green,dash:'dot',width:1.5}}],
+    annotations:[{x:2.5,y:80,text:'80% target',showarrow:false,font:{size:10,color:C.green},xanchor:'right'}],
+    barmode:'group',
+  }, {responsive:true});
+})();
+
+// ── CHART 2: FX regional ─────────────────────────────────────────────────────
+(function(){
+  const regions = ['EMEA','NA','APJ'];
+  const fx_q1 = regions.map(r => {
+    const d = REGIONAL_Q1.find(x=>x.region===r && x.product==='Feature Experimentation');
+    return d ? +(d.renewal_rate*100).toFixed(1) : null;
+  });
+  const fx_q2 = regions.map(r => {
+    const d = REGIONAL_Q2.find(x=>x.region===r && x.product==='Feature Experimentation');
+    return d ? +(d.renewal_rate*100).toFixed(1) : null;
+  });
+
+  Plotly.newPlot('chart-fx-regional', [
+    {name:'Q1 2026', x:regions, y:fx_q1, type:'bar', marker:{color:C.q1}, text:fx_q1.map(v=>v+'%'), textposition:'outside'},
+    {name:'Q2 2026', x:regions, y:fx_q2, type:'bar', marker:{color:C.q2}, text:fx_q2.map(v=>v+'%'), textposition:'outside'},
+  ], {
+    ...layout_base,
+    yaxis:{...axis_style, title:'Renewal Rate %', range:[0,115], ticksuffix:'%'},
+    xaxis:{...axis_style},
+    shapes:[{type:'line',x0:-0.5,x1:2.5,y0:80,y1:80,line:{color:C.green,dash:'dot',width:1.5}}],
+    annotations:[{x:2.5,y:80,text:'80% target',showarrow:false,font:{size:10,color:C.green},xanchor:'right'}],
+    barmode:'group',
+  }, {responsive:true});
+})();
+
+// ── CHART 3: ARR comparison stacked ──────────────────────────────────────────
+(function(){
+  const combos = [
+    {label:'EMEA WebEx', q1r:REGIONAL_Q1, q2r:REGIONAL_Q2, region:'EMEA', prod:'Web Experimentation'},
+    {label:'NA WebEx',   q1r:REGIONAL_Q1, q2r:REGIONAL_Q2, region:'NA',   prod:'Web Experimentation'},
+    {label:'APJ WebEx',  q1r:REGIONAL_Q1, q2r:REGIONAL_Q2, region:'APJ',  prod:'Web Experimentation'},
+    {label:'EMEA FX',   q1r:REGIONAL_Q1, q2r:REGIONAL_Q2, region:'EMEA', prod:'Feature Experimentation'},
+    {label:'NA FX',     q1r:REGIONAL_Q1, q2r:REGIONAL_Q2, region:'NA',   prod:'Feature Experimentation'},
+    {label:'APJ FX',    q1r:REGIONAL_Q1, q2r:REGIONAL_Q2, region:'APJ',  prod:'Feature Experimentation'},
+  ];
+
+  const labels = combos.map(c=>c.label);
+  const q1arr = combos.map(c=>{
+    const d=c.q1r.find(x=>x.region===c.region&&x.product===c.prod);
+    return d ? +(d.renewal_arr/1e6).toFixed(2) : 0;
+  });
+  const q2arr = combos.map(c=>{
+    const d=c.q2r.find(x=>x.region===c.region&&x.product===c.prod);
+    return d ? +(d.renewal_arr/1e6).toFixed(2) : 0;
+  });
+
+  Plotly.newPlot('chart-arr-compare', [
+    {name:'Q1 2026 ARR at Renewal', x:labels, y:q1arr, type:'bar', marker:{color:C.q1}, text:q1arr.map(v=>'$'+v+'M'), textposition:'outside'},
+    {name:'Q2 2026 ARR at Renewal', x:labels, y:q2arr, type:'bar', marker:{color:C.q2}, text:q2arr.map(v=>'$'+v+'M'), textposition:'outside'},
+  ], {
+    ...layout_base,
+    yaxis:{...axis_style, title:'ARR ($M)', tickprefix:'$', ticksuffix:'M'},
+    xaxis:{...axis_style, tickangle:-20},
+    barmode:'group',
+  }, {responsive:true});
+})();
+
+// ── CHART 4: Opal attach ─────────────────────────────────────────────────────
+(function(){
+  const cats = ['Q1 — No Opal','Q1 — With Opal','Q2 — No Opal','Q2 — With Opal'];
+  const rates = [66.42, 88.86, 86.21, 99.86];
+  const colors = [C.q1+'88', C.q1, C.q2+'88', C.q2];
+
+  Plotly.newPlot('chart-opal', [
+    {x:cats, y:rates, type:'bar',
+     marker:{color:colors},
+     text:rates.map(v=>v.toFixed(1)+'%'), textposition:'outside',
+     hovertemplate:'%{x}: %{y:.1f}%<extra></extra>',
+    },
+  ], {
+    ...layout_base,
+    yaxis:{...axis_style, title:'Renewal Rate %', range:[0,115], ticksuffix:'%'},
+    xaxis:{...axis_style},
+    shapes:[{type:'line',x0:-0.5,x1:3.5,y0:80,y1:80,line:{color:C.green,dash:'dot',width:1.5}}],
+    showlegend:false,
+  }, {responsive:true});
+})();
+
+// ── CHART 5: Tester depth ─────────────────────────────────────────────────────
+(function(){
+  const types = ['High Tester','Low Tester','No Usage Data'];
+  const q1 = TESTER_DATA.q1.map(d=>+(d.rate*100).toFixed(1));
+  const q2 = TESTER_DATA.q2.map(d=>+(d.rate*100).toFixed(1));
+
+  Plotly.newPlot('chart-testers', [
+    {name:'Q1 2026', x:types, y:q1, type:'bar', marker:{color:C.q1}, text:q1.map(v=>v+'%'), textposition:'outside'},
+    {name:'Q2 2026', x:types, y:q2, type:'bar', marker:{color:C.q2}, text:q2.map(v=>v+'%'), textposition:'outside'},
+  ], {
+    ...layout_base,
+    yaxis:{...axis_style, title:'Renewal Rate %', range:[0,115], ticksuffix:'%'},
+    xaxis:{...axis_style},
+    shapes:[{type:'line',x0:-0.5,x1:2.5,y0:80,y1:80,line:{color:C.green,dash:'dot',width:1.5}}],
+    annotations:[{x:2.5,y:80,text:'80% target',showarrow:false,font:{size:10,color:C.green},xanchor:'right'}],
+    barmode:'group',
+  }, {responsive:true});
+})();
+
+// ── CHART 6: Next product (horizontal bar) ────────────────────────────────────
+(function(){
+  const topProducts = ['Personalization','Opal','Analytics','Experimentation Addons','Segmentation','Feature Experimentation','Content Mgmt PaaS','Other Services'];
+
+  const q1conv = topProducts.map(p => {
+    const d = NEXT_Q1.find(x=>x.product===p||x.product.replace(' ','').toLowerCase()===p.replace(' ','').toLowerCase());
+    return d ? d.conv : 0;
+  });
+  const q2conv = topProducts.map(p => {
+    const d = NEXT_Q2.find(x=>x.product===p||x.product.replace(' ','').toLowerCase()===p.replace(' ','').toLowerCase());
+    return d ? d.conv : 0;
+  });
+
+  Plotly.newPlot('chart-nextproduct', [
+    {name:'Q1 2026 (Dec→Mar, 3 months)', y:topProducts, x:q1conv, type:'bar', orientation:'h',
+     marker:{color:C.q1}, text:q1conv.map(v=>v.toFixed(2)+'%'), textposition:'outside'},
+    {name:'Q2 2026 (Mar→May, 2 months)', y:topProducts, x:q2conv, type:'bar', orientation:'h',
+     marker:{color:C.q2}, text:q2conv.map(v=>v.toFixed(2)+'%'), textposition:'outside'},
+  ], {
+    ...layout_base,
+    xaxis:{...axis_style, title:'Conversion Rate %', ticksuffix:'%'},
+    yaxis:{...axis_style, autorange:'reversed'},
+    barmode:'group',
+    margin:{t:20,r:80,b:60,l:180},
+  }, {responsive:true});
+})();
+
+// ── POPULATE NEXT PRODUCT TABLE ───────────────────────────────────────────────
+(function(){
+  const allProds = [...new Set([...NEXT_Q1.map(d=>d.product), ...NEXT_Q2.map(d=>d.product)])];
+  const top8 = NEXT_Q1.slice(0,8).map(d=>d.product);
+  const tbody = document.getElementById('tbl-nextprod-body');
+  top8.forEach(prod => {
+    const q1 = NEXT_Q1.find(d=>d.product===prod)||{base:'-',added:0,conv:0};
+    const q2 = NEXT_Q2.find(d=>d.product===prod)||{base:'-',added:0,conv:0};
+    const delta = (q2.conv - q1.conv).toFixed(2);
+    const dClass = parseFloat(delta) >= 0 ? 'kpi-delta up' : 'kpi-delta down';
+    const dSign  = parseFloat(delta) >= 0 ? '▲' : '▼';
+    tbody.innerHTML += `<tr>
+      <td>${prod}</td>
+      <td>${q1.base}</td><td>${q1.added}</td>
+      <td><span class="rate-pill ${q1.conv>=2?'rate-high':q1.conv>=0.5?'rate-mid':'rate-low'}">${q1.conv}%</span></td>
+      <td>${q2.base}</td><td>${q2.added}</td>
+      <td><span class="rate-pill ${q2.conv>=2?'rate-high':q2.conv>=0.5?'rate-mid':'rate-low'}">${q2.conv}%</span></td>
+      <td class="${dClass}">${dSign} ${Math.abs(delta)}pp</td>
+    </tr>`;
+  });
+})();
+
+// ── POPULATE REGIONAL TABLE ───────────────────────────────────────────────────
+(function(){
+  const all = [...REGIONAL_Q1, ...REGIONAL_Q2];
+  const tbody = document.getElementById('tbl-regional-body');
+  all.forEach(d => {
+    const r = (d.renewal_rate*100).toFixed(1);
+    const cls = d.renewal_rate>=0.85 ? 'rate-high' : d.renewal_rate>=0.70 ? 'rate-mid' : 'rate-low';
+    tbody.innerHTML += `<tr data-quarter="${d.q}">
+      <td>${d.q}</td>
+      <td>${d.region}</td>
+      <td>${d.product}</td>
+      <td>${d.accounts}</td>
+      <td>$${(d.renewal_arr/1000).toFixed(0)}k</td>
+      <td>-$${(Math.abs(d.churn_arr)/1000).toFixed(0)}k</td>
+      <td><span class="rate-pill ${cls}">${r}%</span></td>
+    </tr>`;
+  });
+})();
+
+// ── TABLE SORT ────────────────────────────────────────────────────────────────
+function sortTable(id, col) {
+  const tbl = document.getElementById(id);
+  const tbody = tbl.querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const asc = tbl.dataset.sortCol == col && tbl.dataset.sortDir == 'asc' ? -1 : 1;
+  tbl.dataset.sortCol = col; tbl.dataset.sortDir = asc===1?'asc':'desc';
+  rows.sort((a,b) => {
+    const av = a.cells[col].innerText.replace(/[$%▲▼,k]/g,'').trim();
+    const bv = b.cells[col].innerText.replace(/[$%▲▼,k]/g,'').trim();
+    const an = parseFloat(av), bn = parseFloat(bv);
+    if (!isNaN(an) && !isNaN(bn)) return (an - bn) * asc;
+    return av.localeCompare(bv) * asc;
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+// ── QUARTER FILTER ────────────────────────────────────────────────────────────
+function filterTable(q) {
+  document.querySelectorAll('.toggle-btn').forEach(b=>{
+    b.classList.toggle('active', b.textContent.includes(q) || q==='all');
+  });
+  document.querySelectorAll('#tbl-regional tr[data-quarter]').forEach(r => {
+    r.style.display = q==='all' || r.dataset.quarter.includes(q) ? '' : 'none';
+  });
+}
+
+// ── ACTIVE NAV ────────────────────────────────────────────────────────────────
+const navLinks = document.querySelectorAll('#sidebar nav a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href')==='#'+id));
+    }
+  });
+}, {threshold:0.3});
+document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

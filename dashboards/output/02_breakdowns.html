@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS Breakdowns — 2026-Q2</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@40,300,0,0" rel="stylesheet" />
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+:root {
+  --forest:  #1A3D2B;
+  --lime:    #AAEE44;
+  --sky:     #8ECFDB;
+  --pink:    #F0A0A8;
+  --teal:    #2A6650;
+  --frost:   #EEF2E8;
+  --sage:    #E8EEE0;
+  --green:   #4A9A3C;
+  --red:     #EF4444;
+  --amber:   #F59E0B;
+  --purple:  #7A3D5A;
+  --dark:    #1A3D2B;
+  --card:    #FFFFFF;
+  --bg:      #EEF2E8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'VC Nudge', Inter, Arial, sans-serif; background: var(--bg); color: var(--dark); }
+
+/* ── Header ── */
+.top-bar {
+  background: var(--forest); color: #fff; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.top-bar h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.top-bar .quarter-badge {
+  background: var(--lime); color: var(--forest); padding: 4px 14px;
+  border-radius: 20px; font-size: 13px; font-weight: 700;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 220px; background: #fff; border-right: 2px solid var(--sage);
+  padding: 24px 0; position: sticky; top: 56px; height: calc(100vh - 56px);
+  overflow-y: auto; flex-shrink: 0;
+}
+.sidebar a {
+  display: block; padding: 9px 20px; font-size: 13px; color: var(--dark);
+  text-decoration: none; border-left: 3px solid transparent;
+  transition: all .15s;
+}
+.sidebar a:hover, .sidebar a.active {
+  background: var(--frost); border-left-color: var(--lime); color: var(--forest);
+  font-weight: 600;
+}
+.main { flex: 1; padding: 28px; max-width: 1280px; overflow-x: hidden; }
+
+/* ── Section cards ── */
+.section { margin-bottom: 32px; }
+.section h2 {
+  font-size: 16px; font-weight: 700; color: var(--forest);
+  padding-bottom: 8px; border-bottom: 3px solid var(--lime);
+  margin-bottom: 16px;
+}
+.card {
+  background: var(--card); border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1); padding: 20px; margin-bottom: 16px;
+}
+
+/* ── KPI tiles ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 16px; }
+.kpi-card {
+  background: var(--card); border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1); padding: 18px 20px;
+  border-left: 4px solid var(--lime);
+}
+.kpi-card.green  { border-left-color: var(--green); }
+.kpi-card.red    { border-left-color: var(--red);   }
+.kpi-card.sky    { border-left-color: var(--sky);   }
+.kpi-card.teal   { border-left-color: var(--teal);  }
+.kpi-card.amber  { border-left-color: var(--amber); }
+.kpi-card.purple { border-left-color: var(--purple);}
+.kpi-card.orange { border-left-color: var(--sky);   }
+.kpi-label { font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.kpi-value { font-size: 26px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+.kpi-meta  { font-size: 12px; color: #9CA3AF; }
+.delta { font-size: 12px; font-weight: 600; }
+.delta.pos { color: var(--green); }
+.delta.neg { color: var(--red);   }
+.delta.neu { color: var(--amber); }
+
+/* ── Tabs ── */
+.tab-bar { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab-btn {
+  padding: 6px 16px; border-radius: 20px; border: 1px solid var(--sage);
+  background: #fff; cursor: pointer; font-size: 13px; color: #6B7280;
+  transition: all .15s;
+}
+.tab-btn.active { background: var(--forest); color: #fff; border-color: var(--forest); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── Tables ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: var(--forest); color: #fff; padding: 10px 12px;
+  text-align: left; font-weight: 600; position: sticky; top: 0; cursor: pointer;
+}
+thead th:hover { background: var(--teal); }
+tbody tr:nth-child(even) { background: var(--frost); }
+tbody tr:hover { background: var(--sage); }
+tbody td { padding: 8px 12px; border-bottom: 1px solid #F3F4F6; }
+
+/* ── Download button ── */
+.dl-btn {
+  display: inline-block; margin-top: 12px; padding: 7px 16px; border-radius: 8px;
+  background: var(--forest); color: var(--lime); font-size: 12px; font-weight: 700;
+  cursor: pointer; border: none; text-decoration: none;
+}
+.dl-btn:hover { background: var(--teal); color: #fff; }
+
+/* ── Insights box ── */
+.insight {
+  border-left: 4px solid var(--lime); background: var(--frost);
+  padding: 12px 16px; border-radius: 0 12px 12px 0; font-size: 13px;
+  color: var(--forest); margin-top: 12px; line-height: 1.6;
+}
+.insight strong { color: var(--forest); }
+
+/* ── Period badge ── */
+.period-badge {
+  display: inline-block; background: var(--lime); color: var(--forest);
+  padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  margin-left: 10px; vertical-align: middle;
+}
+
+/* ── Source footnote ── */
+.source { font-size: 11px; color: #9CA3AF; margin-top: 8px; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-value { font-size: 20px; }
+}
+
+/* ── Print ── */
+@media print {
+  .sidebar, .top-bar { display: none; }
+  .main { padding: 0; }
+  .card { box-shadow: none; border: 1px solid var(--sage); }
+}
+
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <h1>📊 CS Breakdowns by Dimension</h1>
+  <span class="quarter-badge">2026-Q2</span>
+</div>
+
+<div class="layout">
+<nav class="sidebar"><a href="#summary">Summary</a>
+<a href="#region">Region</a>
+<a href="#territory">Territory</a>
+<a href="#sfdc_segment">SFDC Segment</a>
+<a href="#revenue_segment">Revenue Segment</a>
+<a href="#arr_band">ARR Band</a>
+<a href="#solution_type">Solution Type</a>
+<a href="#product_solution">Product Solution</a>
+<a href="#product_group">Product Group</a>
+</nav>
+<div class="main">
+
+<section class="section" id="summary">
+  <h2>Breakdown Summary <span class="period-badge">2026-Q2</span></h2>
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Renewal ARR</div>
+      <div class="kpi-value">$66.2M</div>
+      <div class="kpi-meta">All regions — 2026-Q2</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">Total Churn ARR</div>
+      <div class="kpi-value">$7.6M</div>
+      <div class="kpi-meta">11.4% of renewal ARR</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Blended Renewal Rate</div>
+      <div class="kpi-value">88.6%</div>
+      <div class="kpi-meta">Region-level aggregate</div>
+    </div>
+    
+<div class="kpi-card teal">
+  <div class="kpi-label">NA</div>
+  <div class="kpi-value">$37.3M</div>
+  <div class="kpi-meta">
+    293 accounts &nbsp;·&nbsp; Churn $4.4M<br>
+    <span style="color:#F59E0B;font-weight:700;">RR 88.3%</span>
+  </div>
+</div>
+<div class="kpi-card sky">
+  <div class="kpi-label">EMEA</div>
+  <div class="kpi-value">$26.6M</div>
+  <div class="kpi-meta">
+    601 accounts &nbsp;·&nbsp; Churn $2.9M<br>
+    <span style="color:#F59E0B;font-weight:700;">RR 89.2%</span>
+  </div>
+</div>
+<div class="kpi-card green">
+  <div class="kpi-label">APJ</div>
+  <div class="kpi-value">$2.3M</div>
+  <div class="kpi-meta">
+    31 accounts &nbsp;·&nbsp; Churn $327K<br>
+    <span style="color:#F59E0B;font-weight:700;">RR 86.0%</span>
+  </div>
+</div>
+  </div>
+  <p class="source" style="margin-top:12px;">
+    Territory labels derived from Salesforce territory IDs mapped to regional groups.
+  </p>
+</section>
+
+<section class="section" id="region">
+  <h2>🌍 Region <span class="period-badge">2026-Q2</span></h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+<div id="bar_region" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'bar_region',
+  [{"type": "bar", "name": "Renewal ARR", "x": [37320343.27, 26559192.58, 2329799.78], "y": ["NA", "EMEA", "APJ"], "orientation": "h", "marker": {"color": "#1A3D2B", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>Renewal ARR: $%{x:,.0f}<extra></extra>"}, {"type": "bar", "name": "Churn ARR", "x": [-4362820.0, -2874811.75, -326738.0], "y": ["NA", "EMEA", "APJ"], "orientation": "h", "marker": {"color": "#EF4444", "opacity": 0.75}, "hovertemplate": "<b>%{y}</b><br>Churn ARR: $%{x:,.0f}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "ARR ($) \u2014 churn shown as negative", "tickformat": "$,.0f", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "barmode": "overlay", "title": {"text": "Renewal ARR & Churn by Region", "font": {"size": 13}}, "shapes": [{"type": "line", "x0": 0, "x1": 0, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#1A3D2B", "width": 1, "dash": "dot"}}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+      <div>
+<div id="rr_region" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'rr_region',
+  [{"type": "bar", "name": "Renewal Rate", "x": [88.3, 89.2, 86.0], "y": ["NA", "EMEA", "APJ"], "orientation": "h", "marker": {"color": ["#F59E0B", "#F59E0B", "#F59E0B"]}, "text": ["88.3%", "89.2%", "86.0%"], "textposition": "outside", "hovertemplate": "<b>%{y}</b><br>RR: %{x:.1f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "title": {"text": "Renewal Rate by Region", "font": {"size": 13}}, "shapes": [{"type": "line", "x0": 90, "x1": 90, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dot"}}], "annotations": [{"x": 90, "y": 1, "xref": "x", "yref": "paper", "text": "90% target", "showarrow": false, "font": {"color": "#4A9A3C", "size": 10}, "xanchor": "left"}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    </div>
+    <p class="source" style="margin-top:8px;">
+      Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (deduped) &nbsp;·&nbsp; Period: 2026-Q2
+    </p>
+  </div>
+  
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Regional Trend — NA &amp; EMEA</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div>
+<div id="arr_reg_bd_trend" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'arr_reg_bd_trend',
+  [{"type": "bar", "name": "NA Renewal ARR", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [36115180.53, 39658489.87, 36732035.54, 37320343.27], "marker": {"color": "#1A3D2B"}, "hovertemplate": "<b>NA</b> %{x}<br>Renewal ARR: $%{y:,.0f}<extra></extra>"}, {"type": "bar", "name": "NA Churn ARR", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [-8490323.0, -7286778.0, -6784187.0, -2948279.0], "marker": {"color": "#EF4444", "opacity": 0.7}, "hovertemplate": "<b>NA</b> %{x}<br>Churn ARR: $%{y:,.0f}<extra></extra>"}, {"type": "bar", "name": "EMEA Renewal ARR", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [28379823.93, 35576927.47, 36820651.43, 26559192.58], "marker": {"color": "#8ECFDB"}, "hovertemplate": "<b>EMEA</b> %{x}<br>Renewal ARR: $%{y:,.0f}<extra></extra>"}, {"type": "bar", "name": "EMEA Churn ARR", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [-3836024.0, -5167631.0, -7371530.0, -1998491.0], "marker": {"color": "#F59E0B", "opacity": 0.75}, "hovertemplate": "<b>EMEA</b> %{x}<br>Churn ARR: $%{y:,.0f}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "ARR ($)", "tickformat": "$,.0f", "automargin": true}, "legend": {"orientation": "h", "y": 1.08, "x": 0}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "barmode": "group", "title": {"text": "ARR & Churn Trend \u2014 NA vs EMEA (churn negative)", "font": {"size": 13}}, "shapes": [{"type": "line", "x0": -0.5, "x1": 3.5, "y0": 0, "y1": 0, "line": {"color": "#1A3D2B", "width": 1, "dash": "dot"}}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    <div>
+<div id="rr_reg_bd_trend" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'rr_reg_bd_trend',
+  [{"type": "scatter", "mode": "lines+markers", "name": "NA", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [76.5, 81.6, 81.5, 92.1], "line": {"color": "#1A3D2B", "width": 3}, "marker": {"size": 9}, "hovertemplate": "<b>NA</b> %{x}<br>RR: %{y:.1f}%<extra></extra>"}, {"type": "scatter", "mode": "lines+markers", "name": "EMEA", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [86.5, 85.5, 80.0, 92.5], "line": {"color": "#8ECFDB", "width": 3}, "marker": {"size": 9}, "hovertemplate": "<b>EMEA</b> %{x}<br>RR: %{y:.1f}%<extra></extra>"}, {"type": "scatter", "mode": "lines", "name": "90% target", "x": ["2025-Q3", "2025-Q4", "2026-Q1", "2026-Q2"], "y": [90, 90, 90, 90], "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dash"}, "hoverinfo": "skip"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "automargin": true, "range": [70, 100]}, "legend": {"orientation": "h", "y": 1.08, "x": 0}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "title": {"text": "Renewal Rate Trend \u2014 NA vs EMEA", "font": {"size": 13}}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+  </div>
+  <p class="source">Source: EXEC_DECK_RENEWAL_RATES_CUSTOMER (NA &amp; EMEA, 2025-Q3 → 2026-Q2)</p>
+</div>
+  <div class="insight"><strong>What the data shows (2026-Q2):</strong> <b>NA</b> contributes the most renewal ARR ($37.3M). Highest renewal rate: <b>EMEA</b> at 89.2%. Lowest: <b>APJ</b> at 86.0%. Spread: <strong>3.2pp</strong>.</div>
+</section>
+<section class="section" id="territory">
+  <h2>📍 Territory <span class="period-badge">2026-Q2</span></h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+<div id="bar_territory" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'bar_territory',
+  [{"type": "bar", "name": "Renewal ARR", "x": [307958.39, 2021841.39, 6470082.44, 3553608.24, 1588268.95, 1672268.59, 1302630.05, 7898577.95, 409535.25, 3664221.11, 6377699.04, 4667697.3, 12891730.8, 5775302.11, 7607914.02], "y": ["APJ \u2013 T1", "APJ \u2013 T2", "EMEA \u2013 Cont. Europe", "EMEA \u2013 DACH", "EMEA \u2013 DACH 2", "EMEA \u2013 Nordics", "EMEA \u2013 Nordics 2", "EMEA \u2013 Scandinavia", "EMEA \u2013 South Europe", "EMEA \u2013 UK & Ireland", "NA \u2013 Commercial 1", "NA \u2013 Commercial 2", "NA \u2013 Enterprise", "NA \u2013 Mid-Market", "NA \u2013 Strategic"], "orientation": "h", "marker": {"color": "#2A6650", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>Renewal ARR: $%{x:,.0f}<extra></extra>"}, {"type": "bar", "name": "Churn ARR", "x": [-14804.0, -311934.0, -1273280.0, -365454.0, -196195.34, -90458.0, -229885.41, -729254.0, -22958.0, 32673.0, -644710.0, -665519.0, -1615981.0, -936327.0, -500283.0], "y": ["APJ \u2013 T1", "APJ \u2013 T2", "EMEA \u2013 Cont. Europe", "EMEA \u2013 DACH", "EMEA \u2013 DACH 2", "EMEA \u2013 Nordics", "EMEA \u2013 Nordics 2", "EMEA \u2013 Scandinavia", "EMEA \u2013 South Europe", "EMEA \u2013 UK & Ireland", "NA \u2013 Commercial 1", "NA \u2013 Commercial 2", "NA \u2013 Enterprise", "NA \u2013 Mid-Market", "NA \u2013 Strategic"], "orientation": "h", "marker": {"color": "#EF4444", "opacity": 0.75}, "hovertemplate": "<b>%{y}</b><br>Churn ARR: $%{x:,.0f}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "ARR ($) \u2014 churn shown as negative", "tickformat": "$,.0f", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 660, "barmode": "overlay", "title": {"text": "ARR & Churn by Territory", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 0, "x1": 0, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#1A3D2B", "width": 1, "dash": "dot"}}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+      <div>
+<div id="rr_territory" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'rr_territory',
+  [{"type": "bar", "name": "Renewal Rate", "x": [95.2, 84.6, 80.3, 89.7, 87.6, 94.6, 82.3, 90.8, 94.4, 100.9, 89.9, 85.7, 87.5, 83.8, 93.4], "y": ["APJ \u2013 T1", "APJ \u2013 T2", "EMEA \u2013 Cont. Europe", "EMEA \u2013 DACH", "EMEA \u2013 DACH 2", "EMEA \u2013 Nordics", "EMEA \u2013 Nordics 2", "EMEA \u2013 Scandinavia", "EMEA \u2013 South Europe", "EMEA \u2013 UK & Ireland", "NA \u2013 Commercial 1", "NA \u2013 Commercial 2", "NA \u2013 Enterprise", "NA \u2013 Mid-Market", "NA \u2013 Strategic"], "orientation": "h", "marker": {"color": ["#4A9A3C", "#F59E0B", "#F59E0B", "#F59E0B", "#F59E0B", "#4A9A3C", "#F59E0B", "#4A9A3C", "#4A9A3C", "#4A9A3C", "#F59E0B", "#F59E0B", "#F59E0B", "#F59E0B", "#4A9A3C"]}, "text": ["95.2%", "84.6%", "80.3%", "89.7%", "87.6%", "94.6%", "82.3%", "90.8%", "94.4%", "100.9%", "89.9%", "85.7%", "87.5%", "83.8%", "93.4%"], "textposition": "outside", "hovertemplate": "<b>%{y}</b><br>Renewal Rate: %{x:.1f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 660, "title": {"text": "Renewal Rate by Territory", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 90, "x1": 90, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dot"}}], "annotations": [{"x": 90, "y": 1, "xref": "x", "yref": "paper", "text": "90% target", "showarrow": false, "font": {"color": "#4A9A3C", "size": 10}, "xanchor": "left"}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    </div>
+  </div>
+  <div class="card">
+    
+<div style="margin-bottom:10px;">
+  <input id="filter_territory" type="text" placeholder="Filter territories…"
+    oninput="filterTable('filter_territory','tbl_territory')"
+    style="padding:6px 12px;border:1px solid #C8D4C0;border-radius:6px;
+           font-size:13px;width:260px;outline:none;" />
+</div>
+    <div class="table-wrap"><table id="tbl_territory"><thead><tr><th>Dimension</th><th>Accounts</th><th>Renewal ARR</th><th>Churn ARR</th><th>Renewal Rate</th></tr></thead><tbody><tr><td>APJ – T1</td><td>5</td><td>$308K</td><td>$-15K</td><td>95.2%</td></tr><tr><td>APJ – T2</td><td>26</td><td>$2.0M</td><td>$-312K</td><td>84.6%</td></tr><tr><td>EMEA – Cont. Europe</td><td>67</td><td>$6.5M</td><td>$-1.3M</td><td>80.3%</td></tr><tr><td>EMEA – DACH</td><td>56</td><td>$3.6M</td><td>$-365K</td><td>89.7%</td></tr><tr><td>EMEA – DACH 2</td><td>97</td><td>$1.6M</td><td>$-196K</td><td>87.6%</td></tr><tr><td>EMEA – Nordics</td><td>27</td><td>$1.7M</td><td>$-90K</td><td>94.6%</td></tr><tr><td>EMEA – Nordics 2</td><td>29</td><td>$1.3M</td><td>$-230K</td><td>82.3%</td></tr><tr><td>EMEA – Scandinavia</td><td>222</td><td>$7.9M</td><td>$-729K</td><td>90.8%</td></tr><tr><td>EMEA – South Europe</td><td>6</td><td>$410K</td><td>$-23K</td><td>94.4%</td></tr><tr><td>EMEA – UK & Ireland</td><td>97</td><td>$3.7M</td><td>$33K</td><td>100.9%</td></tr><tr><td>NA – Commercial 1</td><td>33</td><td>$6.4M</td><td>$-645K</td><td>89.9%</td></tr><tr><td>NA – Commercial 2</td><td>24</td><td>$4.7M</td><td>$-666K</td><td>85.7%</td></tr><tr><td>NA – Enterprise</td><td>161</td><td>$12.9M</td><td>$-1.6M</td><td>87.5%</td></tr><tr><td>NA – Mid-Market</td><td>46</td><td>$5.8M</td><td>$-936K</td><td>83.8%</td></tr><tr><td>NA – Strategic</td><td>29</td><td>$7.6M</td><td>$-500K</td><td>93.4%</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_territory');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+    
+<button class="dl-btn" onclick="downloadCSV('tbl_territory','Territory_2026-Q2.csv')">
+  ⬇ Download CSV
+</button>
+    <p class="source" style="margin-top:8px;">
+      Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (deduped) &nbsp;·&nbsp; Period: 2026-Q2
+    </p>
+  </div>
+  <div class="insight"><strong>What the data shows (2026-Q2):</strong> <b>NA – Enterprise</b> contributes the most renewal ARR ($12.9M). Highest RR: <b>EMEA – UK & Ireland</b> at 100.9%. Lowest: <b>EMEA – Cont. Europe</b> at 80.3%. Spread: <strong>20.6pp</strong>. Total churn ARR across this dimension: $-7.6M.</div>
+</section>
+<section class="section" id="sfdc_segment">
+  <h2>🏷 SFDC Segment <span class="period-badge">2026-Q2</span></h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+<div id="bar_sfdc_segment" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'bar_sfdc_segment',
+  [{"type": "bar", "name": "Renewal ARR", "x": [34755315.6, 31362237.1], "y": ["Enterprise", "Mid-Market"], "orientation": "h", "marker": {"color": "#7A3D5A", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>Renewal ARR: $%{x:,.0f}<extra></extra>"}, {"type": "bar", "name": "Churn ARR", "x": [-3705561.41, -3858808.34], "y": ["Enterprise", "Mid-Market"], "orientation": "h", "marker": {"color": "#EF4444", "opacity": 0.75}, "hovertemplate": "<b>%{y}</b><br>Churn ARR: $%{x:,.0f}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "ARR ($) \u2014 churn shown as negative", "tickformat": "$,.0f", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "barmode": "overlay", "title": {"text": "ARR & Churn by SFDC Segment", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 0, "x1": 0, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#1A3D2B", "width": 1, "dash": "dot"}}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+      <div>
+<div id="rr_sfdc_segment" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'rr_sfdc_segment',
+  [{"type": "bar", "name": "Renewal Rate", "x": [89.3, 87.7], "y": ["Enterprise", "Mid-Market"], "orientation": "h", "marker": {"color": ["#F59E0B", "#F59E0B"]}, "text": ["89.3%", "87.7%"], "textposition": "outside", "hovertemplate": "<b>%{y}</b><br>Renewal Rate: %{x:.1f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "title": {"text": "Renewal Rate by SFDC Segment", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 90, "x1": 90, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dot"}}], "annotations": [{"x": 90, "y": 1, "xref": "x", "yref": "paper", "text": "90% target", "showarrow": false, "font": {"color": "#4A9A3C", "size": 10}, "xanchor": "left"}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    </div>
+  </div>
+  <div class="card">
+    
+    <div class="table-wrap"><table id="tbl_sfdc_segment"><thead><tr><th>Dimension</th><th>Accounts</th><th>Renewal ARR</th><th>Churn ARR</th><th>Renewal Rate</th></tr></thead><tbody><tr><td>Enterprise</td><td>298</td><td>$34.8M</td><td>$-3.7M</td><td>89.3%</td></tr><tr><td>Mid-Market</td><td>626</td><td>$31.4M</td><td>$-3.9M</td><td>87.7%</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_sfdc_segment');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+    
+<button class="dl-btn" onclick="downloadCSV('tbl_sfdc_segment','SFDC_Segment_2026-Q2.csv')">
+  ⬇ Download CSV
+</button>
+    <p class="source" style="margin-top:8px;">
+      Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (deduped) &nbsp;·&nbsp; Period: 2026-Q2
+    </p>
+  </div>
+  <div class="insight"><strong>What the data shows (2026-Q2):</strong> <b>Enterprise</b> contributes the most renewal ARR ($34.8M). Highest RR: <b>Enterprise</b> at 89.3%. Lowest: <b>Mid-Market</b> at 87.7%. Spread: <strong>1.6pp</strong>. Total churn ARR across this dimension: $-7.6M.</div>
+</section>
+<section class="section" id="revenue_segment">
+  <h2>🏢 Revenue Segment <span class="period-badge">2026-Q2</span></h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+<div id="bar_revenue_segment" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'bar_revenue_segment',
+  [{"type": "bar", "name": "Renewal ARR", "x": [22048591.7, 23963462.37, 20197281.56], "y": ["Enterprise", "Mid-Market", "Digital"], "orientation": "h", "marker": {"color": "#7A3D5A", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>Renewal ARR: $%{x:,.0f}<extra></extra>"}, {"type": "bar", "name": "Churn ARR", "x": [-1921346.0, -2802054.0, -2840969.75], "y": ["Enterprise", "Mid-Market", "Digital"], "orientation": "h", "marker": {"color": "#EF4444", "opacity": 0.75}, "hovertemplate": "<b>%{y}</b><br>Churn ARR: $%{x:,.0f}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "ARR ($) \u2014 churn shown as negative", "tickformat": "$,.0f", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "barmode": "overlay", "title": {"text": "ARR & Churn by Revenue Segment", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 0, "x1": 0, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#1A3D2B", "width": 1, "dash": "dot"}}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+      <div>
+<div id="rr_revenue_segment" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'rr_revenue_segment',
+  [{"type": "bar", "name": "Renewal Rate", "x": [91.3, 88.3, 85.9], "y": ["Enterprise", "Mid-Market", "Digital"], "orientation": "h", "marker": {"color": ["#4A9A3C", "#F59E0B", "#F59E0B"]}, "text": ["91.3%", "88.3%", "85.9%"], "textposition": "outside", "hovertemplate": "<b>%{y}</b><br>Renewal Rate: %{x:.1f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "title": {"text": "Renewal Rate by Revenue Segment", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 90, "x1": 90, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dot"}}], "annotations": [{"x": 90, "y": 1, "xref": "x", "yref": "paper", "text": "90% target", "showarrow": false, "font": {"color": "#4A9A3C", "size": 10}, "xanchor": "left"}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    </div>
+  </div>
+  <div class="card">
+    
+    <div class="table-wrap"><table id="tbl_revenue_segment"><thead><tr><th>Dimension</th><th>Accounts</th><th>Renewal ARR</th><th>Churn ARR</th><th>Renewal Rate</th></tr></thead><tbody><tr><td>Enterprise</td><td>50</td><td>$22.0M</td><td>$-1.9M</td><td>91.3%</td></tr><tr><td>Mid-Market</td><td>151</td><td>$24.0M</td><td>$-2.8M</td><td>88.3%</td></tr><tr><td>Digital</td><td>724</td><td>$20.2M</td><td>$-2.8M</td><td>85.9%</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_revenue_segment');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+    
+<button class="dl-btn" onclick="downloadCSV('tbl_revenue_segment','Revenue_Segment_2026-Q2.csv')">
+  ⬇ Download CSV
+</button>
+    <p class="source" style="margin-top:8px;">
+      Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (deduped) &nbsp;·&nbsp; Period: 2026-Q2
+    </p>
+  </div>
+  <div class="insight"><strong>What the data shows (2026-Q2):</strong> <b>Mid-Market</b> contributes the most renewal ARR ($24.0M). Highest RR: <b>Enterprise</b> at 91.3%. Lowest: <b>Digital</b> at 85.9%. Spread: <strong>5.4pp</strong>. Total churn ARR across this dimension: $-7.6M.</div>
+</section>
+<section class="section" id="arr_band">
+  <h2>💰 ARR Band <span class="period-badge">2026-Q2</span></h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+<div id="bar_arr_band" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'bar_arr_band',
+  [{"type": "bar", "name": "Renewal ARR", "x": [20297281.56, 23863462.37, 13606501.02, 8442090.68], "y": ["<=100k", "100k-250k", "250k-500k", "500k+"], "orientation": "h", "marker": {"color": "#8ECFDB", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>Renewal ARR: $%{x:,.0f}<extra></extra>"}, {"type": "bar", "name": "Churn ARR", "x": [-2840969.75, -2802054.0, -1540629.0, -380717.0], "y": ["<=100k", "100k-250k", "250k-500k", "500k+"], "orientation": "h", "marker": {"color": "#EF4444", "opacity": 0.75}, "hovertemplate": "<b>%{y}</b><br>Churn ARR: $%{x:,.0f}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "ARR ($) \u2014 churn shown as negative", "tickformat": "$,.0f", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "barmode": "overlay", "title": {"text": "ARR & Churn by ARR Band", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 0, "x1": 0, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#1A3D2B", "width": 1, "dash": "dot"}}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+      <div>
+<div id="rr_arr_band" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'rr_arr_band',
+  [{"type": "bar", "name": "Renewal Rate", "x": [86.0, 88.3, 88.7, 95.5], "y": ["<=100k", "100k-250k", "250k-500k", "500k+"], "orientation": "h", "marker": {"color": ["#F59E0B", "#F59E0B", "#F59E0B", "#4A9A3C"]}, "text": ["86.0%", "88.3%", "88.7%", "95.5%"], "textposition": "outside", "hovertemplate": "<b>%{y}</b><br>Renewal Rate: %{x:.1f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "title": {"text": "Renewal Rate by ARR Band", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 90, "x1": 90, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dot"}}], "annotations": [{"x": 90, "y": 1, "xref": "x", "yref": "paper", "text": "90% target", "showarrow": false, "font": {"color": "#4A9A3C", "size": 10}, "xanchor": "left"}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    </div>
+  </div>
+  <div class="card">
+    
+    <div class="table-wrap"><table id="tbl_arr_band"><thead><tr><th>Dimension</th><th>Accounts</th><th>Renewal ARR</th><th>Churn ARR</th><th>Renewal Rate</th></tr></thead><tbody><tr><td><=100k</td><td>725</td><td>$20.3M</td><td>$-2.8M</td><td>86.0%</td></tr><tr><td>100k-250k</td><td>150</td><td>$23.9M</td><td>$-2.8M</td><td>88.3%</td></tr><tr><td>250k-500k</td><td>40</td><td>$13.6M</td><td>$-1.5M</td><td>88.7%</td></tr><tr><td>500k+</td><td>10</td><td>$8.4M</td><td>$-381K</td><td>95.5%</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_arr_band');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+    
+<button class="dl-btn" onclick="downloadCSV('tbl_arr_band','ARR_Band_2026-Q2.csv')">
+  ⬇ Download CSV
+</button>
+    <p class="source" style="margin-top:8px;">
+      Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (deduped) &nbsp;·&nbsp; Period: 2026-Q2
+    </p>
+  </div>
+  <div class="insight"><strong>What the data shows (2026-Q2):</strong> <b>100k-250k</b> contributes the most renewal ARR ($23.9M). Highest RR: <b>500k+</b> at 95.5%. Lowest: <b><=100k</b> at 86.0%. Spread: <strong>9.5pp</strong>. Total churn ARR across this dimension: $-7.6M.</div>
+</section>
+<section class="section" id="solution_type">
+  <h2>🔗 Solution Type <span class="period-badge">2026-Q2</span></h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+<div id="bar_solution_type" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'bar_solution_type',
+  [{"type": "bar", "name": "Renewal ARR", "x": [54157804.03, 12051531.6], "y": ["Single Solution", "Multi Solution"], "orientation": "h", "marker": {"color": "#F0A0A8", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>Renewal ARR: $%{x:,.0f}<extra></extra>"}, {"type": "bar", "name": "Churn ARR", "x": [-6346475.75, -1217894.0], "y": ["Single Solution", "Multi Solution"], "orientation": "h", "marker": {"color": "#EF4444", "opacity": 0.75}, "hovertemplate": "<b>%{y}</b><br>Churn ARR: $%{x:,.0f}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "ARR ($) \u2014 churn shown as negative", "tickformat": "$,.0f", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "barmode": "overlay", "title": {"text": "ARR & Churn by Solution Type", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 0, "x1": 0, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#1A3D2B", "width": 1, "dash": "dot"}}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+      <div>
+<div id="rr_solution_type" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'rr_solution_type',
+  [{"type": "bar", "name": "Renewal Rate", "x": [88.3, 89.9], "y": ["Single Solution", "Multi Solution"], "orientation": "h", "marker": {"color": ["#F59E0B", "#F59E0B"]}, "text": ["88.3%", "89.9%"], "textposition": "outside", "hovertemplate": "<b>%{y}</b><br>Renewal Rate: %{x:.1f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "title": {"text": "Renewal Rate by Solution Type", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 90, "x1": 90, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dot"}}], "annotations": [{"x": 90, "y": 1, "xref": "x", "yref": "paper", "text": "90% target", "showarrow": false, "font": {"color": "#4A9A3C", "size": 10}, "xanchor": "left"}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    </div>
+  </div>
+  <div class="card">
+    
+    <div class="table-wrap"><table id="tbl_solution_type"><thead><tr><th>Dimension</th><th>Accounts</th><th>Renewal ARR</th><th>Churn ARR</th><th>Renewal Rate</th></tr></thead><tbody><tr><td>Single Solution</td><td>871</td><td>$54.2M</td><td>$-6.3M</td><td>88.3%</td></tr><tr><td>Multi Solution</td><td>54</td><td>$12.1M</td><td>$-1.2M</td><td>89.9%</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_solution_type');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+    
+<button class="dl-btn" onclick="downloadCSV('tbl_solution_type','Solution_Type_2026-Q2.csv')">
+  ⬇ Download CSV
+</button>
+    <p class="source" style="margin-top:8px;">
+      Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (deduped) &nbsp;·&nbsp; Period: 2026-Q2
+    </p>
+  </div>
+  <div class="insight"><strong>What the data shows (2026-Q2):</strong> <b>Single Solution</b> contributes the most renewal ARR ($54.2M). Highest RR: <b>Multi Solution</b> at 89.9%. Lowest: <b>Single Solution</b> at 88.3%. Spread: <strong>1.6pp</strong>. Total churn ARR across this dimension: $-7.6M.</div>
+</section>
+<section class="section" id="product_solution">
+  <h2>📦 Product Solution <span class="period-badge">2026-Q2</span></h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+<div id="bar_product_solution" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'bar_product_solution',
+  [{"type": "bar", "name": "Renewal ARR", "x": [26040835.2, 195388.79, 5005571.1, 26483220.68, 7534708.42], "y": ["EC", "AI", "CMP", "EO", "Other"], "orientation": "h", "marker": {"color": "#AAEE44", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>Renewal ARR: $%{x:,.0f}<extra></extra>"}, {"type": "bar", "name": "Churn ARR", "x": [-1883985.0, -16757.0, -432866.0, -3596496.0, -1349274.75], "y": ["EC", "AI", "CMP", "EO", "Other"], "orientation": "h", "marker": {"color": "#EF4444", "opacity": 0.75}, "hovertemplate": "<b>%{y}</b><br>Churn ARR: $%{x:,.0f}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "ARR ($) \u2014 churn shown as negative", "tickformat": "$,.0f", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "barmode": "overlay", "title": {"text": "ARR & Churn by Product Solution", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 0, "x1": 0, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#1A3D2B", "width": 1, "dash": "dot"}}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+      <div>
+<div id="rr_product_solution" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'rr_product_solution',
+  [{"type": "bar", "name": "Renewal Rate", "x": [92.8, 91.4, 91.3, 86.4, 82.1], "y": ["EC", "AI", "CMP", "EO", "Other"], "orientation": "h", "marker": {"color": ["#4A9A3C", "#4A9A3C", "#4A9A3C", "#F59E0B", "#F59E0B"]}, "text": ["92.8%", "91.4%", "91.3%", "86.4%", "82.1%"], "textposition": "outside", "hovertemplate": "<b>%{y}</b><br>Renewal Rate: %{x:.1f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "title": {"text": "Renewal Rate by Product Solution", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 90, "x1": 90, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dot"}}], "annotations": [{"x": 90, "y": 1, "xref": "x", "yref": "paper", "text": "90% target", "showarrow": false, "font": {"color": "#4A9A3C", "size": 10}, "xanchor": "left"}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    </div>
+  </div>
+  <div class="card">
+    
+    <div class="table-wrap"><table id="tbl_product_solution"><thead><tr><th>Dimension</th><th>Accounts</th><th>Renewal ARR</th><th>Churn ARR</th><th>Renewal Rate</th></tr></thead><tbody><tr><td>EC</td><td>431</td><td>$26.0M</td><td>$-1.9M</td><td>92.8%</td></tr><tr><td>AI</td><td>5</td><td>$195K</td><td>$-17K</td><td>91.4%</td></tr><tr><td>CMP</td><td>34</td><td>$5.0M</td><td>$-433K</td><td>91.3%</td></tr><tr><td>EO</td><td>224</td><td>$26.5M</td><td>$-3.6M</td><td>86.4%</td></tr><tr><td>Other</td><td>327</td><td>$7.5M</td><td>$-1.3M</td><td>82.1%</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_product_solution');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+    
+<button class="dl-btn" onclick="downloadCSV('tbl_product_solution','Product_Solution_2026-Q2.csv')">
+  ⬇ Download CSV
+</button>
+    <p class="source" style="margin-top:8px;">
+      Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (deduped) &nbsp;·&nbsp; Period: 2026-Q2
+    </p>
+  </div>
+  <div class="insight"><strong>What the data shows (2026-Q2):</strong> <b>EO</b> contributes the most renewal ARR ($26.5M). Highest RR: <b>EC</b> at 92.8%. Lowest: <b>Other</b> at 82.1%. Spread: <strong>10.7pp</strong>. Total churn ARR across this dimension: $-7.3M.</div>
+</section>
+<section class="section" id="product_group">
+  <h2>🔧 Product Group <span class="period-badge">2026-Q2</span></h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+<div id="bar_product_group" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'bar_product_group',
+  [{"type": "bar", "name": "Renewal ARR", "x": [19893393.61, 13994670.66, 9217434.77, 5005571.1, 4752688.94, 2241631.9, 1942343.58, 1608854.81, 1579177.17, 1282029.89, 939221.81, 752014.66, 716233.27, 612233.66, 291800.93, 195388.79, 118107.26, 53400.0, 33023.05, 30504.34], "y": ["Content Management PaaS", "Web Experimentation", "Feature Experimentation", "Configured Commerce", "Commerce Connect Non-Retail", "Legacy", "Content Marketing", "Campaign", "Personalization", "Segmentation", "Commerce Connect", "Content Recommendations", "Commerce Connect Retail", "Product Recommendations", "Analytics", "Opal", "Experimentation Addons", "Legacy NetSpring", "Other Services", "Content Management SaaS"], "orientation": "h", "marker": {"color": "#AAEE44", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>Renewal ARR: $%{x:,.0f}<extra></extra>"}, {"type": "bar", "name": "Churn ARR", "x": [-899480.0, -2081990.0, -1065373.0, -432866.0, -773305.0, -697623.0, -463334.0, -145934.34, -187036.0, -181212.0, 11016.59, -39061.0, 0.0, -156686.0, -27716.0, -16757.0, -53169.0, -53400.0, 0.0, -15453.0], "y": ["Content Management PaaS", "Web Experimentation", "Feature Experimentation", "Configured Commerce", "Commerce Connect Non-Retail", "Legacy", "Content Marketing", "Campaign", "Personalization", "Segmentation", "Commerce Connect", "Content Recommendations", "Commerce Connect Retail", "Product Recommendations", "Analytics", "Opal", "Experimentation Addons", "Legacy NetSpring", "Other Services", "Content Management SaaS"], "orientation": "h", "marker": {"color": "#EF4444", "opacity": 0.75}, "hovertemplate": "<b>%{y}</b><br>Churn ARR: $%{x:,.0f}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "ARR ($) \u2014 churn shown as negative", "tickformat": "$,.0f", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 850, "barmode": "overlay", "title": {"text": "ARR & Churn by Product Group", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 0, "x1": 0, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#1A3D2B", "width": 1, "dash": "dot"}}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+      <div>
+<div id="rr_product_group" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'rr_product_group',
+  [{"type": "bar", "name": "Renewal Rate", "x": [95.5, 85.1, 88.4, 91.3, 83.7, 68.9, 76.1, 90.9, 88.2, 85.9, 101.2, 94.8, 100.0, 74.4, 90.5, 91.4, 55.0, 0.0, 100.0, 49.3], "y": ["Content Management PaaS", "Web Experimentation", "Feature Experimentation", "Configured Commerce", "Commerce Connect Non-Retail", "Legacy", "Content Marketing", "Campaign", "Personalization", "Segmentation", "Commerce Connect", "Content Recommendations", "Commerce Connect Retail", "Product Recommendations", "Analytics", "Opal", "Experimentation Addons", "Legacy NetSpring", "Other Services", "Content Management SaaS"], "orientation": "h", "marker": {"color": ["#4A9A3C", "#F59E0B", "#F59E0B", "#4A9A3C", "#F59E0B", "#EF4444", "#EF4444", "#4A9A3C", "#F59E0B", "#F59E0B", "#4A9A3C", "#4A9A3C", "#4A9A3C", "#EF4444", "#4A9A3C", "#4A9A3C", "#EF4444", "#EF4444", "#4A9A3C", "#EF4444"]}, "text": ["95.5%", "85.1%", "88.4%", "91.3%", "83.7%", "68.9%", "76.1%", "90.9%", "88.2%", "85.9%", "101.2%", "94.8%", "100.0%", "74.4%", "90.5%", "91.4%", "55.0%", "0.0%", "100.0%", "49.3%"], "textposition": "outside", "hovertemplate": "<b>%{y}</b><br>Renewal Rate: %{x:.1f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 850, "title": {"text": "Renewal Rate by Product Group", "font": {"size": 13, "color": "#1A3D2B"}}, "shapes": [{"type": "line", "x0": 90, "x1": 90, "y0": 0, "y1": 1, "xref": "x", "yref": "paper", "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dot"}}], "annotations": [{"x": 90, "y": 1, "xref": "x", "yref": "paper", "text": "90% target", "showarrow": false, "font": {"color": "#4A9A3C", "size": 10}, "xanchor": "left"}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    </div>
+  </div>
+  <div class="card">
+    
+    <div class="table-wrap"><table id="tbl_product_group"><thead><tr><th>Dimension</th><th>Accounts</th><th>Renewal ARR</th><th>Churn ARR</th><th>Renewal Rate</th></tr></thead><tbody><tr><td>Content Management PaaS</td><td>376</td><td>$19.9M</td><td>$-899K</td><td>95.5%</td></tr><tr><td>Web Experimentation</td><td>174</td><td>$14.0M</td><td>$-2.1M</td><td>85.1%</td></tr><tr><td>Feature Experimentation</td><td>74</td><td>$9.2M</td><td>$-1.1M</td><td>88.4%</td></tr><tr><td>Configured Commerce</td><td>34</td><td>$5.0M</td><td>$-433K</td><td>91.3%</td></tr><tr><td>Commerce Connect Non-Retail</td><td>49</td><td>$4.8M</td><td>$-773K</td><td>83.7%</td></tr><tr><td>Legacy</td><td>133</td><td>$2.2M</td><td>$-698K</td><td>68.9%</td></tr><tr><td>Content Marketing</td><td>33</td><td>$1.9M</td><td>$-463K</td><td>76.1%</td></tr><tr><td>Campaign</td><td>111</td><td>$1.6M</td><td>$-146K</td><td>90.9%</td></tr><tr><td>Personalization</td><td>64</td><td>$1.6M</td><td>$-187K</td><td>88.2%</td></tr><tr><td>Segmentation</td><td>31</td><td>$1.3M</td><td>$-181K</td><td>85.9%</td></tr><tr><td>Commerce Connect</td><td>53</td><td>$939K</td><td>$11K</td><td>101.2%</td></tr><tr><td>Content Recommendations</td><td>26</td><td>$752K</td><td>$-39K</td><td>94.8%</td></tr><tr><td>Commerce Connect Retail</td><td>8</td><td>$716K</td><td>$0</td><td>100.0%</td></tr><tr><td>Product Recommendations</td><td>19</td><td>$612K</td><td>$-157K</td><td>74.4%</td></tr><tr><td>Analytics</td><td>6</td><td>$292K</td><td>$-28K</td><td>90.5%</td></tr><tr><td>Opal</td><td>5</td><td>$195K</td><td>$-17K</td><td>91.4%</td></tr><tr><td>Experimentation Addons</td><td>2</td><td>$118K</td><td>$-53K</td><td>55.0%</td></tr><tr><td>Legacy NetSpring</td><td>1</td><td>$53K</td><td>$-53K</td><td>0.0%</td></tr><tr><td>Other Services</td><td>2</td><td>$33K</td><td>$0</td><td>100.0%</td></tr><tr><td>Content Management SaaS</td><td>2</td><td>$31K</td><td>$-15K</td><td>49.3%</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_product_group');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+    
+<button class="dl-btn" onclick="downloadCSV('tbl_product_group','Product_Group_2026-Q2.csv')">
+  ⬇ Download CSV
+</button>
+    <p class="source" style="margin-top:8px;">
+      Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (deduped) &nbsp;·&nbsp; Period: 2026-Q2
+    </p>
+  </div>
+  <div class="insight"><strong>What the data shows (2026-Q2):</strong> <b>Content Management PaaS</b> contributes the most renewal ARR ($19.9M). Highest RR: <b>Commerce Connect</b> at 101.2%. Lowest: <b>Legacy NetSpring</b> at 0.0%. Spread: <strong>101.2pp</strong>. Total churn ARR across this dimension: $-7.3M.</div>
+</section>
+
+<script>
+function downloadCSV(tableId, fname) {
+  const tbl = document.getElementById(tableId);
+  let csv = [];
+  for (let row of tbl.rows) {
+    csv.push(Array.from(row.cells).map(c => '"' + c.innerText.replace(/"/g,'""') + '"').join(','));
+  }
+  const blob = new Blob([csv.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = fname; a.click();
+}
+function filterTable(inputId, tableId) {
+  const query = document.getElementById(inputId).value.toLowerCase();
+  const rows  = document.getElementById(tableId).querySelectorAll('tbody tr');
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+</script>
+</div>
+</div>
+<footer style="text-align:center; padding:24px; font-size:12px; color:#9CA3AF; border-top:2px solid #AAEE44; margin-top:32px; background:#EEF2E8;">
+  Generated 22 Jun 2026 | Optimizely CS Analytics<br>Sources: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP
+</footer>
+</body></html>

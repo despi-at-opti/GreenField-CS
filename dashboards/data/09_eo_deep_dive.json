@@ -1,0 +1,304 @@
+[
+  {"DATE_YQ":"2026-Q2","PRODUCT_GROUP":"Web Experimentation", "RENEWAL_COUNT":174,"RENEWAL_ARR":13994671,"CHURN_ARR":-2064065,"RENEWAL_RATE":0.8525,"_section":"eo_by_product"},
+  {"DATE_YQ":"2026-Q2","PRODUCT_GROUP":"Feature Experimentation","RENEWAL_COUNT":74,"RENEWAL_ARR":9217435,"CHURN_ARR":-1065373,"RENEWAL_RATE":0.8844,"_section":"eo_by_product"},
+  {"DATE_YQ":"2026-Q2","PRODUCT_GROUP":"Personalization",       "RENEWAL_COUNT":64,"RENEWAL_ARR":1579177,"CHURN_ARR":-187036, "RENEWAL_RATE":0.8816,"_section":"eo_by_product"},
+  {"DATE_YQ":"2026-Q2","PRODUCT_GROUP":"Segmentation",          "RENEWAL_COUNT":31,"RENEWAL_ARR":1282030,"CHURN_ARR":-152783, "RENEWAL_RATE":0.8808,"_section":"eo_by_product"},
+  {"DATE_YQ":"2026-Q2","PRODUCT_GROUP":"Analytics",             "RENEWAL_COUNT":6, "RENEWAL_ARR":291801, "CHURN_ARR":-27716,  "RENEWAL_RATE":0.9050,"_section":"eo_by_product"},
+  {"DATE_YQ":"2026-Q2","PRODUCT_GROUP":"Experimentation Addons","RENEWAL_COUNT":2, "RENEWAL_ARR":118107, "CHURN_ARR":-53169,  "RENEWAL_RATE":0.5498,"_section":"eo_by_product"},
+  {"DATE_YQ":"2026-Q1","PRODUCT_GROUP":"Web Experimentation",   "RENEWAL_COUNT":238,"RENEWAL_ARR":18957649,"CHURN_ARR":-6264552,"RENEWAL_RATE":0.6696,"_section":"eo_by_product"},
+  {"DATE_YQ":"2026-Q1","PRODUCT_GROUP":"Feature Experimentation","RENEWAL_COUNT":77,"RENEWAL_ARR":8771686,"CHURN_ARR":-3007676,"RENEWAL_RATE":0.6571,"_section":"eo_by_product"},
+  {"DATE_YQ":"2026-Q1","PRODUCT_GROUP":"Personalization",       "RENEWAL_COUNT":74,"RENEWAL_ARR":1691568,"CHURN_ARR":-553499, "RENEWAL_RATE":0.6728,"_section":"eo_by_product"},
+  {"DATE_YQ":"2026-Q1","PRODUCT_GROUP":"Segmentation",          "RENEWAL_COUNT":34,"RENEWAL_ARR":1170485,"CHURN_ARR":-236273, "RENEWAL_RATE":0.7981,"_section":"eo_by_product"},
+  {"DATE_YQ":"2026-Q1","PRODUCT_GROUP":"Experimentation Addons","RENEWAL_COUNT":3, "RENEWAL_ARR":26442,  "CHURN_ARR":-18992,  "RENEWAL_RATE":0.2817,"_section":"eo_by_product"},
+  {"DATE_YQ":"2026-Q1","PRODUCT_GROUP":"Analytics",             "RENEWAL_COUNT":1, "RENEWAL_ARR":16667,  "CHURN_ARR":0,       "RENEWAL_RATE":1.0000,"_section":"eo_by_product"},
+
+  {"REGION":"Unknown","OPAL_ACCOUNT_COUNT":200,"OPAL_ARR":12374621,"_section":"opal_portfolio"},
+  {"REGION":"NA",     "OPAL_ACCOUNT_COUNT":13, "OPAL_ARR":1139864, "_section":"opal_portfolio"},
+  {"REGION":"EMEA",   "OPAL_ACCOUNT_COUNT":14, "OPAL_ARR":1118034, "_section":"opal_portfolio"},
+  {"REGION":"APJ",    "OPAL_ACCOUNT_COUNT":1,  "OPAL_ARR":32238,   "_section":"opal_portfolio"},
+
+  {"REGION":"EMEA","WON_ACCOUNTS":2,"LOST_ACCOUNTS":1,"WON_ARR":2087233,"LOST_ARR":71500,"RENEWAL_RATE":0.9669,"_section":"opal_rr"},
+  {"REGION":"APJ", "WON_ACCOUNTS":1,"LOST_ACCOUNTS":0,"WON_ARR":54932,  "LOST_ARR":0,    "RENEWAL_RATE":1.0000,"_section":"opal_rr"},
+  {"REGION":"NA",  "WON_ACCOUNTS":0,"LOST_ACCOUNTS":0,"WON_ARR":0,      "LOST_ARR":0,    "RENEWAL_RATE":null,  "_section":"opal_rr"},
+
+  {
+    "PERIOD": "Current",
+    "DATE_YQ": "2026-Q2",
+    "REGION": "APJ",
+    "RENEWAL_COUNT": 15,
+    "RENEWAL_ARR": 1424821.43,
+    "CHURN_ARR": -83706.0,
+    "RENEWAL_RATE": 0.9413,
+    "RENEWAL_RATE_QOQ_DELTA": null,
+    "ARR_RENEWAL_QOQ_DELTA": null,
+    "_section": "regional"
+  },
+  {
+    "PERIOD": "Current",
+    "DATE_YQ": "2026-Q2",
+    "REGION": "EMEA",
+    "RENEWAL_COUNT": 62,
+    "RENEWAL_ARR": 6769121.02,
+    "CHURN_ARR": -1049205.0,
+    "RENEWAL_RATE": 0.845,
+    "RENEWAL_RATE_QOQ_DELTA": null,
+    "ARR_RENEWAL_QOQ_DELTA": null,
+    "_section": "regional"
+  },
+  {
+    "PERIOD": "Current",
+    "DATE_YQ": "2026-Q2",
+    "REGION": "NA",
+    "RENEWAL_COUNT": 147,
+    "RENEWAL_ARR": 18289278.22,
+    "CHURN_ARR": -2417231.0,
+    "RENEWAL_RATE": 0.8678,
+    "RENEWAL_RATE_QOQ_DELTA": null,
+    "ARR_RENEWAL_QOQ_DELTA": null,
+    "_section": "regional"
+  },
+  {
+    "PERIOD": "Prior",
+    "DATE_YQ": "2026-Q1",
+    "REGION": "APJ",
+    "RENEWAL_COUNT": 25,
+    "RENEWAL_ARR": 1446647.96,
+    "CHURN_ARR": -222862.0,
+    "RENEWAL_RATE": 0.8459,
+    "RENEWAL_RATE_QOQ_DELTA": null,
+    "ARR_RENEWAL_QOQ_DELTA": null,
+    "_section": "regional"
+  },
+  {
+    "PERIOD": "Prior",
+    "DATE_YQ": "2026-Q1",
+    "REGION": "EMEA",
+    "RENEWAL_COUNT": 101,
+    "RENEWAL_ARR": 11754441.63,
+    "CHURN_ARR": -4739592.0,
+    "RENEWAL_RATE": 0.5968,
+    "RENEWAL_RATE_QOQ_DELTA": null,
+    "ARR_RENEWAL_QOQ_DELTA": null,
+    "_section": "regional"
+  },
+  {
+    "PERIOD": "Prior",
+    "DATE_YQ": "2026-Q1",
+    "REGION": "NA",
+    "RENEWAL_COUNT": 158,
+    "RENEWAL_ARR": 17433407.09,
+    "CHURN_ARR": -5118538.0,
+    "RENEWAL_RATE": 0.7064,
+    "RENEWAL_RATE_QOQ_DELTA": null,
+    "ARR_RENEWAL_QOQ_DELTA": null,
+    "_section": "regional"
+  },
+  {
+    "OPAL_ATTACH": "Yes",
+    "RENEWAL_COUNT": 5,
+    "RENEWAL_ARR": 414001.06,
+    "CHURN_ARR": 1456.0,
+    "RENEWAL_RATE": 1.0035,
+    "_section": "opal_corr"
+  },
+  {
+    "OPAL_ATTACH": "No",
+    "RENEWAL_COUNT": 235,
+    "RENEWAL_ARR": 26069219.62,
+    "CHURN_ARR": -3551598.0,
+    "RENEWAL_RATE": 0.8638,
+    "_section": "opal_corr"
+  },
+  {
+    "TESTER_TYPE": "High Tester",
+    "RENEWAL_COUNT": 33,
+    "RENEWAL_ARR": 7330034.04,
+    "CHURN_ARR": -794463.0,
+    "RENEWAL_RATE": 0.8916,
+    "_section": "tester"
+  },
+  {
+    "TESTER_TYPE": "Low Tester",
+    "RENEWAL_COUNT": 190,
+    "RENEWAL_ARR": 18475721.27,
+    "CHURN_ARR": -2615948.0,
+    "RENEWAL_RATE": 0.8584,
+    "_section": "tester"
+  },
+  {
+    "TESTER_TYPE": "No Usage Data",
+    "RENEWAL_COUNT": 17,
+    "RENEWAL_ARR": 677465.38,
+    "CHURN_ARR": -139731.0,
+    "RENEWAL_RATE": 0.7937,
+    "_section": "tester"
+  },
+  {
+    "NEXT_PRODUCT": "Personalization",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 679,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 29,
+    "CONVERSION_RATE_PCT": 4.27,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Opal",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 1004,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 27,
+    "CONVERSION_RATE_PCT": 2.69,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Analytics",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 1064,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 22,
+    "CONVERSION_RATE_PCT": 2.07,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Experimentation Addons",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 1064,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 18,
+    "CONVERSION_RATE_PCT": 1.69,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Other Services",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 1071,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 14,
+    "CONVERSION_RATE_PCT": 1.31,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Content Management Addons",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 1001,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 12,
+    "CONVERSION_RATE_PCT": 1.20,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Content Management PaaS",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 919,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 10,
+    "CONVERSION_RATE_PCT": 1.09,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Feature Experimentation",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 813,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 8,
+    "CONVERSION_RATE_PCT": 0.98,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Segmentation",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 956,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 8,
+    "CONVERSION_RATE_PCT": 0.84,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Content Management SaaS",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 1065,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 5,
+    "CONVERSION_RATE_PCT": 0.47,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Content Marketing",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 1000,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 3,
+    "CONVERSION_RATE_PCT": 0.30,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Content Recommendations",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 1000,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 1,
+    "CONVERSION_RATE_PCT": 0.10,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Configured Commerce",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 1071,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 1,
+    "CONVERSION_RATE_PCT": 0.09,
+    "_section": "next_prod"
+  },
+  {
+    "NEXT_PRODUCT": "Analytics",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 394,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 23,
+    "CONVERSION_RATE_PCT": 5.84,
+    "_section": "next_prod_featex"
+  },
+  {
+    "NEXT_PRODUCT": "Experimentation Addons",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 403,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 19,
+    "CONVERSION_RATE_PCT": 4.71,
+    "_section": "next_prod_featex"
+  },
+  {
+    "NEXT_PRODUCT": "Personalization",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 270,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 11,
+    "CONVERSION_RATE_PCT": 4.07,
+    "_section": "next_prod_featex"
+  },
+  {
+    "NEXT_PRODUCT": "Web Experimentation",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 136,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 5,
+    "CONVERSION_RATE_PCT": 3.68,
+    "_section": "next_prod_featex"
+  },
+  {
+    "NEXT_PRODUCT": "Opal",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 388,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 13,
+    "CONVERSION_RATE_PCT": 3.35,
+    "_section": "next_prod_featex"
+  },
+  {
+    "NEXT_PRODUCT": "Other Services",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 407,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 8,
+    "CONVERSION_RATE_PCT": 1.97,
+    "_section": "next_prod_featex"
+  },
+  {
+    "NEXT_PRODUCT": "Content Management PaaS",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 372,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 6,
+    "CONVERSION_RATE_PCT": 1.61,
+    "_section": "next_prod_featex"
+  },
+  {
+    "NEXT_PRODUCT": "Content Management Addons",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 400,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 3,
+    "CONVERSION_RATE_PCT": 0.75,
+    "_section": "next_prod_featex"
+  },
+  {
+    "NEXT_PRODUCT": "Segmentation",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 370,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 2,
+    "CONVERSION_RATE_PCT": 0.54,
+    "_section": "next_prod_featex"
+  },
+  {
+    "NEXT_PRODUCT": "Content Marketing",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 400,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 1,
+    "CONVERSION_RATE_PCT": 0.25,
+    "_section": "next_prod_featex"
+  },
+  {
+    "NEXT_PRODUCT": "Content Management SaaS",
+    "CUSTOMERS_WHO_HAD_WEBEX_AT_START": 394,
+    "CUSTOMERS_WHO_ADDED_NEXT_PRODUCT": 1,
+    "CONVERSION_RATE_PCT": 0.24,
+    "_section": "next_prod_featex"
+  }
+]

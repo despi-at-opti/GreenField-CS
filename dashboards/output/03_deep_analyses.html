@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deep Analyses — 2026-Q2</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@40,300,0,0" rel="stylesheet" />
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+:root {
+  --forest:  #1A3D2B;
+  --lime:    #AAEE44;
+  --sky:     #8ECFDB;
+  --pink:    #F0A0A8;
+  --teal:    #2A6650;
+  --frost:   #EEF2E8;
+  --sage:    #E8EEE0;
+  --green:   #4A9A3C;
+  --red:     #EF4444;
+  --amber:   #F59E0B;
+  --purple:  #7A3D5A;
+  --dark:    #1A3D2B;
+  --card:    #FFFFFF;
+  --bg:      #EEF2E8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'VC Nudge', Inter, Arial, sans-serif; background: var(--bg); color: var(--dark); }
+
+/* ── Header ── */
+.top-bar {
+  background: var(--forest); color: #fff; padding: 14px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+}
+.top-bar h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.top-bar .quarter-badge {
+  background: var(--lime); color: var(--forest); padding: 4px 14px;
+  border-radius: 20px; font-size: 13px; font-weight: 700;
+}
+
+/* ── Layout ── */
+.layout { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 220px; background: #fff; border-right: 2px solid var(--sage);
+  padding: 24px 0; position: sticky; top: 56px; height: calc(100vh - 56px);
+  overflow-y: auto; flex-shrink: 0;
+}
+.sidebar a {
+  display: block; padding: 9px 20px; font-size: 13px; color: var(--dark);
+  text-decoration: none; border-left: 3px solid transparent;
+  transition: all .15s;
+}
+.sidebar a:hover, .sidebar a.active {
+  background: var(--frost); border-left-color: var(--lime); color: var(--forest);
+  font-weight: 600;
+}
+.main { flex: 1; padding: 28px; max-width: 1280px; overflow-x: hidden; }
+
+/* ── Section cards ── */
+.section { margin-bottom: 32px; }
+.section h2 {
+  font-size: 16px; font-weight: 700; color: var(--forest);
+  padding-bottom: 8px; border-bottom: 3px solid var(--lime);
+  margin-bottom: 16px;
+}
+.card {
+  background: var(--card); border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1); padding: 20px; margin-bottom: 16px;
+}
+
+/* ── KPI tiles ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 16px; }
+.kpi-card {
+  background: var(--card); border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.1); padding: 18px 20px;
+  border-left: 4px solid var(--lime);
+}
+.kpi-card.green  { border-left-color: var(--green); }
+.kpi-card.red    { border-left-color: var(--red);   }
+.kpi-card.sky    { border-left-color: var(--sky);   }
+.kpi-card.teal   { border-left-color: var(--teal);  }
+.kpi-card.amber  { border-left-color: var(--amber); }
+.kpi-card.purple { border-left-color: var(--purple);}
+.kpi-card.orange { border-left-color: var(--sky);   }
+.kpi-label { font-size: 11px; font-weight: 600; color: #6B7280; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+.kpi-value { font-size: 26px; font-weight: 700; color: var(--dark); margin-bottom: 4px; }
+.kpi-meta  { font-size: 12px; color: #9CA3AF; }
+.delta { font-size: 12px; font-weight: 600; }
+.delta.pos { color: var(--green); }
+.delta.neg { color: var(--red);   }
+.delta.neu { color: var(--amber); }
+
+/* ── Tabs ── */
+.tab-bar { display: flex; gap: 4px; margin-bottom: 16px; flex-wrap: wrap; }
+.tab-btn {
+  padding: 6px 16px; border-radius: 20px; border: 1px solid var(--sage);
+  background: #fff; cursor: pointer; font-size: 13px; color: #6B7280;
+  transition: all .15s;
+}
+.tab-btn.active { background: var(--forest); color: #fff; border-color: var(--forest); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+/* ── Tables ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: var(--forest); color: #fff; padding: 10px 12px;
+  text-align: left; font-weight: 600; position: sticky; top: 0; cursor: pointer;
+}
+thead th:hover { background: var(--teal); }
+tbody tr:nth-child(even) { background: var(--frost); }
+tbody tr:hover { background: var(--sage); }
+tbody td { padding: 8px 12px; border-bottom: 1px solid #F3F4F6; }
+
+/* ── Download button ── */
+.dl-btn {
+  display: inline-block; margin-top: 12px; padding: 7px 16px; border-radius: 8px;
+  background: var(--forest); color: var(--lime); font-size: 12px; font-weight: 700;
+  cursor: pointer; border: none; text-decoration: none;
+}
+.dl-btn:hover { background: var(--teal); color: #fff; }
+
+/* ── Insights box ── */
+.insight {
+  border-left: 4px solid var(--lime); background: var(--frost);
+  padding: 12px 16px; border-radius: 0 12px 12px 0; font-size: 13px;
+  color: var(--forest); margin-top: 12px; line-height: 1.6;
+}
+.insight strong { color: var(--forest); }
+
+/* ── Period badge ── */
+.period-badge {
+  display: inline-block; background: var(--lime); color: var(--forest);
+  padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  margin-left: 10px; vertical-align: middle;
+}
+
+/* ── Source footnote ── */
+.source { font-size: 11px; color: #9CA3AF; margin-top: 8px; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-value { font-size: 20px; }
+}
+
+/* ── Print ── */
+@media print {
+  .sidebar, .top-bar { display: none; }
+  .main { padding: 0; }
+  .card { box-shadow: none; border: 1px solid var(--sage); }
+}
+
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <h1>📊 CS Deep Analyses</h1>
+  <span class="quarter-badge">2026-Q2</span>
+</div>
+
+<div class="layout">
+
+<nav class="sidebar">
+  <a href="#churn_reasons">Churn Codes</a>
+  <a href="#top_accounts">Accounts</a>
+  <a href="#eo_deep_dive">EO Deep Dive</a>
+  <a href="#oa_analysis">OA Analytics</a>
+  <a href="#cms">CMS PaaS→SaaS</a>
+  <a href="#cross_upsell">Cross/Upsell</a>
+</nav>
+<div class="main">
+
+<section class="section" id="churn_reasons">
+  <h2>🔍 Churn Codes Analysis <span class="period-badge">2026-Q2</span></h2>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+<div id="churn_reason_chart" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'churn_reason_chart',
+  [{"type": "bar", "name": "Churn ARR", "x": [5508180.57, 3245805.01, 2996757.31, 1910532.4, 1469465.83, 1268016.05, 1074094.08, 1024786.77, 995149.5, 569312.89, 519036.86, 329766.81, 329382.04, 316306.35, 302775.53, 233756.74, 120520.7, 117914.34, 113623.13, 102666.67, 81325.16, 78730.77, 45831.02, 8897.32, 7485.14, 6600.0], "y": ["Changing Business Priorities", "Mergers & Acquisitions", "Migration", "Product Performance", "Product Feature Gap", "Platform Consolidation", "Competitor", "Commercial", "Budget Cuts", "Lack of Resources", "Lack of Churn Data", "Delinquent", "Legacy", "Bankruptcy", "Product", "Loss of Sponsor", "Delinquent Customer", "Adoption", "Bad ICP/Segment Fit", "Contract Constraints", "Partner", "End Of Life", "Product Swap", "Extension", "Consumption", "Mis-Sold"], "orientation": "h", "marker": {"color": "#EF4444", "opacity": 0.85}, "hovertemplate": "<b>%{y}</b><br>Churn ARR: $%{x:,.0f}<br>Opps: %{customdata}<extra></extra>", "customdata": [40, 13, 37, 14, 4, 14, 7, 8, 18, 3, 3, 5, 7, 9, 2, 4, 4, 2, 2, 2, 5, 3, 7, 1, 1, 1]}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Churn ARR ($)", "tickformat": "$,.0f", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 808, "title": {"text": "Churn ARR by Reason \u2014 2026-Q2 (captured reasons only)", "font": {"size": 14}}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+      <div>
+<div id="churn_opp_chart" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'churn_opp_chart',
+  [{"type": "bar", "name": "# Opportunities", "x": [40, 13, 37, 14, 4, 14, 7, 8, 18, 3, 3, 5, 7, 9, 2, 4, 4, 2, 2, 2, 5, 3, 7, 1, 1, 1], "y": ["Changing Business Priorities", "Mergers & Acquisitions", "Migration", "Product Performance", "Product Feature Gap", "Platform Consolidation", "Competitor", "Commercial", "Budget Cuts", "Lack of Resources", "Lack of Churn Data", "Delinquent", "Legacy", "Bankruptcy", "Product", "Loss of Sponsor", "Delinquent Customer", "Adoption", "Bad ICP/Segment Fit", "Contract Constraints", "Partner", "End Of Life", "Product Swap", "Extension", "Consumption", "Mis-Sold"], "orientation": "h", "marker": {"color": "#F0A0A8", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>Opps: %{x}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "# Opportunities", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 808, "title": {"text": "Opportunity Count by Churn Reason", "font": {"size": 14}}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap"><table id="tbl_churn"><thead><tr><th>Churn Reason</th><th># Opportunities</th><th>Churn ARR</th><th>% of Total</th></tr></thead><tbody><tr><td>Changing Business Priorities</td><td>40</td><td>$5.5M</td><td>24.2%</td></tr><tr><td>Mergers & Acquisitions</td><td>13</td><td>$3.2M</td><td>14.3%</td></tr><tr><td>Migration</td><td>37</td><td>$3.0M</td><td>13.2%</td></tr><tr><td>Product Performance</td><td>14</td><td>$1.9M</td><td>8.4%</td></tr><tr><td>Product Feature Gap</td><td>4</td><td>$1.5M</td><td>6.5%</td></tr><tr><td>Platform Consolidation</td><td>14</td><td>$1.3M</td><td>5.6%</td></tr><tr><td>Competitor</td><td>7</td><td>$1.1M</td><td>4.7%</td></tr><tr><td>Commercial</td><td>8</td><td>$1.0M</td><td>4.5%</td></tr><tr><td>Budget Cuts</td><td>18</td><td>$995K</td><td>4.4%</td></tr><tr><td>Lack of Resources</td><td>3</td><td>$569K</td><td>2.5%</td></tr><tr><td>Lack of Churn Data</td><td>3</td><td>$519K</td><td>2.3%</td></tr><tr><td>Delinquent</td><td>5</td><td>$330K</td><td>1.4%</td></tr><tr><td>Legacy</td><td>7</td><td>$329K</td><td>1.4%</td></tr><tr><td>Bankruptcy</td><td>9</td><td>$316K</td><td>1.4%</td></tr><tr><td>Product</td><td>2</td><td>$303K</td><td>1.3%</td></tr><tr><td>Loss of Sponsor</td><td>4</td><td>$234K</td><td>1.0%</td></tr><tr><td>Delinquent Customer</td><td>4</td><td>$121K</td><td>0.5%</td></tr><tr><td>Adoption</td><td>2</td><td>$118K</td><td>0.5%</td></tr><tr><td>Bad ICP/Segment Fit</td><td>2</td><td>$114K</td><td>0.5%</td></tr><tr><td>Contract Constraints</td><td>2</td><td>$103K</td><td>0.5%</td></tr><tr><td>Partner</td><td>5</td><td>$81K</td><td>0.4%</td></tr><tr><td>End Of Life</td><td>3</td><td>$79K</td><td>0.3%</td></tr><tr><td>Product Swap</td><td>7</td><td>$46K</td><td>0.2%</td></tr><tr><td>Extension</td><td>1</td><td>$9K</td><td>0.0%</td></tr><tr><td>Consumption</td><td>1</td><td>$7K</td><td>0.0%</td></tr><tr><td>Mis-Sold</td><td>1</td><td>$7K</td><td>0.0%</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_churn');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+    <button class="dl-btn" onclick="downloadCSV('tbl_churn','churn_reasons_2026-Q2.csv')">⬇ Download CSV</button>
+    <p class="source">Source: SALESFORCE.RAW_OPPORTUNITY_REPORT (Closed Lost, 2026-Q2)</p>
+  </div>
+  
+  <div class="insight"><strong>What the data shows:</strong> Top 3 churn reasons by ARR: <b>Changing Business Priorities</b> ($5.5M), <b>Mergers & Acquisitions</b> ($3.2M), <b>Migration</b> ($3.0M) — together representing <strong>51.6%</strong> of captured churn ARR in 2026-Q2.</div>
+</section>
+
+<section class="section" id="top_accounts">
+  <h2>📋 Account Detail <span class="period-badge">2026-Q2</span></h2>
+  
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#EF4444;">
+    ⚠️ Top Churned Accounts — 2026-Q2
+  </h3>
+  <div class="table-wrap"><table id="tbl_top_churn"><thead><tr><th>Account</th><th>CSM</th><th>Region</th><th>Segment</th><th>Solution</th><th>Products</th><th>Renewal ARR</th><th>Churn ARR</th></tr></thead><tbody><tr><td>Vebra Solutions Ltd.</td><td>Miriam Jones</td><td>EMEA</td><td>Enterprise</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Feature Experimentation, Personalization, Web Experimentation</td><td>$461K</td><td>$427K</td></tr><tr><td>GoFundMe, Inc.</td><td>Sarah Daugherty</td><td>NA</td><td>Enterprise</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Feature Experimentation, Personalization, Web Experimentation</td><td>$576K</td><td>$326K</td></tr><tr><td>Sveriges Riksbank</td><td>Conny Marklund</td><td>EMEA</td><td>Enterprise</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Legacy</td><td>$481K</td><td>$303K</td></tr><tr><td>St John Ambulance</td><td>Qing Xie</td><td>EMEA</td><td>Mid-Market</td><td><span style="background:#8ECFDB;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Single</span></td><td>Commerce Connect Non-Retail</td><td>$223K</td><td>$223K</td></tr><tr><td>Suunto Oy</td><td>Johanna Blåfield</td><td>EMEA</td><td>Digital</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Content Management PaaS</td><td>$0</td><td>$210K</td></tr><tr><td>EPOS Group A/S</td><td>Alexandra van Heel</td><td>EMEA</td><td>Mid-Market</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Commerce Connect Non-Retail, Web Experimentation</td><td>$201K</td><td>$201K</td></tr><tr><td>Amerhart, Limited</td><td>Becky Mowers</td><td>NA</td><td>Mid-Market</td><td><span style="background:#E5E7EB;color:#6B7280;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Unknown</span></td><td>Configured Commerce, Legacy, Product Recommendations</td><td>$227K</td><td>$189K</td></tr><tr><td>Payward, Inc.</td><td>Victoria Dawson</td><td>NA</td><td>Mid-Market</td><td><span style="background:#8ECFDB;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Single</span></td><td>Feature Experimentation</td><td>$133K</td><td>$133K</td></tr><tr><td>The Fragrance Shop Buying Ltd.</td><td>Jarrad del Pozo</td><td>EMEA</td><td>Mid-Market</td><td><span style="background:#8ECFDB;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Single</span></td><td>Web Experimentation</td><td>$132K</td><td>$132K</td></tr><tr><td>Proofpoint</td><td>Michelle Wengrover</td><td>NA</td><td>Mid-Market</td><td><span style="background:#E5E7EB;color:#6B7280;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Unknown</span></td><td>Content Marketing</td><td>$129K</td><td>$129K</td></tr><tr><td>Xerox Holdings Corporation</td><td>—</td><td>NA</td><td>Mid-Market</td><td><span style="background:#8ECFDB;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Single</span></td><td>Content Marketing</td><td>$170K</td><td>$127K</td></tr><tr><td>Clarus Commerce LLC, dba ebbo</td><td>Hannah McDowell</td><td>NA</td><td>Digital</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Personalization, Web Experimentation</td><td>$0</td><td>$117K</td></tr><tr><td>Prosper Marketplace, Inc.</td><td>Derrick Arakaki</td><td>NA</td><td>Mid-Market</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Feature Experimentation</td><td>$113K</td><td>$113K</td></tr><tr><td>GoHealth</td><td>Victoria Dawson</td><td>NA</td><td>Mid-Market</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Feature Experimentation, Web Experimentation</td><td>$112K</td><td>$112K</td></tr><tr><td>Helly-Hansen (UK) Limited</td><td>Jarrad del Pozo</td><td>EMEA</td><td>Mid-Market</td><td><span style="background:#E5E7EB;color:#6B7280;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Unknown</span></td><td>Web Experimentation</td><td>$109K</td><td>$109K</td></tr><tr><td>InPro Corporation</td><td>Brandon Hilgenkamp</td><td>NA</td><td>Digital</td><td><span style="background:#E5E7EB;color:#6B7280;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Unknown</span></td><td>Commerce Connect Non-Retail</td><td>$0</td><td>$107K</td></tr><tr><td>JobLeads GmbH</td><td>Jarrad del Pozo</td><td>EMEA</td><td>Mid-Market</td><td><span style="background:#E5E7EB;color:#6B7280;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Unknown</span></td><td>Feature Experimentation, Personalization, Web Experimentation</td><td>$106K</td><td>$106K</td></tr><tr><td>U.S. Department of Veterans Affairs</td><td>Mandy Mellum</td><td>NA</td><td>Mid-Market</td><td><span style="background:#E5E7EB;color:#6B7280;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Unknown</span></td><td>Content Management PaaS, Content Recommendations, Legacy</td><td>$100K</td><td>$100K</td></tr><tr><td>Loloi Rugs</td><td>Chris LaPierre</td><td>NA</td><td>Digital</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Feature Experimentation, Personalization, Web Experimentation</td><td>$0</td><td>$90K</td></tr><tr><td>Sprinklr</td><td>Audrey Hungerman</td><td>NA</td><td>Digital</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Web Experimentation</td><td>$77K</td><td>$77K</td></tr><tr><td>SCHUFA Holding AG</td><td>Marta Wojnowska</td><td>EMEA</td><td>Mid-Market</td><td><span style="background:#8ECFDB;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Single</span></td><td>Campaign</td><td>$211K</td><td>$73K</td></tr><tr><td>Pluxee International</td><td>Digital Team Customer Success</td><td>EMEA</td><td>Digital</td><td><span style="background:#E5E7EB;color:#6B7280;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Unknown</span></td><td>Content Marketing</td><td>$73K</td><td>$73K</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_top_churn');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+  <button class="dl-btn" onclick="downloadCSV('tbl_top_churn','churned_accounts_2026-Q2.csv')">⬇ Download CSV</button>
+  <p class="source" style="margin-top:8px;"><strong>ℹ Churn codes:</strong> Account-level codes unavailable — Salesforce ACCOUNT_ID does not map directly to Optimizely MASTER_CUSTOMER_ID. See the <em>Churn Codes</em> section above for aggregate breakdown.</p>
+  <p class="source">Source: EXEC_DECK_RENEWAL_RATES_CUSTOMER · EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP · SST_REPORT</p>
+</div>
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#4A9A3C;">
+    ✅ Top Renewed Accounts (by ARR) — 2026-Q2
+  </h3>
+  <div class="table-wrap"><table id="tbl_top_renewed"><thead><tr><th>Account</th><th>CSM</th><th>Region</th><th>Segment</th><th>ARR Band</th><th>Solution</th><th>Products</th><th>Renewal ARR</th><th>Churn ARR</th></tr></thead><tbody><tr><td>Gap</td><td>Ivan Cheung</td><td>NA</td><td>Enterprise</td><td>500k+</td><td><span style="background:#8ECFDB;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Single</span></td><td>Web Experimentation</td><td>$2.0M</td><td>$0</td></tr><tr><td>State Farm Mutual Automobile Insurance Company</td><td>Ashley Sheard</td><td>NA</td><td>Enterprise</td><td>500k+</td><td><span style="background:#8ECFDB;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Single</span></td><td>Feature Experimentation</td><td>$1.4M</td><td>$0</td></tr><tr><td>Federal Express Corporation</td><td>Ashley Sheard</td><td>NA</td><td>Enterprise</td><td>500k+</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Web Experimentation, Feature Experimentation</td><td>$908K</td><td>$0</td></tr><tr><td>Tesco Stores Limited</td><td>Rob Merritt-Harrison</td><td>EMEA</td><td>Enterprise</td><td>500k+</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Content Management PaaS</td><td>$635K</td><td>$0</td></tr><tr><td>Trisept Solutions</td><td>Patrick Reed</td><td>NA</td><td>Enterprise</td><td>500k+</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Content Management PaaS</td><td>$617K</td><td>$0</td></tr><tr><td>BradyPLUS</td><td>Justin Fast</td><td>NA</td><td>Enterprise</td><td>500k+</td><td><span style="background:#8ECFDB;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Single</span></td><td>Configured Commerce</td><td>$607K</td><td>$0</td></tr><tr><td>Resideo LLC</td><td>Bryan MacPhie</td><td>NA</td><td>Enterprise</td><td>500k+</td><td><span style="background:#8ECFDB;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Single</span></td><td>Web Experimentation</td><td>$600K</td><td>$0</td></tr><tr><td>GoFundMe, Inc.</td><td>Sarah Daugherty</td><td>NA</td><td>Enterprise</td><td>500k+</td><td><span style="background:#8ECFDB;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Single</span></td><td>Web Experimentation</td><td>$576K</td><td>$326K</td></tr><tr><td>Frasers Group Trading Limited</td><td>Ed Tate</td><td>EMEA</td><td>Enterprise</td><td>500k+</td><td><span style="background:#AAEE44;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Multi</span></td><td>Content Management PaaS</td><td>$518K</td><td>$0</td></tr><tr><td>Bunzl Holdings, Inc.</td><td>Cecilia Ramirez</td><td>NA</td><td>Enterprise</td><td>250k-500k</td><td><span style="background:#8ECFDB;color:#1A3D2B;border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;white-space:nowrap;">Single</span></td><td>Configured Commerce</td><td>$493K</td><td>$0</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_top_renewed');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+  <button class="dl-btn" onclick="downloadCSV('tbl_top_renewed','renewed_accounts_2026-Q2.csv')">⬇ Download CSV</button>
+  <p class="source">Source: EXEC_DECK_RENEWAL_RATES_CUSTOMER · EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP · SST_REPORT</p>
+</div>
+</section>
+
+<section class="section" id="eo_deep_dive">
+  <h2>🧪 EO Deep Dive <span class="period-badge">2026-Q2</span></h2>
+  
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">EO Renewal Rate by Product</h3>
+  
+<div id="eo_by_product" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'eo_by_product',
+  [{"type": "bar", "name": "Current (2026-Q2)", "x": ["Analytics", "Feature Experimentation", "Personalization", "Segmentation", "Web Experimentation", "Experimentation Addons"], "y": [90.5, 88.4, 88.2, 88.1, 85.2, 55.0], "marker": {"color": "#1A3D2B"}, "text": ["90.5%", "88.4%", "88.2%", "88.1%", "85.2%", "55.0%"], "textposition": "auto", "hovertemplate": "<b>%{x}</b><br>RR: %{y:.1f}%<br>ARR: $%{customdata[0]:,.0f}<br>Renewals: %{customdata[1]}<extra></extra>", "customdata": [[291801.0, 6], [9217435.0, 74], [1579177.0, 64], [1282030.0, 31], [13994671.0, 174], [118107.0, 2]]}, {"type": "bar", "name": "Prior (2026-Q1)", "x": ["Analytics", "Feature Experimentation", "Personalization", "Segmentation", "Web Experimentation", "Experimentation Addons"], "y": [100.0, 65.7, 67.3, 79.8, 67.0, 28.2], "marker": {"color": "#8ECFDB", "opacity": 0.75}, "hovertemplate": "<b>%{x}</b><br>Prior RR: %{y:.1f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 320, "barmode": "group", "title": {"text": "EO Renewal Rate by Product \u2014 QoQ", "font": {"size": 14}}, "shapes": [{"type": "line", "x0": -0.5, "x1": 5.5, "y0": 90, "y1": 90, "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dash"}}], "annotations": [{"x": 5.5, "y": 90, "xanchor": "right", "text": "90% target", "showarrow": false, "font": {"color": "#4A9A3C", "size": 11}}]},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <div style="margin-top:16px"><div class="table-wrap"><table id="tbl_eo_prod"><thead><tr><th>Product</th><th>Renewals</th><th>Renewal ARR</th><th>Churn ARR</th><th>RR (2026-Q2)</th><th>RR (2026-Q1)</th><th>QoQ Δ</th></tr></thead><tbody><tr><td>Analytics</td><td>6</td><td>$292K</td><td>$28K</td><td>90.5%</td><td>100.0%</td><td>-9.5pp</td></tr><tr><td>Feature Experimentation</td><td>74</td><td>$9.2M</td><td>$1.1M</td><td>88.4%</td><td>65.7%</td><td>+22.7pp</td></tr><tr><td>Personalization</td><td>64</td><td>$1.6M</td><td>$187K</td><td>88.2%</td><td>67.3%</td><td>+20.9pp</td></tr><tr><td>Segmentation</td><td>31</td><td>$1.3M</td><td>$153K</td><td>88.1%</td><td>79.8%</td><td>+8.3pp</td></tr><tr><td>Web Experimentation</td><td>174</td><td>$14.0M</td><td>$2.1M</td><td>85.2%</td><td>67.0%</td><td>+18.3pp</td></tr><tr><td>Experimentation Addons</td><td>2</td><td>$118K</td><td>$53K</td><td>55.0%</td><td>28.2%</td><td>+26.8pp</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_eo_prod');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script></div>
+  <p class="source">Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (EO products, deduped)</p>
+</div>
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">EO Renewal Rate by Region</h3>
+  
+<div id="eo_regional" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'eo_regional',
+  [{"type": "bar", "name": "Current (2026-Q2)", "x": ["APJ", "EMEA", "NA"], "y": [94.13, 84.5, 86.78], "marker": {"color": "#1A3D2B"}, "text": ["94.1%", "84.5%", "86.8%"], "textposition": "auto", "hovertemplate": "<b>%{x}</b><br>RR: %{y:.1f}%<extra></extra>"}, {"type": "bar", "name": "Prior (2026-Q1)", "x": ["APJ", "EMEA", "NA"], "y": [84.59, 59.68, 70.64], "marker": {"color": "#8ECFDB", "opacity": 0.8}, "hovertemplate": "<b>%{x}</b><br>Prior RR: %{y:.1f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 320, "barmode": "group", "title": {"text": "EO Renewal Rate by Region \u2014 QoQ", "font": {"size": 14}}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <div class="table-wrap"><table id="tbl_eo_reg"><thead><tr><th>Region</th><th>Renewals</th><th>Renewal ARR</th><th>Churn ARR</th><th>Renewal Rate</th><th>QoQ Δ</th></tr></thead><tbody><tr><td>APJ</td><td>15</td><td>$1.4M</td><td>$84K</td><td>94.1%</td><td>+0.0pp</td></tr><tr><td>EMEA</td><td>62</td><td>$6.8M</td><td>$1.0M</td><td>84.5%</td><td>+0.0pp</td></tr><tr><td>NA</td><td>147</td><td>$18.3M</td><td>$2.4M</td><td>86.8%</td><td>+0.0pp</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_eo_reg');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+  <p class="source">Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (EO products, deduped)</p>
+</div>
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Opal Attach → EO Renewal Rate Correlation</h3>
+  
+<div id="eo_opal_corr" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'eo_opal_corr',
+  [{"type": "bar", "name": "Renewal Rate", "x": [100.35000000000001, 86.38], "y": ["Opal: Yes", "Opal: No"], "orientation": "h", "marker": {"color": ["#AAEE44", "#2A6650"]}, "text": ["100.4%", "86.4%"], "textposition": "outside", "hovertemplate": "<b>%{y}</b><br>RR: %{x:.1f}%<br>ARR: $%{customdata[0]:,.0f}<br>Accounts: %{customdata[1]}<extra></extra>", "customdata": [[414001.06, 5], [26069219.62, 235]]}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "yaxis": {"automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 220, "title": {"text": "EO Renewal Rate: Opal Attach Correlation", "font": {"size": 14}}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <p class="source">Source: SST_REPORT (Opal) + EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP</p>
+</div>
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:12px;">Opal Portfolio — Accounts, ARR &amp; Renewal Rate</h3>
+  
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+  <div style="background:#1A3D2B;color:#fff;border-radius:10px;padding:16px 14px;text-align:center;">
+    <div style="font-size:26px;font-weight:800;">228</div>
+    <div style="font-size:11px;margin-top:4px;opacity:0.85;">Active Opal Accounts</div>
+  </div>
+  <div style="background:#2A6650;color:#fff;border-radius:10px;padding:16px 14px;text-align:center;">
+    <div style="font-size:26px;font-weight:800;">$14.7M</div>
+    <div style="font-size:11px;margin-top:4px;opacity:0.85;">Total Opal ARR</div>
+  </div>
+  <div style="background:#AAEE44;color:#1A3D2B;border-radius:10px;padding:16px 14px;text-align:center;">
+    <div style="font-size:26px;font-weight:800;">96.8%</div>
+    <div style="font-size:11px;margin-top:4px;">Renewal Rate (2026-Q2)</div>
+  </div>
+</div>
+  
+<div id="opal_portfolio" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'opal_portfolio',
+  [{"type": "bar", "name": "Active Accounts (SST)", "x": ["APJ", "EMEA", "NA"], "y": [1, 14, 13], "marker": {"color": "#1A3D2B", "opacity": 0.85}, "hovertemplate": "<b>%{x}</b><br>Active: %{y} accounts<br>ARR: $%{customdata:,.0f}<extra></extra>", "customdata": [32238.0, 1118034.0, 1139864.0]}, {"type": "bar", "name": "Renewed Accounts (Q2)", "x": ["APJ", "EMEA", "NA"], "y": [1, 2, 0], "marker": {"color": "#AAEE44", "opacity": 0.9}, "hovertemplate": "<b>%{x}</b><br>Renewed: %{y} accounts<br>Won ARR: $%{customdata:,.0f}<extra></extra>", "customdata": [54932.0, 2087233.0, 0.0]}, {"type": "scatter", "mode": "markers+text", "name": "Renewal Rate", "x": ["APJ", "EMEA", "NA"], "y": [100.0, 96.69, null], "yaxis": "y2", "marker": {"color": "#EF4444", "size": 14, "symbol": "diamond"}, "text": ["100.0%", "96.7%", ""], "textposition": "top center", "hovertemplate": "<b>%{x}</b><br>RR: %{y:.1f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "Account Count", "automargin": true}, "legend": {"orientation": "h", "y": 1.08, "x": 0}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 300, "barmode": "group", "title": {"text": "Opal \u2014 Accounts, ARR &amp; Renewal Rate by Region", "font": {"size": 14}}, "yaxis2": {"title": "Renewal Rate (%)", "overlaying": "y", "side": "right", "ticksuffix": "%", "range": [0, 130], "showgrid": false, "automargin": true}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <p class="source" style="margin-top:8px;"><strong>ℹ Region "Unknown"</strong>: 200 accounts ($12.4M) not shown — EXEC_DECK region join didn't match SST snapshot. Total includes all regions.</p>
+  <p class="source">Sources: SST_REPORT (active accounts + ARR) · RENEWAL_OPPORTUNITY IS_OPAL=TRUE (2026-Q2)</p>
+</div>
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Experimentation Intensity vs Renewal Rate</h3>
+  
+<div id="eo_tester" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'eo_tester',
+  [{"type": "bar", "name": "Renewal Rate", "x": [89.16, 85.84, 79.36999999999999], "y": ["High Tester", "Low Tester", "No Usage Data"], "orientation": "h", "marker": {"color": ["#4A9A3C", "#EF4444", "#F59E0B"]}, "text": ["89.2%", "85.8%", "79.4%"], "textposition": "outside", "hovertemplate": "<b>%{y}</b><br>RR: %{x:.1f}%<br>ARR: $%{customdata:,.0f}<extra></extra>", "customdata": [7330034.04, 18475721.27, 677465.38]}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 115], "automargin": true}, "yaxis": {"automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 260, "title": {"text": "EO RR: High vs Low Testers (\u22659 experiments/month = High)", "font": {"size": 14}}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <p class="source">Source: EXPERIMENT_METRICS (avg experiments/month threshold ≥9)</p>
+</div>
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Next Product Conversion — Web &amp; Feature Experimentation Cohorts</h3>
+  
+<div id="eo_next_prod" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'eo_next_prod',
+  [{"type": "bar", "name": "Web Experimentation cohort", "x": [2.07, 1.69, 4.27, null, 2.69, 1.31, 1.09, 1.2, 0.98, 0.84, 0.47, 0.3, 0.1, 0.09], "y": ["Analytics", "Experimentation Addons", "Personalization", "Web Experimentation", "Opal", "Other Services", "Content Management PaaS", "Content Management Addons", "Feature Experimentation", "Segmentation", "Content Management SaaS", "Content Marketing", "Content Recommendations", "Configured Commerce"], "orientation": "h", "marker": {"color": "#1A3D2B", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>WebEx cohort: %{x:.2f}%<extra></extra>"}, {"type": "bar", "name": "Feature Experimentation cohort", "x": [5.84, 4.71, 4.07, 3.68, 3.35, 1.97, 1.61, 0.75, null, 0.54, 0.24, 0.25, null, null], "y": ["Analytics", "Experimentation Addons", "Personalization", "Web Experimentation", "Opal", "Other Services", "Content Management PaaS", "Content Management Addons", "Feature Experimentation", "Segmentation", "Content Management SaaS", "Content Marketing", "Content Recommendations", "Configured Commerce"], "orientation": "h", "marker": {"color": "#AAEE44", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>FeatEx cohort: %{x:.2f}%<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "Conversion Rate (%)", "ticksuffix": "%", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "y": 1.08, "x": 0}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 586, "barmode": "group", "title": {"text": "Next Product Conversion \u2014 Web vs Feature Experimentation Cohorts (%)", "font": {"size": 14}}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <div style="margin-top:16px"><div class="table-wrap"><table id="tbl_next_prod"><thead><tr><th>Next Product</th><th>WebEx rate</th><th>WebEx n (added/eligible)</th><th>FeatEx rate</th><th>FeatEx n (added/eligible)</th><th>Leader</th></tr></thead><tbody><tr><td>Analytics</td><td>2.07%</td><td>22 / 1064</td><td>5.84%</td><td>23 / 394</td><td>FEx +3.8pp</td></tr><tr><td>Experimentation Addons</td><td>1.69%</td><td>18 / 1064</td><td>4.71%</td><td>19 / 403</td><td>FEx +3.0pp</td></tr><tr><td>Personalization</td><td>4.27%</td><td>29 / 679</td><td>4.07%</td><td>11 / 270</td><td>Web +0.2pp</td></tr><tr><td>Web Experimentation</td><td>—</td><td>—</td><td>3.68%</td><td>5 / 136</td><td>—</td></tr><tr><td>Opal</td><td>2.69%</td><td>27 / 1004</td><td>3.35%</td><td>13 / 388</td><td>FEx +0.7pp</td></tr><tr><td>Other Services</td><td>1.31%</td><td>14 / 1071</td><td>1.97%</td><td>8 / 407</td><td>FEx +0.7pp</td></tr><tr><td>Content Management PaaS</td><td>1.09%</td><td>10 / 919</td><td>1.61%</td><td>6 / 372</td><td>FEx +0.5pp</td></tr><tr><td>Content Management Addons</td><td>1.20%</td><td>12 / 1001</td><td>0.75%</td><td>3 / 400</td><td>Web +0.4pp</td></tr><tr><td>Feature Experimentation</td><td>0.98%</td><td>8 / 813</td><td>—</td><td>—</td><td>—</td></tr><tr><td>Segmentation</td><td>0.84%</td><td>8 / 956</td><td>0.54%</td><td>2 / 370</td><td>Web +0.3pp</td></tr><tr><td>Content Management SaaS</td><td>0.47%</td><td>5 / 1065</td><td>0.24%</td><td>1 / 394</td><td>Web +0.2pp</td></tr><tr><td>Content Marketing</td><td>0.30%</td><td>3 / 1000</td><td>0.25%</td><td>1 / 400</td><td>Web +0.0pp</td></tr><tr><td>Content Recommendations</td><td>0.10%</td><td>1 / 1000</td><td>—</td><td>—</td><td>—</td></tr><tr><td>Configured Commerce</td><td>0.09%</td><td>1 / 1071</td><td>—</td><td>—</td><td>—</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_next_prod');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script></div>
+  <button class="dl-btn" onclick="downloadCSV('tbl_next_prod','next_product_conversion_2026-Q2.csv')">⬇ Download CSV</button>
+  <p class="source">Source: SST_REPORT snapshots Dec 2025 → May 2026 &nbsp;·&nbsp; 2026-Q2</p>
+</div>
+</section>
+
+<section class="section" id="oa_analysis">
+  <h2>📊 OA Analytics Deep Dive <span class="period-badge">2026-Q2</span></h2>
+  
+<div class="card">
+  
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+  <div style="background:#1A3D2B;color:#fff;border-radius:10px;padding:18px 14px;text-align:center;">
+    <div style="font-size:28px;font-weight:800;">1,300</div>
+    <div style="font-size:12px;margin-top:4px;opacity:0.85;">Total Active Customers</div>
+  </div>
+  <div style="background:#8ECFDB;color:#1A3D2B;border-radius:10px;padding:18px 14px;text-align:center;">
+    <div style="font-size:28px;font-weight:800;">749</div>
+    <div style="font-size:12px;margin-top:4px;">NA</div>
+  </div>
+  <div style="background:#8ECFDB;color:#1A3D2B;border-radius:10px;padding:18px 14px;text-align:center;">
+    <div style="font-size:28px;font-weight:800;">402</div>
+    <div style="font-size:12px;margin-top:4px;">EMEA</div>
+  </div>
+  <div style="background:#8ECFDB;color:#1A3D2B;border-radius:10px;padding:18px 14px;text-align:center;">
+    <div style="font-size:28px;font-weight:800;">125</div>
+    <div style="font-size:12px;margin-top:4px;">APJ</div>
+  </div>
+</div>
+  
+<div id="oa_cust_region" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'oa_cust_region',
+  [{"type": "bar", "name": "Active Customers", "x": ["NA", "EMEA", "APJ", "Other"], "y": [749, 402, 125, 24], "marker": {"color": ["#1A3D2B", "#8ECFDB", "#AAEE44", "#AAEE44"]}, "text": ["749", "402", "125", "24"], "textposition": "auto", "hovertemplate": "<b>%{x}</b><br>Customers: %{y:,}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "Active Customers", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "title": {"text": "OA Active Customers by Region", "font": {"size": 14}}, "showlegend": false},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <p class="source">Source: OA_CUSTOMER_DETAIL (IS_ACTIVE = TRUE)</p>
+</div>
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">OA Renewal Performance by Region</h3>
+  
+<div id="oa_rr_region" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'oa_rr_region',
+  [{"type": "bar", "name": "Renewal Rate", "x": ["EMEA", "NA", "APJ"], "y": [80.9, 79.5, 73.1], "marker": {"color": ["#F59E0B", "#EF4444", "#EF4444"]}, "text": ["80.9%", "79.5%", "73.1%"], "textposition": "auto", "hovertemplate": "<b>%{x}</b><br>RR: %{y:.1f}%<br>Renewal ARR: $%{customdata[0]:,.0f}<br>Churn ARR: -$%{customdata[1]:,.0f}<extra></extra>", "customdata": [[23704226.12, 4534238.3], [6727388.3, 1381812.1], [1133728.92, 304951.24]]}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 110], "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "title": {"text": "OA Renewal Rate by Region", "font": {"size": 14}}, "shapes": [{"type": "line", "x0": -0.5, "x1": 2.5, "y0": 90, "y1": 90, "line": {"color": "#4A9A3C", "width": 1.5, "dash": "dash"}}], "annotations": [{"x": 2.5, "y": 90, "xanchor": "right", "text": "90% target", "showarrow": false, "font": {"color": "#4A9A3C", "size": 11}}], "showlegend": false},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <div style="margin-top:16px"><div class="table-wrap"><table id="tbl_oa_rr"><thead><tr><th>Region</th><th>Renewal ARR</th><th>Churn ARR</th><th>Renewal Rate</th></tr></thead><tbody><tr><td>EMEA</td><td>$23.7M</td><td>-$4.5M</td><td>80.9%</td></tr><tr><td>NA</td><td>$6.7M</td><td>-$1.4M</td><td>79.5%</td></tr><tr><td>APJ</td><td>$1.1M</td><td>-$305K</td><td>73.1%</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_oa_rr');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script></div>
+  <button class="dl-btn" onclick="downloadCSV('tbl_oa_rr','oa_renewal_rates_2026-Q2.csv')">⬇ Download CSV</button>
+  <p class="source" style="margin-top:8px;">
+    Source: OA_CUSTOMER_DETAIL + RAW_OPPORTUNITY_REPORT (Closed Won/Lost, 2026-Q2) &nbsp;·&nbsp;
+    <strong>⚠ Note:</strong> Renewal ARR is account-level (all products), not OA-specific ARR.
+  </p>
+</div>
+<div class="card">
+  
+<div id="oa_trend" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'oa_trend',
+  [{"type": "bar", "name": "Total Experiments", "x": ["2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"], "y": [974, 1162, 1184, 1326, 1552, 1312, 1064], "marker": {"color": "#1A3D2B", "opacity": 0.5}, "hovertemplate": "%{x}<br>Total expts: %{y:,}<extra></extra>"}, {"type": "scatter", "mode": "lines+markers", "name": "Avg per Customer", "x": ["2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"], "y": [11.3, 13.5, 13.8, 15.4, 18.1, 15.3, 12.4], "yaxis": "y2", "line": {"color": "#AAEE44", "width": 3}, "marker": {"size": 8}, "hovertemplate": "%{x}<br>Avg: %{y:.1f} expts/customer<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "Total Experiments Started", "automargin": true}, "legend": {"orientation": "h", "y": 1.08, "x": 0}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 320, "title": {"text": "OA Monthly Experiment Activity (OA Active Customer Cohort)", "font": {"size": 14}}, "yaxis2": {"title": "Avg per Customer", "overlaying": "y", "side": "right", "showgrid": false, "automargin": true}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <p class="source">Source: EXP_CUSTOMER_ADOPTION_BRAVE joined to OA_CUSTOMER_DETAIL (last 12 months)</p>
+  <div class="insight" style="margin-top:10px;"><strong>ℹ Note:</strong> Active customer count is flat (79) because the OA cohort is derived from the current 2026-Q2 snapshot — all accounts appear as "active" across historical months. 2026 data not yet available.</div>
+</div>
+</section>
+
+<section class="section" id="cms">
+  <h2>🖥 CMS PaaS → SaaS <span class="period-badge">2026-Q2</span></h2>
+  
+<div class="card">
+  
+<div id="cms_trend" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'cms_trend',
+  [{"type": "scatter", "mode": "lines+markers", "name": "CMS PaaS ARR", "x": ["2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05"], "y": [122037064.86, 123120335.76, 122931478.16, 124312597.89, 125297786.27, 125411693.37, 126801475.24, 129049976.29, 129307482.15, 129498263.83, 130473110.8, 131379815.84], "line": {"color": "#EF4444", "width": 3}, "hovertemplate": "%{x}<br>PaaS ARR: $%{y:,.0f}<extra></extra>"}, {"type": "scatter", "mode": "lines+markers", "name": "CMS SaaS ARR", "x": ["2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05"], "y": [917500.52, 1036566.69, 1018932.81, 1039921.86, 1114369.53, 2084824.04, 2199165.18, 2444285.49, 2444285.49, 2537362.82, 3132318.17, 3219570.04], "line": {"color": "#4A9A3C", "width": 3}, "hovertemplate": "%{x}<br>SaaS ARR: $%{y:,.0f}<extra></extra>"}, {"type": "scatter", "mode": "lines", "name": "PaaS Customers", "x": ["2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05"], "y": [1724, 1721, 1711, 1704, 1703, 1699, 1691, 1704, 1696, 1684, 1692, 1692], "yaxis": "y2", "line": {"color": "#EF4444", "dash": "dot", "width": 1.5}, "hovertemplate": "%{x}<br>PaaS Customers: %{y}<extra></extra>"}, {"type": "scatter", "mode": "lines", "name": "SaaS Customers", "x": ["2025-06", "2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05"], "y": [28, 30, 30, 35, 43, 45, 51, 60, 60, 63, 74, 76], "yaxis": "y2", "line": {"color": "#4A9A3C", "dash": "dot", "width": 1.5}, "hovertemplate": "%{x}<br>SaaS Customers: %{y}<extra></extra>"}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "ARR ($)", "tickformat": "$,.0f", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 340, "title": {"text": "CMS PaaS \u2192 SaaS Migration: ARR & Customer Trend", "font": {"size": 14}}, "yaxis2": {"title": "Customers", "overlaying": "y", "side": "right", "showgrid": false, "automargin": true}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <p class="source">Source: SST_REPORT (CMS PaaS / SaaS product groups, last 12 months)</p>
+</div>
+<div class="card">
+  
+<div id="cms_rr_compare" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'cms_rr_compare',
+  [{"type": "bar", "name": "Renewal Rate", "x": ["Content Management PaaS", "Content Management SaaS"], "y": [95.5, 49.3], "marker": {"color": ["#EF4444", "#4A9A3C"]}, "text": ["95.5%", "49.3%"], "textposition": "auto", "hovertemplate": "<b>%{x}</b><br>RR: %{y:.1f}%<br>ARR: $%{customdata:,.0f}<extra></extra>", "customdata": [19329834.05, 30504.34]}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"showgrid": false, "zeroline": false}, "yaxis": {"title": "Renewal Rate (%)", "ticksuffix": "%", "range": [0, 110], "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 280, "title": {"text": "CMS Renewal Rate: PaaS vs SaaS", "font": {"size": 14}}},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <p class="source">Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (deduped, 2026-Q2)</p>
+</div>
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">Active Migration Customers (holding both PaaS + SaaS)</h3>
+  <div class="table-wrap"><table id="tbl_cms_upcoming"><thead><tr><th>Account</th><th>CSM</th><th>Region</th><th>PaaS ARR</th><th>SaaS ARR</th><th>Total ARR</th></tr></thead><tbody><tr><td>—</td><td>—</td><td>—</td><td>$1.1M</td><td>$104K</td><td>$1.2M</td></tr><tr><td>Skanska AB</td><td>Conny Marklund</td><td>EMEA</td><td>$299K</td><td>$17K</td><td>$316K</td></tr><tr><td>—</td><td>—</td><td>—</td><td>$210K</td><td>$83K</td><td>$292K</td></tr><tr><td>—</td><td>—</td><td>—</td><td>$212K</td><td>$59K</td><td>$271K</td></tr><tr><td>—</td><td>—</td><td>—</td><td>$97K</td><td>$160K</td><td>$257K</td></tr><tr><td>Just Retirement Management Services Limited</td><td>Chynna Roberts</td><td>EMEA</td><td>$116K</td><td>$63K</td><td>$179K</td></tr><tr><td>American Equity Investment Life Insurance Company</td><td>Kaitlyn Koonce</td><td>NA</td><td>$101K</td><td>$56K</td><td>$157K</td></tr><tr><td>Teledyne Technologies</td><td>Becky Mowers</td><td>NA</td><td>$84K</td><td>$60K</td><td>$144K</td></tr><tr><td>(SEB) Skandinaviska Enskilda Banken AB</td><td>Natalia Butor</td><td>EMEA</td><td>$98K</td><td>$41K</td><td>$138K</td></tr><tr><td>Mount Sinai Health System, Inc.</td><td>Robert Beckerman</td><td>NA</td><td>$97K</td><td>$41K</td><td>$138K</td></tr><tr><td>HD Supply Support Services, Inc.</td><td>Justin Fast</td><td>NA</td><td>$15K</td><td>$12K</td><td>$27K</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_cms_upcoming');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+  <button class="dl-btn" onclick="downloadCSV('tbl_cms_upcoming','cms_migration_2026-Q2.csv')">⬇ Download CSV</button>
+  <p class="source">Source: SST_REPORT snapshot — accounts with BOTH PaaS and SaaS active</p>
+</div>
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;">CMS Portfolio — Top Accounts</h3>
+  <div class="table-wrap"><table id="tbl_cms_port"><thead><tr><th>Account</th><th>CSM</th><th>Region</th><th>Segment</th><th>Products</th><th>Renewal ARR</th><th>Renewal Rate</th><th>Pipeline</th></tr></thead><tbody><tr><td>Gap</td><td>Ivan Cheung</td><td>NA</td><td>Enterprise</td><td></td><td>$2.0M</td><td>100.0%</td><td>Won</td></tr><tr><td>State Farm Mutual Automobile Insurance Company</td><td>Ashley Sheard</td><td>NA</td><td>Enterprise</td><td></td><td>$1.4M</td><td>100.0%</td><td>Lost</td></tr><tr><td>Federal Express Corporation</td><td>Ashley Sheard</td><td>NA</td><td>Enterprise</td><td></td><td>$908K</td><td>100.0%</td><td>Won</td></tr><tr><td>Trisept Solutions</td><td>Patrick Reed</td><td>NA</td><td>Enterprise</td><td>Content Management PaaS</td><td>$617K</td><td>100.0%</td><td>Won</td></tr><tr><td>BradyPLUS</td><td>Justin Fast</td><td>NA</td><td>Enterprise</td><td>Configured Commerce, Product Recommendations</td><td>$607K</td><td>100.0%</td><td>Open</td></tr><tr><td>Resideo LLC</td><td>Bryan MacPhie</td><td>NA</td><td>Enterprise</td><td>Configured Commerce</td><td>$600K</td><td>100.0%</td><td>Open</td></tr><tr><td>Frasers Group Trading Limited</td><td>Ed Tate</td><td>EMEA</td><td>Enterprise</td><td>Product Recommendations</td><td>$518K</td><td>100.0%</td><td>Won</td></tr><tr><td>Bunzl Holdings, Inc.</td><td>Cecilia Ramirez</td><td>NA</td><td>Mid-Market</td><td>Configured Commerce</td><td>$493K</td><td>100.0%</td><td>—</td></tr><tr><td>Chick-fil-A, Inc.</td><td>Jennifer Lovett</td><td>NA</td><td>Mid-Market</td><td>Content Management PaaS, Content Recommendations</td><td>$493K</td><td>100.0%</td><td>Open</td></tr><tr><td>Valvoline LLC</td><td>Bryan MacPhie</td><td>NA</td><td>Mid-Market</td><td>Content Management PaaS</td><td>$449K</td><td>100.0%</td><td>Open</td></tr><tr><td>Cinemark USA, Inc.</td><td>Alyssa Alvarez</td><td>NA</td><td>Mid-Market</td><td>Product Recommendations</td><td>$418K</td><td>100.0%</td><td>Won</td></tr><tr><td>Montgomery County Public Schools</td><td>Jennifer Lovett</td><td>NA</td><td>Mid-Market</td><td>Content Management PaaS</td><td>$416K</td><td>100.0%</td><td>—</td></tr><tr><td>Royal Canin U.S.A., Inc.</td><td>Brandon Hilgenkamp</td><td>NA</td><td>Mid-Market</td><td>Configured Commerce, Content Management PaaS</td><td>$415K</td><td>100.0%</td><td>—</td></tr><tr><td>Sandvik AB</td><td>Natalia Butor</td><td>EMEA</td><td>Mid-Market</td><td>Content Management PaaS, Content Recommendations, Product Recommendations</td><td>$402K</td><td>100.0%</td><td>—</td></tr><tr><td>Century Communities</td><td>Brandon Hilgenkamp</td><td>NA</td><td>Mid-Market</td><td>Commerce Connect Non-Retail, Content Management PaaS</td><td>$399K</td><td>97.0%</td><td>Open</td></tr><tr><td>TransCanada PipeLines Limited</td><td>Mandy Mellum</td><td>NA</td><td>Mid-Market</td><td>Content Management PaaS</td><td>$389K</td><td>100.0%</td><td>Won</td></tr><tr><td>Novant Health, Inc.</td><td>Kris Kwak</td><td>NA</td><td>Mid-Market</td><td>Content Management PaaS</td><td>$377K</td><td>100.0%</td><td>Won</td></tr><tr><td>Open Text Inc.</td><td>Jennifer Lovett</td><td>NA</td><td>Mid-Market</td><td>Content Management PaaS, Content Recommendations</td><td>$347K</td><td>100.0%</td><td>Open</td></tr><tr><td>SGDN - Saint Gobain Distribution Norway AS</td><td>Ted Karlstrand</td><td>EMEA</td><td>Mid-Market</td><td>Commerce Connect Non-Retail</td><td>$335K</td><td>100.0%</td><td>Won</td></tr><tr><td>Statens vegvesen</td><td>Regina Pak</td><td>EMEA</td><td>Mid-Market</td><td>Content Management PaaS</td><td>$331K</td><td>100.0%</td><td>Won</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_cms_port');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script>
+  <button class="dl-btn" onclick="downloadCSV('tbl_cms_port','cms_portfolio_2026-Q2.csv')">⬇ Download CSV</button>
+  <p class="source">Source: EXEC_DECK_RENEWAL_RATES_CUSTOMER · SST_REPORT · RENEWAL_OPPORTUNITY</p>
+</div>
+</section>
+
+<section class="section" id="cross_upsell">
+  <h2>🔄 Cross-Sell &amp; Upsell <span class="period-badge">2026-Q2</span></h2>
+  <div class="card">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+  <div style="background:#1A3D2B;color:#fff;border-radius:10px;padding:18px 20px;">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-bottom:6px;">Cross-Sell (new products)</div>
+    <div style="font-size:28px;font-weight:800;">$2.0M</div>
+    <div style="font-size:13px;margin-top:4px;opacity:0.85;">93 account additions across 17 products</div>
+  </div>
+  <div style="background:#2A6650;color:#fff;border-radius:10px;padding:18px 20px;">
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:0.75;margin-bottom:6px;">Upsell (ARR expansion)</div>
+    <div style="font-size:28px;font-weight:800;">$26.2M</div>
+    <div style="font-size:13px;margin-top:4px;opacity:0.85;">1,123 accounts expanded across 20 products</div>
+  </div>
+</div><p class="source" style="margin:0;">Source: SST_REPORT snapshots 2026-Q1 → 2026-Q2 (existing customers only)</p></div>
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#1A3D2B;">
+    ➕ Cross-Sell — Existing customers adding a net-new product
+  </h3>
+  
+<div id="xsell_arr" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'xsell_arr',
+  [{"type": "bar", "name": "New ARR", "x": [324298.0, 307709.0, 234925.0, 218565.0, 217725.0, 202638.0, 199793.0, 117021.0, 83441.0, 49057.0, 36135.0, 16904.0, 14436.0, 2210.0], "y": ["Experimentation Addons", "Content Management PaaS", "Opal", "Content Management Addons", "Personalization", "Feature Experimentation", "Web Experimentation", "Content Recommendations", "Segmentation", "Content Management SaaS", "Content Marketing", "Product Recommendations", "Commerce Connect Non-Retail", "Search & Navigation - Standalone"], "orientation": "h", "marker": {"color": "#AAEE44", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>New ARR: $%{x:,.0f}<br>Accounts: %{customdata}<extra></extra>", "customdata": [10, 8, 13, 12, 11, 3, 4, 2, 2, 2, 3, 1, 1, 1]}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "New ARR ($)", "tickformat": "$,.0f", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 520, "title": {"text": "Cross-Sell \u2014 New Product ARR Added (Q1\u2192Q2 2026)", "font": {"size": 14}}, "showlegend": false},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <div style="margin-top:16px"><div class="table-wrap"><table id="tbl_xsell"><thead><tr><th>Product</th><th>Accounts Added</th><th>New ARR</th></tr></thead><tbody><tr><td>Experimentation Addons</td><td>10</td><td>$324K</td></tr><tr><td>Content Management PaaS</td><td>8</td><td>$308K</td></tr><tr><td>Opal</td><td>13</td><td>$235K</td></tr><tr><td>Content Management Addons</td><td>12</td><td>$219K</td></tr><tr><td>Personalization</td><td>11</td><td>$218K</td></tr><tr><td>Feature Experimentation</td><td>3</td><td>$203K</td></tr><tr><td>Web Experimentation</td><td>4</td><td>$200K</td></tr><tr><td>Content Recommendations</td><td>2</td><td>$117K</td></tr><tr><td>Segmentation</td><td>2</td><td>$83K</td></tr><tr><td>Content Management SaaS</td><td>2</td><td>$49K</td></tr><tr><td>Content Marketing</td><td>3</td><td>$36K</td></tr><tr><td>Product Recommendations</td><td>1</td><td>$17K</td></tr><tr><td>Commerce Connect Non-Retail</td><td>1</td><td>$14K</td></tr><tr><td>Search & Navigation - Standalone</td><td>1</td><td>$2K</td></tr><tr><td>Analytics</td><td>11</td><td>—</td></tr><tr><td>Other Services</td><td>8</td><td>—</td></tr><tr><td>Configured Commerce</td><td>1</td><td>—</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_xsell');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script></div>
+  <button class="dl-btn" onclick="downloadCSV('tbl_xsell','cross_sell_2026-Q2.csv')">⬇ Download CSV</button>
+  <p class="source" style="margin-top:8px;"><strong>ℹ $0 ARR products</strong> (likely license/bundled): Analytics, Other Services, Configured Commerce</p>
+</div>
+<div class="card">
+  <h3 style="font-size:13px;font-weight:700;margin-bottom:12px;color:#2A6650;">
+    📈 Upsell — Existing customers growing ARR on products they already have
+  </h3>
+  
+<div id="upsell_arr" style="width:100%;"></div>
+<script>
+Plotly.newPlot(
+  'upsell_arr',
+  [{"type": "bar", "name": "ARR Expansion", "x": [11202252.0, 3639714.0, 2544946.0, 1672052.0, 1623008.0, 1484888.0, 765529.0, 595052.0, 551266.0, 485324.0, 356881.0, 303879.0, 299882.0, 209860.0, 208555.0], "y": ["Content Management PaaS", "Commerce Connect Non-Retail", "Configured Commerce", "Content Marketing", "Web Experimentation", "Commerce Connect Retail", "Campaign", "Analytics", "Search & Navigation - Standalone", "Feature Experimentation", "Product Recommendations", "Content Management Addons", "Segmentation", "Personalization", "Content Management SaaS"], "orientation": "h", "marker": {"color": "#8ECFDB", "opacity": 0.9}, "hovertemplate": "<b>%{y}</b><br>ARR Expansion: $%{x:,.0f}<br>Accounts: %{customdata}<extra></extra>", "customdata": [407, 88, 65, 66, 86, 28, 93, 6, 96, 34, 29, 17, 27, 33, 20]}],
+  {"font": {"family": "'VC Nudge', Inter, Arial, sans-serif", "color": "#1A3D2B", "size": 12}, "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)", "margin": {"l": 100, "r": 30, "t": 50, "b": 70}, "colorway": ["#1A3D2B", "#AAEE44", "#8ECFDB", "#F0A0A8", "#2A6650", "#F59E0B", "#4A9A3C", "#7A3D5A"], "xaxis": {"title": "ARR Increase ($)", "tickformat": "$,.0f", "automargin": true}, "yaxis": {"autorange": "reversed", "automargin": true}, "legend": {"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1}, "hoverlabel": {"bgcolor": "#1A3D2B", "bordercolor": "#AAEE44", "font": {"color": "#FFFFFF", "size": 12, "family": "'VC Nudge', Inter, Arial, sans-serif"}}, "height": 550, "title": {"text": "Upsell \u2014 ARR Expansion on Existing Products (Q1\u2192Q2 2026, top 15)", "font": {"size": 14}}, "showlegend": false},
+  {"responsive": true, "displayModeBar": true, "modeBarButtonsToRemove": ["pan2d", "lasso2d", "select2d", "toggleSpikelines"], "toImageButtonOptions": {"format": "svg", "filename": "chart"}}
+);
+</script>
+  <div style="margin-top:16px"><div class="table-wrap"><table id="tbl_upsell"><thead><tr><th>Product</th><th>Accounts Expanded</th><th>ARR Increase</th></tr></thead><tbody><tr><td>Content Management PaaS</td><td>407</td><td>$11.2M</td></tr><tr><td>Commerce Connect Non-Retail</td><td>88</td><td>$3.6M</td></tr><tr><td>Configured Commerce</td><td>65</td><td>$2.5M</td></tr><tr><td>Content Marketing</td><td>66</td><td>$1.7M</td></tr><tr><td>Web Experimentation</td><td>86</td><td>$1.6M</td></tr><tr><td>Commerce Connect Retail</td><td>28</td><td>$1.5M</td></tr><tr><td>Campaign</td><td>93</td><td>$766K</td></tr><tr><td>Analytics</td><td>6</td><td>$595K</td></tr><tr><td>Search & Navigation - Standalone</td><td>96</td><td>$551K</td></tr><tr><td>Feature Experimentation</td><td>34</td><td>$485K</td></tr><tr><td>Product Recommendations</td><td>29</td><td>$357K</td></tr><tr><td>Content Management Addons</td><td>17</td><td>$304K</td></tr><tr><td>Segmentation</td><td>27</td><td>$300K</td></tr><tr><td>Personalization</td><td>33</td><td>$210K</td></tr><tr><td>Content Management SaaS</td><td>20</td><td>$209K</td></tr><tr><td>Opal</td><td>9</td><td>$137K</td></tr><tr><td>Content Recommendations</td><td>14</td><td>$123K</td></tr><tr><td>Delivra</td><td>1</td><td>$14K</td></tr><tr><td>Other Services</td><td>3</td><td>$2K</td></tr><tr><td>Acquired Content Recs</td><td>1</td><td>$952</td></tr></tbody></table></div>
+<script>
+(function(){
+  var tbl = document.getElementById('tbl_upsell');
+  if (!tbl) return;
+  var ths = tbl.querySelectorAll('th');
+  ths.forEach(function(th, ci) {
+    var asc = true;
+    th.addEventListener('click', function() {
+      var tbody = tbl.querySelector('tbody');
+      var rows = Array.from(tbody.rows);
+      rows.sort(function(a,b) {
+        var va = a.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var vb = b.cells[ci].innerText.replace(/[$,%▲▼→]/g,'').trim();
+        var na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return asc ? na-nb : nb-na;
+        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+      asc = !asc;
+    });
+  });
+})();
+</script></div>
+  <button class="dl-btn" onclick="downloadCSV('tbl_upsell','upsell_2026-Q2.csv')">⬇ Download CSV</button>
+</div>
+</section>
+
+<script>
+function downloadCSV(tableId, fname) {
+  const tbl = document.getElementById(tableId);
+  if (!tbl) return;
+  let csv = [];
+  for (let row of tbl.rows) {
+    csv.push(Array.from(row.cells).map(c => '"' + c.innerText.replace(/"/g,'""') + '"').join(','));
+  }
+  const blob = new Blob([csv.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = fname; a.click();
+}
+</script>
+</div>
+</div>
+<footer style="text-align:center; padding:24px; font-size:12px; color:#9CA3AF; border-top:2px solid #AAEE44; margin-top:32px; background:#EEF2E8;">
+  Generated 22 Jun 2026 | Optimizely CS Analytics<br>Sources: RAW_OPPORTUNITY_REPORT · EXEC_DECK_RENEWAL_RATES_CUSTOMER · SST_REPORT · EXP_CUSTOMER_ADOPTION_BRAVE
+</footer>
+</body></html>

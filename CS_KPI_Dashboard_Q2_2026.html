@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS Portfolio Dashboard — Q2 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --blue:#0037FF; --dark:#0A0A14; --light:#F5F6FA; --border:#E2E4ED;
+    --green:#00B87A; --red:#E8354A; --amber:#F4A01C; --purple:#8B5CF6; --teal:#06B6D4;
+    --text:#1A1A2E; --muted:#6B7280;
+  }
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  html, body { height:100%; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--light); color:var(--text); font-size:14px; display:flex; flex-direction:column; }
+
+  /* ── HEADER ── */
+  .hdr { background:var(--dark); color:#fff; padding:14px 28px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .hdr-title { font-size:20px; font-weight:800; letter-spacing:-.3px; }
+  .hdr-sub   { font-size:12px; color:#9CA3AF; margin-top:2px; }
+  .hdr-badge { background:var(--blue); color:#fff; padding:4px 14px; border-radius:20px; font-size:11px; font-weight:700; }
+
+  /* ── NAV ── */
+  .nav { background:#fff; border-bottom:2px solid var(--border); padding:0 28px; display:flex; flex-shrink:0; overflow-x:auto; }
+  .nav button { border:none; background:none; padding:11px 16px; font-size:12.5px; font-weight:500; color:var(--muted); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; white-space:nowrap; transition:color .15s; }
+  .nav button:hover { color:var(--blue); }
+  .nav button.active { color:var(--blue); border-bottom-color:var(--blue); font-weight:700; }
+
+  /* ── CONTENT ── */
+  .content { flex:1; overflow-y:auto; }
+  .section { display:none; padding:20px 28px; }
+  .section.active { display:block; }
+
+  /* ── KPI STRIP ── */
+  .kpi-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; margin-bottom:18px; }
+  .kpi { background:#fff; border-radius:10px; padding:14px 16px; border:1px solid var(--border); position:relative; overflow:hidden; }
+  .kpi::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent,var(--blue)); }
+  .kpi-lbl { font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--muted); letter-spacing:.5px; margin-bottom:5px; }
+  .kpi-val { font-size:26px; font-weight:800; line-height:1; }
+  .kpi-sub { font-size:11.5px; margin-top:5px; display:flex; align-items:center; gap:4px; color:var(--muted); }
+  .kpi-sub.up { color:var(--green); } .kpi-sub.dn { color:var(--red); }
+
+  /* ── GRID LAYOUTS ── */
+  .g2   { display:grid; grid-template-columns:1fr 1fr;     gap:14px; margin-bottom:14px; }
+  .g3   { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:14px; }
+  .g2l  { display:grid; grid-template-columns:2fr 1fr;     gap:14px; margin-bottom:14px; }
+  .g1l  { display:grid; grid-template-columns:1fr;         gap:14px; margin-bottom:14px; }
+  @media(max-width:900px){ .g2,.g3,.g2l { grid-template-columns:1fr; } }
+
+  /* ── CARD ── */
+  .card { background:#fff; border-radius:10px; border:1px solid var(--border); padding:16px 18px; }
+  .card-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:2px; }
+  .card-sub   { font-size:11.5px; color:var(--muted); margin-bottom:12px; }
+  .cw  { position:relative; } /* chart-wrap */
+  .h180 { height:180px; }
+  .h220 { height:220px; }
+  .h260 { height:260px; }
+  .h300 { height:300px; }
+  .h340 { height:340px; }
+
+  /* ── TABLE ── */
+  .tbl-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  th { font-size:10.5px; font-weight:700; text-transform:uppercase; color:var(--muted); padding:6px 8px; border-bottom:2px solid var(--border); white-space:nowrap; text-align:left; }
+  td { padding:8px 8px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  tr:last-child td { border-bottom:none; }
+  tr:hover td { background:#F9FAFB; }
+
+  /* ── BADGES ── */
+  .pill { display:inline-block; padding:2px 9px; border-radius:12px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .pill-g  { background:#D1FAE5; color:#065F46; }
+  .pill-r  { background:#FEE2E2; color:#991B1B; }
+  .pill-a  { background:#FEF3C7; color:#92400E; }
+  .pill-b  { background:#DBEAFE; color:#1E40AF; }
+  .pill-gr { background:#F3F4F6; color:#374151; }
+
+  /* ── RR BAR ── */
+  .rrb { display:flex; align-items:center; gap:6px; min-width:120px; }
+  .rrb-track { flex:1; height:5px; background:#E5E7EB; border-radius:3px; overflow:hidden; }
+  .rrb-fill  { height:100%; border-radius:3px; }
+  .rrb-lbl { font-size:12px; font-weight:700; min-width:40px; text-align:right; }
+
+  /* ── INSIGHT BOX ── */
+  .insight { background:#EFF6FF; border-left:4px solid var(--blue); border-radius:0 8px 8px 0; padding:10px 14px; margin-bottom:14px; font-size:12.5px; line-height:1.55; }
+  .insight strong { color:var(--blue); }
+
+  /* ── SECTION HEADER ── */
+  .sec-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .sec-hdr h2 { font-size:17px; font-weight:800; }
+  .sec-hdr .period { font-size:11.5px; color:var(--muted); background:var(--light); padding:3px 11px; border-radius:20px; }
+
+  /* ── TARGET GAP BAR ── */
+  .gap-bar-wrap { display:flex; align-items:center; gap:10px; padding:10px 0; }
+  .gap-bar-outer { flex:1; height:14px; background:#E5E7EB; border-radius:7px; overflow:hidden; position:relative; }
+  .gap-bar-inner { height:100%; border-radius:7px; background:var(--blue); }
+  .gap-bar-target { position:absolute; top:0; bottom:0; width:2px; background:var(--red); }
+  .gap-label { font-size:12px; font-weight:600; min-width:80px; }
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div>
+    <div class="hdr-title">CS Portfolio Dashboard · Q2 2026</div>
+    <div class="hdr-sub">Optimizely Customer Success · Apr – Jun 2026 &amp; May 2026 portfolio snapshot</div>
+  </div>
+  <div class="hdr-badge">Generated 11 Jun 2026</div>
+</header>
+
+<nav class="nav">
+  <button class="active" onclick="showTab('scorecard',this)">📊 Scorecard</button>
+  <button onclick="showTab('products',this)">📦 Products</button>
+  <button onclick="showTab('regions',this)">🌍 Regions</button>
+  <button onclick="showTab('opal',this)">✨ Opal</button>
+  <button onclick="showTab('cms',this)">🏗 CMS</button>
+  <button onclick="showTab('churn',this)">⚠️ Churn</button>
+  <button onclick="showTab('csm',this)">👤 CSMs</button>
+  <button onclick="showTab('accounts',this)">🏢 Accounts</button>
+</nav>
+
+<div class="content">
+
+<!-- ═══════════════════════════════ SCORECARD ═══════════════════════════════ -->
+<div id="tab-scorecard" class="section active">
+  <div class="sec-hdr"><h2>Q2 2026 Scorecard</h2><span class="period">Q2 2026 · QoQ &amp; YoY · vs Opal targets</span></div>
+
+  <div class="insight"><strong>Headline:</strong> Q2 2026 is the strongest quarter on record — 92.5% RR on $66.2M ARR. Churn fell 53% YoY to -$4.96M. Web Exp +13 pp &amp; Feature Exp +21 pp YoY. Opal renewal missed Q2 target by $0.20M (50% miss).</div>
+
+  <div class="kpi-strip">
+    <div class="kpi" style="--accent:var(--blue)"><div class="kpi-lbl">Renewal Rate</div><div class="kpi-val">92.5%</div><div class="kpi-sub up">▲ +11.4 pp QoQ &nbsp;·&nbsp; +9.3 pp YoY</div></div>
+    <div class="kpi" style="--accent:var(--green)"><div class="kpi-lbl">ARR Up for Renewal</div><div class="kpi-val">$66.2M</div><div class="kpi-sub">954 accounts · Q1 was $78.7M</div></div>
+    <div class="kpi" style="--accent:var(--red)"><div class="kpi-lbl">ARR Churned</div><div class="kpi-val">-$5.0M</div><div class="kpi-sub up">▲ 53% less vs Q2 2025 (-$10.5M)</div></div>
+    <div class="kpi" style="--accent:var(--green)"><div class="kpi-lbl">ARR Retained</div><div class="kpi-val">$61.2M</div><div class="kpi-sub up">▲ vs $52.0M Q2 2025</div></div>
+    <div class="kpi" style="--accent:var(--amber)"><div class="kpi-lbl">Opal Q2 Target Gap</div><div class="kpi-val">-$0.20M</div><div class="kpi-sub dn">▼ $0.20M actual vs $0.40M target</div></div>
+    <div class="kpi" style="--accent:var(--purple)"><div class="kpi-lbl">Total Portfolio ARR</div><div class="kpi-val">$418.8M</div><div class="kpi-sub">May 2026 snapshot</div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Renewal Rate — Quarterly Trend</div>
+      <div class="card-sub">Fleet avg 84.0% (dotted). Q2 2026 = 92.5% ★</div>
+      <div class="cw h220"><canvas id="cRRQ"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">ARR Renewal vs Churn — Quarterly ($M)</div>
+      <div class="card-sub">Churn shown as negative values</div>
+      <div class="cw h220"><canvas id="cARRQ"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Renewal Rate — Monthly Trend (Nov 2025 – May 2026)</div>
+      <div class="card-sub">Fleet avg 83.7% shown as reference line</div>
+      <div class="cw h180"><canvas id="cRRM"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Renewal Rate by Region — Q2 2026</div>
+      <div class="card-sub">Fleet avg 92.5% shown. APJ leads at 97.3%</div>
+      <div class="cw h180"><canvas id="cScoreRegion"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="margin-bottom:10px">Quarterly Scorecard — 5 Quarters</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Quarter</th><th>Accounts</th><th>ARR Renewal</th><th>ARR Churn</th><th>ARR Retained</th><th>Renewal Rate</th><th>QoQ Δ</th><th>YoY Δ</th></tr></thead>
+      <tbody>
+        <tr><td>Q2 2025</td><td>1,103</td><td>$62.5M</td><td>-$10.5M</td><td>$52.0M</td><td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:83.2%;background:var(--amber)"></div></div><span class="rrb-lbl">83.2%</span></div></td><td>—</td><td>—</td></tr>
+        <tr><td>Q3 2025</td><td>988</td><td>$68.9M</td><td>-$13.2M</td><td>$55.7M</td><td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:80.9%;background:var(--red)"></div></div><span class="rrb-lbl">80.9%</span></div></td><td><span class="pill pill-r">▼ -2.3 pp</span></td><td>—</td></tr>
+        <tr><td>Q4 2025</td><td>1,103</td><td>$79.9M</td><td>-$13.2M</td><td>$66.7M</td><td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:83.5%;background:var(--amber)"></div></div><span class="rrb-lbl">83.5%</span></div></td><td><span class="pill pill-g">▲ +2.6 pp</span></td><td>—</td></tr>
+        <tr><td>Q1 2026</td><td>1,076</td><td>$78.7M</td><td>-$14.9M</td><td>$63.8M</td><td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:81.1%;background:var(--red)"></div></div><span class="rrb-lbl">81.1%</span></div></td><td><span class="pill pill-r">▼ -2.4 pp</span></td><td>—</td></tr>
+        <tr style="background:#EFF6FF"><td><strong>Q2 2026 ★</strong></td><td><strong>954</strong></td><td><strong>$66.2M</strong></td><td><strong>-$5.0M</strong></td><td><strong>$61.2M</strong></td><td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:92.5%;background:var(--green)"></div></div><span class="rrb-lbl" style="color:var(--green)">92.5%</span></div></td><td><span class="pill pill-g">▲ +11.4 pp</span></td><td><span class="pill pill-g">▲ +9.3 pp</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ PRODUCTS ═══════════════════════════════ -->
+<div id="tab-products" class="section">
+  <div class="sec-hdr"><h2>Product Group Performance</h2><span class="period">Q2 2026 · YoY vs Q2 2025</span></div>
+
+  <div class="insight"><strong>Wins:</strong> Web Exp +13 pp YoY (85.1%), Feature Exp +21 pp (88.4%), CMS PaaS holds at 95.6%. <strong>Flags:</strong> Commerce Connect Non-Retail -11.5 pp YoY to 83.7% · Content Marketing 76.1% · Product Recs 74.4% · Legacy 68.9%.</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">RR by Product Group — Q2 2026 vs Q2 2025</div>
+      <div class="card-sub">Fleet avg 92.5% shown (dotted). Sorted by Q2-26 ARR.</div>
+      <div class="cw h340"><canvas id="cProdRR"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">ARR &amp; Churn by Product — Q2 2026 ($M)</div>
+      <div class="card-sub">Stacked: renewal (blue) + churn (red). Top 10 products.</div>
+      <div class="cw h340"><canvas id="cProdARR"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Product RR by Region — Q2 2026 (EO Products)</div>
+      <div class="card-sub">Web Exp &amp; Feature Exp · NA vs EMEA vs APJ</div>
+      <div class="cw h220"><canvas id="cProdRegion"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">YoY RR Improvement by Product</div>
+      <div class="card-sub">Q2 2026 vs Q2 2025 delta (pp). Green = improved.</div>
+      <div class="cw h220"><canvas id="cProdYoY"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="margin-bottom:10px">Product Group Detail</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Product Group</th><th>Accounts</th><th>ARR $M</th><th>Churn $M</th><th>RR Q2-26</th><th>RR Q2-25</th><th>YoY Δ</th><th>Signal</th></tr></thead>
+      <tbody id="prodTbl"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ REGIONS ═══════════════════════════════ -->
+<div id="tab-regions" class="section">
+  <div class="sec-hdr"><h2>Region &amp; Segment</h2><span class="period">Q2 2026</span></div>
+
+  <div class="kpi-strip">
+    <div class="kpi" style="--accent:var(--blue)"><div class="kpi-lbl">NA Renewal Rate</div><div class="kpi-val">92.2%</div><div class="kpi-sub">$37.3M ARR · 302 accounts</div></div>
+    <div class="kpi" style="--accent:var(--blue)"><div class="kpi-lbl">EMEA Renewal Rate</div><div class="kpi-val">92.5%</div><div class="kpi-sub">$26.6M ARR · 619 accounts</div></div>
+    <div class="kpi" style="--accent:var(--green)"><div class="kpi-lbl">APJ Renewal Rate</div><div class="kpi-val">97.3%</div><div class="kpi-sub">$2.3M ARR · 33 accounts</div></div>
+    <div class="kpi" style="--accent:var(--green)"><div class="kpi-lbl">Enterprise RR</div><div class="kpi-val">94.9%</div><div class="kpi-sub">$34.8M ARR · 307 accounts</div></div>
+    <div class="kpi" style="--accent:var(--amber)"><div class="kpi-lbl">Mid-Market RR</div><div class="kpi-val">89.8%</div><div class="kpi-sub">$31.4M ARR · 646 accounts</div></div>
+  </div>
+
+  <div class="g3">
+    <div class="card">
+      <div class="card-title">RR by Region</div>
+      <div class="card-sub">Fleet avg 92.5% (dotted)</div>
+      <div class="cw h180"><canvas id="cRegRR"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">ARR by Region ($M)</div>
+      <div class="card-sub">Renewal ARR split</div>
+      <div class="cw h180"><canvas id="cRegARR"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">RR by Segment</div>
+      <div class="card-sub">Fleet avg 92.5% (dotted)</div>
+      <div class="cw h180"><canvas id="cSegRR"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">EO: Web Experimentation RR by Region</div>
+      <div class="card-sub">Q2 2026 · Fleet avg 92.5% shown</div>
+      <div class="cw h180"><canvas id="cEOWebReg"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">EO: Feature Experimentation RR by Region</div>
+      <div class="card-sub">Q2 2026 · Fleet avg 92.5% shown</div>
+      <div class="cw h180"><canvas id="cEOFeatReg"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Web Exp ARR by Region ($M)</div>
+      <div class="card-sub">NA dominates at $9.75M</div>
+      <div class="cw h180"><canvas id="cWebARRReg"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Feature Exp ARR by Region ($M)</div>
+      <div class="card-sub">NA leads at $6.27M</div>
+      <div class="cw h180"><canvas id="cFeatARRReg"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="margin-bottom:10px">EO Regional Breakdown Detail</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Product</th><th>Region</th><th>Accounts</th><th>ARR $M</th><th>Churn $M</th><th>Renewal Rate</th></tr></thead>
+      <tbody>
+        <tr><td>Web Experimentation</td><td><span class="pill pill-b">NA</span></td><td>122</td><td>$9.75M</td><td>-$1.45M</td><td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:85.2%;background:var(--amber)"></div></div><span class="rrb-lbl">85.2%</span></div></td></tr>
+        <tr><td>Web Experimentation</td><td><span class="pill pill-gr">EMEA</span></td><td>46</td><td>$3.35M</td><td>-$0.58M</td><td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:82.8%;background:var(--amber)"></div></div><span class="rrb-lbl">82.8%</span></div></td></tr>
+        <tr><td>Web Experimentation</td><td><span class="pill pill-gr">APJ</span></td><td>15</td><td>$0.89M</td><td>-$0.06M</td><td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:93.4%;background:var(--green)"></div></div><span class="rrb-lbl">93.4%</span></div></td></tr>
+        <tr><td>Feature Experimentation</td><td><span class="pill pill-b">NA</span></td><td>53</td><td>$6.27M</td><td>-$0.78M</td><td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:87.6%;background:var(--amber)"></div></div><span class="rrb-lbl">87.6%</span></div></td></tr>
+        <tr><td>Feature Experimentation</td><td><span class="pill pill-gr">EMEA</span></td><td>23</td><td>$2.62M</td><td>-$0.29M</td><td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:89.1%;background:var(--amber)"></div></div><span class="rrb-lbl">89.1%</span></div></td></tr>
+        <tr><td>Feature Experimentation</td><td><span class="pill pill-gr">APJ</span></td><td>5</td><td>$0.33M</td><td>$0.00M</td><td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:100%;background:var(--green)"></div></div><span class="rrb-lbl">100%</span></div></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ OPAL ═══════════════════════════════ -->
+<div id="tab-opal" class="section">
+  <div class="sec-hdr"><h2>Opal / AI Attach &amp; Renewals</h2><span class="period">May 2026 snapshot · Q2 2026 renewals</span></div>
+
+  <div class="insight"><strong>Opal attach: 6.4%</strong> (228 / 3,571 accounts · $55.4M ARR). Q2 renewal was <strong>$0.20M vs $0.40M target — 50% miss</strong>. Q4 target is $0.80M (4× Q2 actual). 3,343 accounts with zero Opal represent the upsell whitespace.</div>
+
+  <div class="kpi-strip">
+    <div class="kpi" style="--accent:var(--purple)"><div class="kpi-lbl">Opal Accounts</div><div class="kpi-val">228</div><div class="kpi-sub">6.4% attach rate</div></div>
+    <div class="kpi" style="--accent:var(--purple)"><div class="kpi-lbl">Opal Account ARR</div><div class="kpi-val">$55.4M</div><div class="kpi-sub">13.2% of $418.8M portfolio</div></div>
+    <div class="kpi" style="--accent:var(--red)"><div class="kpi-lbl">Q2 Opal Renewal</div><div class="kpi-val">$0.20M</div><div class="kpi-sub dn">▼ -$0.20M vs $0.40M target</div></div>
+    <div class="kpi" style="--accent:var(--amber)"><div class="kpi-lbl">Q3 / Q4 Targets</div><div class="kpi-val">$0.3M / $0.8M</div><div class="kpi-sub">Q4 = 4× Q2 actual</div></div>
+    <div class="kpi" style="--accent:var(--green)"><div class="kpi-lbl">Opal RR Q2-26</div><div class="kpi-val">91.4%</div><div class="kpi-sub">In line with fleet avg</div></div>
+    <div class="kpi" style="--accent:var(--red)"><div class="kpi-lbl">Upsell Whitespace</div><div class="kpi-val">3,343</div><div class="kpi-sub">Accounts without Opal ($363M ARR)</div></div>
+  </div>
+
+  <div class="g3">
+    <div class="card">
+      <div class="card-title">Opal Attach Rate — Accounts</div>
+      <div class="card-sub">228 with Opal vs 3,343 without</div>
+      <div class="cw h180"><canvas id="cOpalBar"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Opal ARR vs Quarterly Targets ($M)</div>
+      <div class="card-sub">Target line shown per quarter</div>
+      <div class="cw h180"><canvas id="cOpalTarget"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Opal Attach: ARR Comparison</div>
+      <div class="card-sub">Portfolio ARR split: Opal vs Non-Opal ($M)</div>
+      <div class="cw h180"><canvas id="cOpalARR"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Opal Target Gap — Q2 2026</div>
+      <div class="card-sub">Actual $0.20M vs target $0.40M</div>
+      <div style="padding:16px 0">
+        <div class="gap-bar-wrap">
+          <span class="gap-label">Actual: $0.20M</span>
+          <div class="gap-bar-outer">
+            <div class="gap-bar-inner" style="width:50%"></div>
+            <div class="gap-bar-target" style="left:100%"></div>
+          </div>
+          <span class="gap-label" style="color:var(--red)">Target: $0.40M</span>
+        </div>
+        <div class="gap-bar-wrap" style="margin-top:8px">
+          <span class="gap-label">Q3 target:</span>
+          <div class="gap-bar-outer">
+            <div class="gap-bar-inner" style="width:0%;background:var(--amber)"></div>
+            <div class="gap-bar-target" style="left:37.5%"></div>
+          </div>
+          <span class="gap-label" style="color:var(--amber)">$0.30M</span>
+        </div>
+        <div class="gap-bar-wrap" style="margin-top:8px">
+          <span class="gap-label">Q4 target:</span>
+          <div class="gap-bar-outer">
+            <div class="gap-bar-inner" style="width:0%;background:var(--amber)"></div>
+            <div class="gap-bar-target" style="left:100%"></div>
+          </div>
+          <span class="gap-label" style="color:var(--amber)">$0.80M</span>
+        </div>
+        <div style="margin-top:14px;font-size:12px;color:var(--muted)">Gap to Q4 target from current: <strong style="color:var(--red)">-$0.60M</strong> · requires 300% growth in 2 quarters</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Opal Attach by Region — May 2026</div>
+      <div class="card-sub">Regional distribution of Opal accounts</div>
+      <div class="cw h180"><canvas id="cOpalRegion"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CMS ═══════════════════════════════ -->
+<div id="tab-cms" class="section">
+  <div class="sec-hdr"><h2>CMS — PaaS to SaaS Migration</h2><span class="period">Jun 2025 – May 2026</span></div>
+
+  <div class="insight"><strong>SaaS accelerating:</strong> 28 → 76 accounts, $0.92M → $3.22M ARR (+250%) in 12 months. PaaS accounts declining slightly (1,724 → 1,692) but ARR growing ($122M → $131M) — larger accounts remain. CMS PaaS RR improved +4.6 pp YoY to 95.6%.</div>
+
+  <div class="kpi-strip">
+    <div class="kpi" style="--accent:var(--blue)"><div class="kpi-lbl">PaaS Accounts May-26</div><div class="kpi-val">1,692</div><div class="kpi-sub dn">▼ -32 vs Jun 2025</div></div>
+    <div class="kpi" style="--accent:var(--blue)"><div class="kpi-lbl">PaaS ARR May-26</div><div class="kpi-val">$131.4M</div><div class="kpi-sub up">▲ +$9.3M vs Jun 2025</div></div>
+    <div class="kpi" style="--accent:var(--green)"><div class="kpi-lbl">SaaS Accounts May-26</div><div class="kpi-val">76</div><div class="kpi-sub up">▲ +48 vs Jun 2025 (+171%)</div></div>
+    <div class="kpi" style="--accent:var(--green)"><div class="kpi-lbl">SaaS ARR May-26</div><div class="kpi-val">$3.22M</div><div class="kpi-sub up">▲ +$2.30M vs Jun 2025 (+250%)</div></div>
+    <div class="kpi" style="--accent:var(--amber)"><div class="kpi-lbl">PaaS RR Q2-26</div><div class="kpi-val">95.6%</div><div class="kpi-sub up">▲ +4.6 pp YoY</div></div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">CMS PaaS ARR Trend ($M)</div>
+      <div class="card-sub">Monthly · Jun 2025 – May 2026 · dual axis</div>
+      <div class="cw h220"><canvas id="cCMSPaaS"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">CMS SaaS Growth — ARR &amp; Accounts</div>
+      <div class="card-sub">Monthly · accelerating migration trend</div>
+      <div class="cw h220"><canvas id="cCMSSaaS"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">CMS PaaS — ARR by Region (May 2026)</div>
+      <div class="card-sub">Top 10 PaaS accounts by region</div>
+      <div class="cw h180"><canvas id="cCMSRegion"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Top CMS PaaS Accounts — ARR ($M)</div>
+      <div class="card-sub">May 2026 snapshot · top 10</div>
+      <div class="cw h180"><canvas id="cCMSTop"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="margin-bottom:10px">CMS PaaS Top Accounts — May 2026</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Account</th><th>Region</th><th>Segment</th><th>ARR $M</th></tr></thead>
+      <tbody id="cmsTbl"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CHURN ═══════════════════════════════ -->
+<div id="tab-churn" class="section">
+  <div class="sec-hdr"><h2>Churn Analysis — Q2 2026</h2><span class="period">Closed Lost · Apr – Jun 2026</span></div>
+
+  <div class="insight"><strong>Top themes:</strong> DXP migration (internal — revenue-neutral), competitor displacement (StatSig, LaunchDarkly, Adobe Target, Posthog), budget / M&amp;A, EOL products. Total churned: -$4.96M. Largest single loss: Vebra Solutions -$427k.</div>
+
+  <div class="g3">
+    <div class="card">
+      <div class="card-title">Churn by Reason Category</div>
+      <div class="card-sub">Classified from SF reason_lost field</div>
+      <div class="cw h220"><canvas id="cChurnReason"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Churn by Competitor Named</div>
+      <div class="card-sub">Mentions in closed-lost narratives</div>
+      <div class="cw h220"><canvas id="cChurnComp"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Churn ARR by Region — Q2 2026</div>
+      <div class="card-sub">NA: -$2.9M · EMEA: -$2.0M · APJ: -$0.1M</div>
+      <div class="cw h220"><canvas id="cChurnRegion"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="margin-bottom:10px">Top Churned Accounts — Q2 2026</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Account</th><th>Region</th><th>Segment</th><th>CSM</th><th>ARR Lost</th><th>RR</th><th>Month</th></tr></thead>
+      <tbody id="churnTbl"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ CSM ═══════════════════════════════ -->
+<div id="tab-csm" class="section">
+  <div class="sec-hdr"><h2>CSM Performance &amp; Flags</h2><span class="period">Q2 2026</span></div>
+
+  <div class="insight"><strong>Flag:</strong> Jarrad del Pozo 60.4%, Hannah McDowell 66.6%, Conny Marklund 67.9%, Sarah Daugherty 72.8%, Victoria Dawson 78.3%. <strong>Stars:</strong> Ashley Sheard, Ivan Cheung, Justin Fast, Natalia Butor, Johanna Blåfield (104%), and 8 others at 100% RR.</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">CSM Renewal Rate — Q2 2026</div>
+      <div class="card-sub">Named CSMs · fleet avg 92.5% shown. Red &lt;85% · amber 85–92.5% · green &gt;92.5%</div>
+      <div class="cw h340"><canvas id="cCSMRR"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">CSM ARR vs Churn — Q2 2026 ($M)</div>
+      <div class="card-sub">Bubble size = # accounts · sorted by ARR</div>
+      <div class="cw h340"><canvas id="cCSMARR"></canvas></div>
+    </div>
+  </div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">⚠️ CSMs Flagged (RR &lt; 85%)</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>CSM</th><th>Accts</th><th>ARR $M</th><th>Churn $M</th><th>RR</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Jarrad del Pozo</strong></td><td>7</td><td>$0.96M</td><td>-$0.38M</td><td><span class="pill pill-r">60.4%</span></td></tr>
+          <tr><td><strong>Hannah McDowell</strong></td><td>4</td><td>$0.51M</td><td>-$0.17M</td><td><span class="pill pill-r">66.6%</span></td></tr>
+          <tr><td><strong>Conny Marklund</strong></td><td>9</td><td>$0.97M</td><td>-$0.31M</td><td><span class="pill pill-r">67.9%</span></td></tr>
+          <tr><td><strong>Sarah Daugherty</strong></td><td>8</td><td>$1.43M</td><td>-$0.39M</td><td><span class="pill pill-r">72.8%</span></td></tr>
+          <tr><td><strong>Victoria Dawson</strong></td><td>6</td><td>$1.13M</td><td>-$0.24M</td><td><span class="pill pill-r">78.3%</span></td></tr>
+          <tr><td><strong>Michelle Wengrover</strong></td><td>6</td><td>$0.62M</td><td>-$0.13M</td><td><span class="pill pill-r">79.0%</span></td></tr>
+          <tr><td><strong>Alexandra van Heel</strong></td><td>9</td><td>$0.68M</td><td>-$0.14M</td><td><span class="pill pill-r">80.1%</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="card">
+      <div class="card-title">⭐ Top Performers (RR ≥ 99%)</div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>CSM</th><th>Accts</th><th>ARR $M</th><th>RR</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Johanna Blåfield</strong></td><td>11</td><td>$1.33M</td><td><span class="pill pill-g">104%</span></td></tr>
+          <tr><td><strong>Ashley Sheard</strong></td><td>2</td><td>$2.33M</td><td><span class="pill pill-g">100%</span></td></tr>
+          <tr><td><strong>Ivan Cheung</strong></td><td>1</td><td>$2.04M</td><td><span class="pill pill-g">100%</span></td></tr>
+          <tr><td><strong>Justin Fast</strong></td><td>8</td><td>$1.93M</td><td><span class="pill pill-g">100%</span></td></tr>
+          <tr><td><strong>Natalia Butor</strong></td><td>12</td><td>$1.64M</td><td><span class="pill pill-g">100%</span></td></tr>
+          <tr><td><strong>Steven Reed</strong></td><td>7</td><td>$1.55M</td><td><span class="pill pill-g">100%</span></td></tr>
+          <tr><td><strong>Kris Kwak</strong></td><td>4</td><td>$1.22M</td><td><span class="pill pill-g">100%</span></td></tr>
+          <tr><td><strong>Bryan MacPhie</strong></td><td>3</td><td>$1.22M</td><td><span class="pill pill-g">100%</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════ ACCOUNTS ═══════════════════════════════ -->
+<div id="tab-accounts" class="section">
+  <div class="sec-hdr"><h2>Account Flags — Q2 2026</h2><span class="period">Churned accounts by ARR lost</span></div>
+
+  <div class="insight"><strong>Top churned accounts</strong> by ARR lost in Q2 2026. Several are partial churns (partial ARR retained). Largest losses: Vebra Solutions (-$427k), GoFundMe (-$326k), Sveriges Riksbank (-$303k). Full churns: St John Ambulance, Suunto Oy, EPOS Group, Payward (Kraken), and others.</div>
+
+  <div class="g2">
+    <div class="card">
+      <div class="card-title">Top 15 Churned Accounts — ARR Lost ($M)</div>
+      <div class="card-sub">Q2 2026 · sorted by churn value</div>
+      <div class="cw h300"><canvas id="cTopChurn"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Churned ARR by Region &amp; Segment</div>
+      <div class="card-sub">Q2 2026 absolute churn $M</div>
+      <div class="cw h300"><canvas id="cChurnRegSeg"></canvas></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="margin-bottom:10px">Full Churned Account List — Q2 2026</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Account</th><th>Region</th><th>Segment</th><th>CSM</th><th>Renewal $M</th><th>Churn $M</th><th>RR</th><th>Month</th></tr></thead>
+      <tbody id="accTbl"></tbody>
+    </table></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+// ──────────────────────── DATA ────────────────────────
+const qtr=[
+  {q:'Q2 25',accts:1103,renewal:62.51,churn:-10.53,rr:83.2},
+  {q:'Q3 25',accts:988, renewal:68.90,churn:-13.16,rr:80.9},
+  {q:'Q4 25',accts:1103,renewal:79.93,churn:-13.20,rr:83.5},
+  {q:'Q1 26',accts:1076,renewal:78.67,churn:-14.85,rr:81.1},
+  {q:'Q2 26',accts:954, renewal:66.21,churn:-4.96, rr:92.5},
+];
+const mon=[
+  {m:'Nov 25',renewal:18.77,churn:-2.43,rr:87.0},
+  {m:'Dec 25',renewal:36.16,churn:-7.32,rr:79.8},
+  {m:'Jan 26',renewal:35.82,churn:-5.19,rr:85.5},
+  {m:'Feb 26',renewal:16.96,churn:-4.23,rr:75.1},
+  {m:'Mar 26',renewal:25.89,churn:-5.44,rr:79.0},
+  {m:'Apr 26',renewal:20.49,churn:-2.92,rr:85.7},
+  {m:'May 26',renewal:19.84,churn:-2.04,rr:89.7},
+];
+const prods=[
+  {name:'CMS PaaS',           accts:388,arr:19.50,churn:-0.86,rr:95.6,rr25:91.0},
+  {name:'Web Experimentation', accts:183,arr:13.99,churn:-2.08,rr:85.1,rr25:72.1},
+  {name:'Feature Experimentation',accts:81,arr:9.22,churn:-1.07,rr:88.4,rr25:67.6},
+  {name:'Configured Commerce', accts:35, arr:5.01, churn:-0.43,rr:91.4,rr25:87.9},
+  {name:'Commerce Connect NR', accts:51, arr:4.75, churn:-0.77,rr:83.7,rr25:95.2},
+  {name:'Legacy',              accts:137,arr:2.24, churn:-0.70,rr:68.9,rr25:52.7},
+  {name:'Content Marketing',   accts:38, arr:1.94, churn:-0.46,rr:76.1,rr25:61.3},
+  {name:'Campaign',            accts:117,arr:1.61, churn:-0.15,rr:90.9,rr25:77.7},
+  {name:'Personalization',     accts:68, arr:1.58, churn:-0.19,rr:88.2,rr25:78.4},
+  {name:'Segmentation',        accts:32, arr:1.28, churn:-0.18,rr:85.9,rr25:60.9},
+  {name:'Prod Recommendations',accts:19, arr:0.61, churn:-0.16,rr:74.4,rr25:52.3},
+  {name:'Content Recs',        accts:27, arr:0.75, churn:-0.04,rr:94.8,rr25:71.8},
+];
+const cmsMonths=['Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 26','May 26'];
+const cmsPaas=[122.04,123.12,122.93,124.31,125.30,125.41,126.80,129.05,129.31,129.50,130.47,131.38];
+const cmsSaas=[0.92,1.04,1.02,1.04,1.11,2.08,2.20,2.44,2.44,2.54,3.13,3.22];
+const cmsSaasA=[28,30,30,35,43,45,51,60,60,63,74,76];
+const cmsTop=[
+  {name:'Travelers',                   region:'NA',  seg:'Enterprise',arr:1.118},
+  {name:'Swedish Match North Europe',  region:'EMEA',seg:'Mid-Market', arr:0.932},
+  {name:'Zoom Video Communications',   region:'NA',  seg:'Enterprise',arr:0.804},
+  {name:'Standard Chartered Bank',     region:'EMEA',seg:'Mid-Market', arr:0.715},
+  {name:'Trisept Solutions',           region:'NA',  seg:'Enterprise',arr:0.657},
+  {name:'AXA UK PLC',                  region:'EMEA',seg:'Enterprise',arr:0.584},
+  {name:'Pets at Home',                region:'EMEA',seg:'Mid-Market', arr:0.556},
+  {name:'Grant Thornton International',region:'EMEA',seg:'Mid-Market', arr:0.556},
+  {name:'Shutterfly, Inc.',            region:'NA',  seg:'Mid-Market', arr:0.545},
+  {name:'Condor Flugdienst GmbH',      region:'EMEA',seg:'Mid-Market', arr:0.527},
+];
+const churnAccts=[
+  {name:'Vebra Solutions Ltd.',  region:'EMEA',seg:'Mid-Market',csm:'Miriam Jones',     renewal:0.461,churn:-0.427,rr:7.3,  month:'Apr 26'},
+  {name:'GoFundMe, Inc.',        region:'NA',  seg:'Mid-Market',csm:'Sarah Daugherty',  renewal:0.576,churn:-0.326,rr:43.4, month:'May 26'},
+  {name:'Sveriges Riksbank',     region:'EMEA',seg:'Mid-Market',csm:'Conny Marklund',   renewal:0.481,churn:-0.303,rr:37.0, month:'Apr 26'},
+  {name:'St John Ambulance',     region:'EMEA',seg:'Enterprise',csm:'Qing Xie',         renewal:0.223,churn:-0.223,rr:0,    month:'May 26'},
+  {name:'Suunto Oy',             region:'EMEA',seg:'Mid-Market',csm:'Johanna Blåfield', renewal:0.0,  churn:-0.210,rr:null, month:'Apr 26'},
+  {name:'EPOS Group A/S',        region:'EMEA',seg:'Enterprise',csm:'Alexandra van Heel',renewal:0.201,churn:-0.201,rr:0,   month:'May 26'},
+  {name:'Amerhart, Limited',     region:'NA',  seg:'Mid-Market',csm:'Becky Mowers',     renewal:0.227,churn:-0.189,rr:16.7, month:'Apr 26'},
+  {name:'Payward (Kraken)',       region:'NA',  seg:'Enterprise',csm:'Victoria Dawson',  renewal:0.133,churn:-0.133,rr:0,    month:'May 26'},
+  {name:'The Fragrance Shop',    region:'EMEA',seg:'Mid-Market',csm:'Jarrad del Pozo',  renewal:0.132,churn:-0.132,rr:0,    month:'May 26'},
+  {name:'Proofpoint',            region:'NA',  seg:'Enterprise',csm:'Michelle Wengrover',renewal:0.129,churn:-0.129,rr:0,   month:'Apr 26'},
+  {name:'Xerox Holdings Corp.',  region:'NA',  seg:'Enterprise',csm:'—',               renewal:0.170,churn:-0.127,rr:25.3, month:'May 26'},
+  {name:'Clarus Commerce (ebbo)',region:'NA',  seg:'Mid-Market',csm:'Hannah McDowell',  renewal:0.0,  churn:-0.117,rr:null, month:'Apr 26'},
+  {name:'Prosper Marketplace',   region:'NA',  seg:'Mid-Market',csm:'Derrick Arakaki',  renewal:0.113,churn:-0.113,rr:0,    month:'May 26'},
+  {name:'GoHealth',              region:'NA',  seg:'Enterprise',csm:'Victoria Dawson',  renewal:0.112,churn:-0.112,rr:0,    month:'May 26'},
+  {name:'Helly-Hansen (UK)',     region:'EMEA',seg:'Mid-Market',csm:'Jarrad del Pozo',  renewal:0.109,churn:-0.109,rr:0,    month:'Apr 26'},
+];
+const csmList=[
+  {name:'Ashley Sheard',      accts:2,  arr:2.33, churn:0,    rr:100.0},
+  {name:'Ivan Cheung',        accts:1,  arr:2.04, churn:0,    rr:100.0},
+  {name:'Becky Mowers',       accts:10, arr:1.94, churn:-0.19,rr:90.4},
+  {name:'Justin Fast',        accts:8,  arr:1.93, churn:0,    rr:100.0},
+  {name:'Brandon Hilgenkamp', accts:9,  arr:1.78, churn:-0.14,rr:92.3},
+  {name:'Natalia Butor',      accts:12, arr:1.64, churn:0,    rr:100.0},
+  {name:'Steven Reed',        accts:7,  arr:1.55, churn:0,    rr:100.0},
+  {name:'Sarah Daugherty',    accts:8,  arr:1.43, churn:-0.39,rr:72.8},
+  {name:'Mandy Mellum',       accts:7,  arr:1.35, churn:-0.12,rr:91.0},
+  {name:'Johanna Blåfield',   accts:11, arr:1.33, churn:0.05, rr:104.0},
+  {name:'Regina Pak',         accts:8,  arr:1.32, churn:-0.01,rr:99.5},
+  {name:'Jennifer Lovett',    accts:4,  arr:1.31, churn:-0.03,rr:97.4},
+  {name:'Kris Kwak',          accts:4,  arr:1.22, churn:0,    rr:100.0},
+  {name:'Bryan MacPhie',      accts:3,  arr:1.22, churn:0,    rr:100.0},
+  {name:'Victoria Dawson',    accts:6,  arr:1.13, churn:-0.24,rr:78.3},
+  {name:'Patrick Reed',       accts:6,  arr:1.12, churn:0,    rr:100.0},
+  {name:'Cecilia Ramirez',    accts:5,  arr:1.03, churn:0,    rr:100.0},
+  {name:'Conny Marklund',     accts:9,  arr:0.97, churn:-0.31,rr:67.9},
+  {name:'Jarrad del Pozo',    accts:7,  arr:0.96, churn:-0.38,rr:60.4},
+];
+
+// ──────────────────────── HELPERS ────────────────────────
+const BL='#0037FF',GR='#00B87A',RD='#E8354A',AM='#F4A01C',PU='#8B5CF6',TE='#06B6D4';
+Chart.defaults.font.family="'Segoe UI',system-ui,sans-serif";
+Chart.defaults.font.size=12;
+Chart.defaults.plugins.legend.labels.boxWidth=11;
+function rrCol(v){return v==null?'#9CA3AF':v>=92.5?GR:v>=85?AM:RD;}
+function rrPill(v){if(v==null)return '<span class="pill pill-r">Full</span>';const cl=v>=92.5?'pill-g':v>=85?'pill-a':'pill-r';return `<span class="pill ${cl}">${v}%</span>`;}
+
+// avg line plugin
+const avgPlugin={id:'avgLine',afterDraw(chart,args,opts){
+  if(!opts||!opts.values)return;
+  const {ctx,chartArea:{left,right,top,bottom},scales}=chart;
+  const ys=scales.y||scales[Object.keys(scales).find(k=>scales[k].axis==='y')];
+  if(!ys)return;
+  opts.values.forEach(({v,color,dash})=>{
+    const y=ys.getPixelForValue(v);
+    ctx.save();ctx.beginPath();ctx.setLineDash(dash||[5,4]);
+    ctx.strokeStyle=color||'#6B7280';ctx.lineWidth=1.5;
+    ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();
+    ctx.restore();
+  });
+}};
+Chart.register(avgPlugin);
+
+function showTab(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+
+function mk(id,type,data,opts){return new Chart(document.getElementById(id),{type,data,options:{responsive:true,maintainAspectRatio:false,...opts}});}
+
+// ──────────────────────── SCORECARD CHARTS ────────────────────────
+mk('cRRQ','bar',{
+  labels:qtr.map(d=>d.q),
+  datasets:[{label:'RR %',data:qtr.map(d=>d.rr),backgroundColor:qtr.map(d=>rrCol(d.rr)),borderRadius:5}]
+},{
+  scales:{y:{min:75,max:100,ticks:{callback:v=>v+'%'},grid:{color:'#E5E7EB'}},x:{grid:{display:false}}},
+  plugins:{legend:{display:false},avgLine:{values:[{v:84.0,color:'#6B7280'},{v:92.5,color:GR,dash:[3,3]}]},
+    tooltip:{callbacks:{label:ctx=>` RR: ${ctx.raw}%`}}}
+});
+mk('cARRQ','bar',{
+  labels:qtr.map(d=>d.q),
+  datasets:[
+    {label:'ARR Renewal $M',data:qtr.map(d=>d.renewal),backgroundColor:BL+'BB',borderRadius:4},
+    {label:'ARR Churn $M',  data:qtr.map(d=>d.churn),  backgroundColor:RD+'BB',borderRadius:4},
+  ]
+},{
+  scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>'$'+v+'M'},grid:{color:'#E5E7EB'}}},
+  plugins:{tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: $${ctx.raw}M`}}}
+});
+mk('cRRM','line',{
+  labels:mon.map(d=>d.m),
+  datasets:[{label:'RR %',data:mon.map(d=>d.rr),borderColor:BL,backgroundColor:BL+'18',fill:true,tension:.35,pointRadius:5,pointBackgroundColor:mon.map(d=>rrCol(d.rr))}]
+},{
+  scales:{y:{min:70,max:95,ticks:{callback:v=>v+'%'},grid:{color:'#E5E7EB'}},x:{grid:{display:false}}},
+  plugins:{legend:{display:false},avgLine:{values:[{v:83.7,color:'#6B7280'}]},
+    tooltip:{callbacks:{label:ctx=>` RR: ${ctx.raw}%`}}}
+});
+mk('cScoreRegion','bar',{
+  labels:['NA','EMEA','APJ'],
+  datasets:[{label:'RR %',data:[92.2,92.5,97.3],backgroundColor:[BL,BL+'99',GR],borderRadius:5}]
+},{
+  indexAxis:'y',
+  scales:{x:{min:88,max:100,ticks:{callback:v=>v+'%'}},y:{grid:{display:false}}},
+  plugins:{legend:{display:false},avgLine:{values:[{v:92.5,color:GR}]},
+    tooltip:{callbacks:{label:ctx=>` RR: ${ctx.raw}%`}}}
+});
+
+// ──────────────────────── PRODUCT CHARTS ────────────────────────
+const p10=prods.slice(0,10);
+mk('cProdRR','bar',{
+  labels:p10.map(d=>d.name),
+  datasets:[
+    {label:'Q2 2026',data:p10.map(d=>d.rr), backgroundColor:p10.map(d=>rrCol(d.rr)),borderRadius:4},
+    {label:'Q2 2025',data:p10.map(d=>d.rr25),backgroundColor:'#E5E7EB',borderRadius:4},
+  ]
+},{
+  indexAxis:'y',
+  scales:{x:{min:50,max:108,ticks:{callback:v=>v+'%'}},y:{grid:{display:false}}},
+  plugins:{avgLine:{values:[{v:92.5,color:GR}]},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw}%`}}}
+});
+mk('cProdARR','bar',{
+  labels:p10.map(d=>d.name.length>16?d.name.slice(0,16)+'…':d.name),
+  datasets:[
+    {label:'ARR $M', data:p10.map(d=>d.arr),  backgroundColor:BL+'CC',borderRadius:4},
+    {label:'Churn $M',data:p10.map(d=>d.churn),backgroundColor:RD+'CC',borderRadius:4},
+  ]
+},{
+  scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>'$'+v+'M'}}},
+  plugins:{tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: $${ctx.raw}M`}}}
+});
+
+// EO by region
+mk('cProdRegion','bar',{
+  labels:['NA','EMEA','APJ'],
+  datasets:[
+    {label:'Web Exp',    data:[85.2,82.8,93.4],backgroundColor:BL+'CC',borderRadius:4},
+    {label:'Feature Exp',data:[87.6,89.1,100],  backgroundColor:TE+'CC',borderRadius:4},
+  ]
+},{
+  scales:{y:{min:75,max:105,ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}},
+  plugins:{avgLine:{values:[{v:92.5,color:GR}]},tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label} RR: ${ctx.raw}%`}}}
+});
+
+const yoyDelta=p10.map(d=>(d.rr-(d.rr25||d.rr)).toFixed(1));
+mk('cProdYoY','bar',{
+  labels:p10.map(d=>d.name.length>16?d.name.slice(0,16)+'…':d.name),
+  datasets:[{label:'YoY Δ pp',data:p10.map(d=>d.rr25!=null?+(d.rr-d.rr25).toFixed(1):0),
+    backgroundColor:p10.map(d=>d.rr25!=null&&(d.rr-d.rr25)>=0?GR+'CC':RD+'CC'),borderRadius:4}]
+},{
+  indexAxis:'y',
+  scales:{x:{ticks:{callback:v=>(v>0?'+':'')+v+' pp'}},y:{grid:{display:false}}},
+  plugins:{legend:{display:false},avgLine:{values:[{v:0,color:'#9CA3AF',dash:[2,2]}]}}
+});
+
+// Product table
+const pt=document.getElementById('prodTbl');
+prods.forEach(p=>{
+  const dy=p.rr25!=null?+(p.rr-p.rr25).toFixed(1):null;
+  const sig=p.rr>=92.5?'<span class="pill pill-g">Strong</span>':p.rr>=85?'<span class="pill pill-a">Watch</span>':'<span class="pill pill-r">Flag</span>';
+  pt.innerHTML+=`<tr><td><strong>${p.name}</strong></td><td>${p.accts}</td><td>$${p.arr}M</td><td>$${p.churn}M</td>
+    <td><div class="rrb"><div class="rrb-track"><div class="rrb-fill" style="width:${Math.min(p.rr,100)}%;background:${rrCol(p.rr)}"></div></div><span class="rrb-lbl">${p.rr}%</span></div></td>
+    <td>${p.rr25!=null?p.rr25+'%':'—'}</td>
+    <td>${dy!=null?`<span class="pill ${dy>=0?'pill-g':'pill-r'}">${dy>=0?'▲ +':'▼ '}${Math.abs(dy)} pp</span>`:'—'}</td>
+    <td>${sig}</td></tr>`;
+});
+
+// ──────────────────────── REGION CHARTS ────────────────────────
+mk('cRegRR','bar',{labels:['NA','EMEA','APJ'],datasets:[{data:[92.2,92.5,97.3],backgroundColor:[BL,BL+'99',GR],borderRadius:5}]},{
+  indexAxis:'y',scales:{x:{min:88,max:100,ticks:{callback:v=>v+'%'}},y:{grid:{display:false}}},
+  plugins:{legend:{display:false},avgLine:{values:[{v:92.5,color:GR}]}}
+});
+mk('cRegARR','bar',{labels:['NA','EMEA','APJ'],datasets:[{data:[37.32,26.56,2.33],backgroundColor:[BL,BL+'99',GR],borderRadius:5}]},{
+  scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>'$'+v+'M'}}},plugins:{legend:{display:false}}
+});
+mk('cSegRR','bar',{labels:['Enterprise','Mid-Market'],datasets:[{data:[94.9,89.8],backgroundColor:[GR,AM],borderRadius:5}]},{
+  indexAxis:'y',scales:{x:{min:85,max:100,ticks:{callback:v=>v+'%'}},y:{grid:{display:false}}},
+  plugins:{legend:{display:false},avgLine:{values:[{v:92.5,color:GR}]}}
+});
+mk('cEOWebReg','bar',{labels:['NA','EMEA','APJ'],datasets:[{label:'Web Exp RR',data:[85.2,82.8,93.4],backgroundColor:[AM+'CC',AM+'CC',GR+'CC'],borderRadius:5}]},{
+  scales:{y:{min:78,max:100,ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}},
+  plugins:{legend:{display:false},avgLine:{values:[{v:92.5,color:GR}]}}
+});
+mk('cEOFeatReg','bar',{labels:['NA','EMEA','APJ'],datasets:[{label:'Feature Exp RR',data:[87.6,89.1,100],backgroundColor:[AM+'CC',AM+'CC',GR+'CC'],borderRadius:5}]},{
+  scales:{y:{min:78,max:105,ticks:{callback:v=>v+'%'}},x:{grid:{display:false}}},
+  plugins:{legend:{display:false},avgLine:{values:[{v:92.5,color:GR}]}}
+});
+mk('cWebARRReg','bar',{labels:['NA','EMEA','APJ'],datasets:[{data:[9.75,3.35,0.89],backgroundColor:[BL+'CC',BL+'88',BL+'55'],borderRadius:5}]},{
+  scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>'$'+v+'M'}}},plugins:{legend:{display:false}}
+});
+mk('cFeatARRReg','bar',{labels:['NA','EMEA','APJ'],datasets:[{data:[6.27,2.62,0.33],backgroundColor:[TE+'CC',TE+'88',TE+'55'],borderRadius:5}]},{
+  scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>'$'+v+'M'}}},plugins:{legend:{display:false}}
+});
+
+// ──────────────────────── OPAL CHARTS ────────────────────────
+mk('cOpalBar','bar',{
+  labels:['With Opal','Without Opal'],
+  datasets:[{data:[228,3343],backgroundColor:[PU+'CC','#E5E7EB'],borderRadius:5}]
+},{
+  indexAxis:'y',scales:{x:{},y:{grid:{display:false}}},
+  plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} accounts (${(ctx.raw/3571*100).toFixed(1)}%)`}}}
+});
+mk('cOpalTarget','bar',{
+  labels:['Q2 Actual','Q2 Target','Q3 Target','Q4 Target'],
+  datasets:[{data:[0.20,0.40,0.30,0.80],backgroundColor:[RD,AM,AM,AM],borderRadius:5}]
+},{
+  scales:{x:{grid:{display:false}},y:{max:1.0,ticks:{callback:v=>'$'+v+'M'}}},
+  plugins:{legend:{display:false},avgLine:{values:[{v:0.20,color:RD,dash:[4,4]}]},
+    tooltip:{callbacks:{label:ctx=>` $${ctx.raw}M`}}}
+});
+mk('cOpalARR','bar',{
+  labels:['With Opal','Without Opal'],
+  datasets:[{data:[55.36,363.40],backgroundColor:[PU+'CC','#D1D5DB'],borderRadius:5}]
+},{
+  scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>'$'+v+'M'}}},
+  plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` $${ctx.raw}M ARR`}}}
+});
+mk('cOpalRegion','bar',{
+  labels:['NA','EMEA','APJ'],
+  datasets:[
+    {label:'With Opal',    data:[95,120,13], backgroundColor:PU+'CC',borderRadius:4},
+    {label:'Without Opal', data:[207,499,20],backgroundColor:'#E5E7EB',borderRadius:4},
+  ]
+},{
+  scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true}},
+  plugins:{tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.raw}`}}}
+});
+
+// ──────────────────────── CMS CHARTS ────────────────────────
+mk('cCMSPaaS','line',{
+  labels:cmsMonths,
+  datasets:[
+    {label:'PaaS ARR $M',data:cmsPaas,borderColor:BL,backgroundColor:BL+'18',fill:true,tension:.3,yAxisID:'y'},
+    {label:'SaaS ARR $M',data:cmsSaas,borderColor:GR,backgroundColor:GR+'25',fill:true,tension:.3,yAxisID:'y2'},
+  ]
+},{
+  scales:{
+    y: {position:'left', ticks:{callback:v=>'$'+v+'M'},title:{display:true,text:'PaaS ($M)'}},
+    y2:{position:'right',ticks:{callback:v=>'$'+v+'M'},title:{display:true,text:'SaaS ($M)'},grid:{drawOnChartArea:false}},
+    x: {grid:{display:false}}
+  }
+});
+mk('cCMSSaaS','line',{
+  labels:cmsMonths,
+  datasets:[
+    {label:'SaaS ARR $M',  data:cmsSaas, borderColor:GR, backgroundColor:GR+'25',fill:true,tension:.3,yAxisID:'y'},
+    {label:'SaaS Accounts',data:cmsSaasA,borderColor:TE, backgroundColor:TE+'25',fill:false,tension:.3,yAxisID:'y2'},
+  ]
+},{
+  scales:{
+    y: {position:'left', ticks:{callback:v=>'$'+v+'M'},title:{display:true,text:'ARR ($M)'}},
+    y2:{position:'right',ticks:{},title:{display:true,text:'Accounts'},grid:{drawOnChartArea:false}},
+    x: {grid:{display:false}}
+  }
+});
+// CMS by region (top 10 accounts grouped)
+const cmsNA=cmsTop.filter(a=>a.region==='NA').reduce((s,a)=>s+a.arr,0);
+const cmsEMEA=cmsTop.filter(a=>a.region==='EMEA').reduce((s,a)=>s+a.arr,0);
+mk('cCMSRegion','bar',{
+  labels:['NA','EMEA'],
+  datasets:[{data:[+cmsNA.toFixed(2),+cmsEMEA.toFixed(2)],backgroundColor:[BL+'CC',BL+'88'],borderRadius:5}]
+},{
+  scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>'$'+v+'M'}}},plugins:{legend:{display:false}}
+});
+mk('cCMSTop','bar',{
+  labels:cmsTop.slice(0,8).map(a=>a.name.length>18?a.name.slice(0,18)+'…':a.name),
+  datasets:[{data:cmsTop.slice(0,8).map(a=>a.arr),backgroundColor:BL+'BB',borderRadius:4}]
+},{
+  indexAxis:'y',scales:{x:{ticks:{callback:v=>'$'+v+'M'}},y:{grid:{display:false}}},plugins:{legend:{display:false}}
+});
+const ct=document.getElementById('cmsTbl');
+cmsTop.forEach((a,i)=>{
+  ct.innerHTML+=`<tr><td>${i+1}</td><td><strong>${a.name}</strong></td>
+    <td><span class="pill ${a.region==='NA'?'pill-b':'pill-gr'}">${a.region}</span></td>
+    <td>${a.seg}</td><td><strong>$${a.arr}M</strong></td></tr>`;
+});
+
+// ──────────────────────── CHURN CHARTS ────────────────────────
+mk('cChurnReason','bar',{
+  labels:['No Reason\nGiven','Budget /\nCommercial','DXP Migration\n(internal)','Bad Fit /\nLow Adopt','Competitor\nDisplace','M&A /\nCo. Change','EOL\nProduct'],
+  datasets:[{data:[44,22,18,10,12,8,7],backgroundColor:['#D1D5DB',RD,GR+'AA',RD+'88',RD+'CC',AM+'CC','#9CA3AF'],borderRadius:4}]
+},{
+  scales:{x:{grid:{display:false}},y:{title:{display:true,text:'# accounts'}}},
+  plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.raw} accounts`}}}
+});
+mk('cChurnComp','bar',{
+  labels:['StatSig','LaunchDarkly','Adobe Target','Posthog','Shopify','Umbraco','Harness','Microsoft','Coveo'],
+  datasets:[{data:[3,2,2,2,2,2,1,1,1],backgroundColor:RD+'BB',borderRadius:4}]
+},{
+  indexAxis:'y',scales:{x:{ticks:{stepSize:1}},y:{grid:{display:false}}},plugins:{legend:{display:false}}
+});
+mk('cChurnRegion','bar',{
+  labels:['NA','EMEA','APJ'],
+  datasets:[{label:'Churn $M',data:[2.9,2.0,0.06],backgroundColor:[RD,RD+'88',RD+'55'],borderRadius:5}]
+},{
+  scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>'-$'+v+'M'}}},plugins:{legend:{display:false}}
+});
+
+const ch=document.getElementById('churnTbl');
+churnAccts.forEach((a,i)=>{
+  ch.innerHTML+=`<tr><td>${i+1}</td><td><strong>${a.name}</strong></td>
+    <td><span class="pill ${a.region==='NA'?'pill-b':'pill-gr'}">${a.region}</span></td>
+    <td>${a.seg}</td><td>${a.csm}</td>
+    <td style="color:var(--red);font-weight:700">-$${Math.abs(a.churn)}M</td>
+    <td>${rrPill(a.rr)}</td><td>${a.month}</td></tr>`;
+});
+
+// ──────────────────────── CSM CHARTS ────────────────────────
+mk('cCSMRR','bar',{
+  labels:csmList.map(d=>d.name),
+  datasets:[{label:'RR %',data:csmList.map(d=>d.rr),backgroundColor:csmList.map(d=>rrCol(d.rr)),borderRadius:4}]
+},{
+  indexAxis:'y',
+  scales:{x:{min:55,max:110,ticks:{callback:v=>v+'%'},grid:{color:'#E5E7EB'}},y:{grid:{display:false}}},
+  plugins:{legend:{display:false},avgLine:{values:[{v:92.5,color:GR}]},
+    tooltip:{callbacks:{label:ctx=>` RR: ${ctx.raw}% · ARR: $${csmList[ctx.dataIndex].arr}M`}}}
+});
+mk('cCSMARR','bar',{
+  labels:csmList.map(d=>d.name.length>14?d.name.slice(0,14)+'…':d.name),
+  datasets:[
+    {label:'ARR $M',   data:csmList.map(d=>d.arr),  backgroundColor:BL+'CC',borderRadius:4},
+    {label:'Churn $M', data:csmList.map(d=>d.churn), backgroundColor:RD+'CC',borderRadius:4},
+  ]
+},{
+  scales:{x:{grid:{display:false}},y:{ticks:{callback:v=>'$'+v+'M'}}},
+  plugins:{tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: $${ctx.raw}M`}}}
+});
+
+// ──────────────────────── ACCOUNT CHARTS ────────────────────────
+mk('cTopChurn','bar',{
+  labels:churnAccts.slice(0,12).map(a=>a.name.length>22?a.name.slice(0,22)+'…':a.name),
+  datasets:[{data:churnAccts.slice(0,12).map(a=>Math.abs(a.churn)),backgroundColor:RD+'BB',borderRadius:4}]
+},{
+  indexAxis:'y',scales:{x:{ticks:{callback:v=>'$'+v+'M'}},y:{grid:{display:false}}},plugins:{legend:{display:false}}
+});
+mk('cChurnRegSeg','bar',{
+  labels:['NA','EMEA','APJ'],
+  datasets:[
+    {label:'Enterprise',  data:[0.60,0.64,0.0], backgroundColor:RD+'CC',borderRadius:4},
+    {label:'Mid-Market',  data:[2.30,1.36,0.06],backgroundColor:AM+'CC',borderRadius:4},
+  ]
+},{
+  scales:{x:{stacked:false,grid:{display:false}},y:{ticks:{callback:v=>'$'+v+'M'},title:{display:true,text:'Churn $M'}}},
+  plugins:{tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: $${ctx.raw}M`}}}
+});
+
+const at=document.getElementById('accTbl');
+churnAccts.forEach((a,i)=>{
+  at.innerHTML+=`<tr><td>${i+1}</td><td><strong>${a.name}</strong></td>
+    <td><span class="pill ${a.region==='NA'?'pill-b':'pill-gr'}">${a.region}</span></td>
+    <td>${a.seg}</td><td>${a.csm}</td>
+    <td>$${a.renewal}M</td>
+    <td style="color:var(--red);font-weight:700">-$${Math.abs(a.churn)}M</td>
+    <td>${rrPill(a.rr)}</td><td>${a.month}</td></tr>`;
+});
+</script>
+</body>
+</html>

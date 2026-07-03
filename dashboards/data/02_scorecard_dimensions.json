@@ -1,0 +1,488 @@
+[
+  {
+    "DIMENSION_TYPE": "Region",
+    "DIMENSION_VALUE": "NA",
+    "RENEWAL_COUNT": 293,
+    "RENEWAL_ARR": 37320343.27,
+    "CHURN_COUNT": 91,
+    "CHURN_ARR": -4362820.0,
+    "RENEWAL_RATE": 0.8831
+  },
+  {
+    "DIMENSION_TYPE": "Region",
+    "DIMENSION_VALUE": "EMEA",
+    "RENEWAL_COUNT": 601,
+    "RENEWAL_ARR": 26559192.58,
+    "CHURN_COUNT": 73,
+    "CHURN_ARR": -2874811.75,
+    "RENEWAL_RATE": 0.8918
+  },
+  {
+    "DIMENSION_TYPE": "Region",
+    "DIMENSION_VALUE": "APJ",
+    "RENEWAL_COUNT": 31,
+    "RENEWAL_ARR": 2329799.78,
+    "CHURN_COUNT": 7,
+    "CHURN_ARR": -326738.0,
+    "RENEWAL_RATE": 0.8598
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1VPz000003QcBBMA0",
+    "RENEWAL_COUNT": 161,
+    "RENEWAL_ARR": 12891730.8,
+    "CHURN_COUNT": 41,
+    "CHURN_ARR": -1615981.0,
+    "RENEWAL_RATE": 0.8746
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1V4J000002hahEUAQ",
+    "RENEWAL_COUNT": 222,
+    "RENEWAL_ARR": 7898577.95,
+    "CHURN_COUNT": 27,
+    "CHURN_ARR": -729254.0,
+    "RENEWAL_RATE": 0.9077
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1VPz00000E8ECDMA3",
+    "RENEWAL_COUNT": 29,
+    "RENEWAL_ARR": 7607914.02,
+    "CHURN_COUNT": 10,
+    "CHURN_ARR": -500283.0,
+    "RENEWAL_RATE": 0.9342
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1V4J000002hah9UAA",
+    "RENEWAL_COUNT": 67,
+    "RENEWAL_ARR": 6470082.44,
+    "CHURN_COUNT": 13,
+    "CHURN_ARR": -1273280.0,
+    "RENEWAL_RATE": 0.8032
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1VPz00000E8E7NMAV",
+    "RENEWAL_COUNT": 33,
+    "RENEWAL_ARR": 6377699.04,
+    "CHURN_COUNT": 13,
+    "CHURN_ARR": -644710.0,
+    "RENEWAL_RATE": 0.8989
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1V4J000002hagqUAA",
+    "RENEWAL_COUNT": 46,
+    "RENEWAL_ARR": 5775302.11,
+    "CHURN_COUNT": 13,
+    "CHURN_ARR": -936327.0,
+    "RENEWAL_RATE": 0.8379
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1VPz00000E8E8zMAF",
+    "RENEWAL_COUNT": 24,
+    "RENEWAL_ARR": 4667697.3,
+    "CHURN_COUNT": 14,
+    "CHURN_ARR": -665519.0,
+    "RENEWAL_RATE": 0.8574
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1V4J000002hahDUAQ",
+    "RENEWAL_COUNT": 97,
+    "RENEWAL_ARR": 3664221.11,
+    "CHURN_COUNT": 5,
+    "CHURN_ARR": 32673.0,
+    "RENEWAL_RATE": 1.0089
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1V4J000002hahFUAQ",
+    "RENEWAL_COUNT": 56,
+    "RENEWAL_ARR": 3553608.24,
+    "CHURN_COUNT": 8,
+    "CHURN_ARR": -365454.0,
+    "RENEWAL_RATE": 0.8972
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1V4J000002hagoUAA",
+    "RENEWAL_COUNT": 26,
+    "RENEWAL_ARR": 2021841.39,
+    "CHURN_COUNT": 6,
+    "CHURN_ARR": -311934.0,
+    "RENEWAL_RATE": 0.8457
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1V4J000002haglUAA",
+    "RENEWAL_COUNT": 27,
+    "RENEWAL_ARR": 1672268.59,
+    "CHURN_COUNT": 3,
+    "CHURN_ARR": -90458.0,
+    "RENEWAL_RATE": 0.9459
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1V8d000000HRi7EAG",
+    "RENEWAL_COUNT": 97,
+    "RENEWAL_ARR": 1588268.95,
+    "CHURN_COUNT": 12,
+    "CHURN_ARR": -196195.34,
+    "RENEWAL_RATE": 0.8765
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1V4J000002hahIUAQ",
+    "RENEWAL_COUNT": 29,
+    "RENEWAL_ARR": 1302630.05,
+    "CHURN_COUNT": 4,
+    "CHURN_ARR": -229885.41,
+    "RENEWAL_RATE": 0.8235
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1V8d000000HLCZEA4",
+    "RENEWAL_COUNT": 6,
+    "RENEWAL_ARR": 409535.25,
+    "CHURN_COUNT": 1,
+    "CHURN_ARR": -22958.0,
+    "RENEWAL_RATE": 0.9439
+  },
+  {
+    "DIMENSION_TYPE": "Territory",
+    "DIMENSION_VALUE": "a1V4J000002hagjUAA",
+    "RENEWAL_COUNT": 5,
+    "RENEWAL_ARR": 307958.39,
+    "CHURN_COUNT": 1,
+    "CHURN_ARR": -14804.0,
+    "RENEWAL_RATE": 0.9519
+  },
+  {
+    "DIMENSION_TYPE": "ARR Band",
+    "DIMENSION_VALUE": "500k+",
+    "RENEWAL_COUNT": 10,
+    "RENEWAL_ARR": 8442090.68,
+    "CHURN_COUNT": 2,
+    "CHURN_ARR": -380717.0,
+    "RENEWAL_RATE": 0.9549
+  },
+  {
+    "DIMENSION_TYPE": "ARR Band",
+    "DIMENSION_VALUE": "250k-500k",
+    "RENEWAL_COUNT": 40,
+    "RENEWAL_ARR": 13606501.02,
+    "CHURN_COUNT": 13,
+    "CHURN_ARR": -1540629.0,
+    "RENEWAL_RATE": 0.8868
+  },
+  {
+    "DIMENSION_TYPE": "ARR Band",
+    "DIMENSION_VALUE": "100k-250k",
+    "RENEWAL_COUNT": 150,
+    "RENEWAL_ARR": 23863462.37,
+    "CHURN_COUNT": 37,
+    "CHURN_ARR": -2802054.0,
+    "RENEWAL_RATE": 0.8826
+  },
+  {
+    "DIMENSION_TYPE": "ARR Band",
+    "DIMENSION_VALUE": "<=100k",
+    "RENEWAL_COUNT": 725,
+    "RENEWAL_ARR": 20297281.56,
+    "CHURN_COUNT": 116,
+    "CHURN_ARR": -2840969.75,
+    "RENEWAL_RATE": 0.86
+  },
+  {
+    "DIMENSION_TYPE": "SFDC Segment",
+    "DIMENSION_VALUE": "Enterprise",
+    "RENEWAL_COUNT": 298,
+    "RENEWAL_ARR": 34755315.6,
+    "CHURN_COUNT": 73,
+    "CHURN_ARR": -3705561.41,
+    "RENEWAL_RATE": 0.8934
+  },
+  {
+    "DIMENSION_TYPE": "SFDC Segment",
+    "DIMENSION_VALUE": "Mid-Market",
+    "RENEWAL_COUNT": 626,
+    "RENEWAL_ARR": 31362237.1,
+    "CHURN_COUNT": 98,
+    "CHURN_ARR": -3858808.34,
+    "RENEWAL_RATE": 0.877
+  },
+  {
+    "DIMENSION_TYPE": "Revenue Segment",
+    "DIMENSION_VALUE": "Enterprise",
+    "RENEWAL_COUNT": 50,
+    "RENEWAL_ARR": 22048591.7,
+    "CHURN_COUNT": 15,
+    "CHURN_ARR": -1921346.0,
+    "RENEWAL_RATE": 0.9129
+  },
+  {
+    "DIMENSION_TYPE": "Revenue Segment",
+    "DIMENSION_VALUE": "Mid-Market",
+    "RENEWAL_COUNT": 151,
+    "RENEWAL_ARR": 23963462.37,
+    "CHURN_COUNT": 37,
+    "CHURN_ARR": -2802054.0,
+    "RENEWAL_RATE": 0.8831
+  },
+  {
+    "DIMENSION_TYPE": "Revenue Segment",
+    "DIMENSION_VALUE": "Digital",
+    "RENEWAL_COUNT": 724,
+    "RENEWAL_ARR": 20197281.56,
+    "CHURN_COUNT": 116,
+    "CHURN_ARR": -2840969.75,
+    "RENEWAL_RATE": 0.8593
+  },
+  {
+    "DIMENSION_TYPE": "Product Solution",
+    "DIMENSION_VALUE": "EC",
+    "RENEWAL_COUNT": 431,
+    "RENEWAL_ARR": 26040835.2,
+    "CHURN_COUNT": 58,
+    "CHURN_ARR": -1883985.0,
+    "RENEWAL_RATE": 0.9277
+  },
+  {
+    "DIMENSION_TYPE": "Product Solution",
+    "DIMENSION_VALUE": "EO",
+    "RENEWAL_COUNT": 224,
+    "RENEWAL_ARR": 26483220.68,
+    "CHURN_COUNT": 59,
+    "CHURN_ARR": -3596496.0,
+    "RENEWAL_RATE": 0.8642
+  },
+  {
+    "DIMENSION_TYPE": "Product Solution",
+    "DIMENSION_VALUE": "CMP",
+    "RENEWAL_COUNT": 34,
+    "RENEWAL_ARR": 5005571.1,
+    "CHURN_COUNT": 7,
+    "CHURN_ARR": -432866.0,
+    "RENEWAL_RATE": 0.9135
+  },
+  {
+    "DIMENSION_TYPE": "Product Solution",
+    "DIMENSION_VALUE": "AI",
+    "RENEWAL_COUNT": 5,
+    "RENEWAL_ARR": 195388.79,
+    "CHURN_COUNT": 1,
+    "CHURN_ARR": -16757.0,
+    "RENEWAL_RATE": 0.9142
+  },
+  {
+    "DIMENSION_TYPE": "Product Solution",
+    "DIMENSION_VALUE": "Other",
+    "RENEWAL_COUNT": 327,
+    "RENEWAL_ARR": 7534708.42,
+    "CHURN_COUNT": 45,
+    "CHURN_ARR": -1349274.75,
+    "RENEWAL_RATE": 0.8209
+  },
+  {
+    "DIMENSION_TYPE": "Solution Type",
+    "DIMENSION_VALUE": "Single Solution",
+    "RENEWAL_COUNT": 871,
+    "RENEWAL_ARR": 54157804.03,
+    "CHURN_COUNT": 149,
+    "CHURN_ARR": -6346475.75,
+    "RENEWAL_RATE": 0.8828
+  },
+  {
+    "DIMENSION_TYPE": "Solution Type",
+    "DIMENSION_VALUE": "Multi Solution",
+    "RENEWAL_COUNT": 54,
+    "RENEWAL_ARR": 12051531.6,
+    "CHURN_COUNT": 19,
+    "CHURN_ARR": -1217894.0,
+    "RENEWAL_RATE": 0.8989
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Content Management PaaS",
+    "RENEWAL_COUNT": 376,
+    "RENEWAL_ARR": 19893393.61,
+    "CHURN_COUNT": 899,
+    "CHURN_ARR": -899480.0,
+    "RENEWAL_RATE": 0.9548
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Web Experimentation",
+    "RENEWAL_COUNT": 174,
+    "RENEWAL_ARR": 13994670.66,
+    "CHURN_COUNT": 2081,
+    "CHURN_ARR": -2081990.0,
+    "RENEWAL_RATE": 0.8512
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Feature Experimentation",
+    "RENEWAL_COUNT": 74,
+    "RENEWAL_ARR": 9217434.77,
+    "CHURN_COUNT": 1065,
+    "CHURN_ARR": -1065373.0,
+    "RENEWAL_RATE": 0.8844
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Configured Commerce",
+    "RENEWAL_COUNT": 34,
+    "RENEWAL_ARR": 5005571.1,
+    "CHURN_COUNT": 432,
+    "CHURN_ARR": -432866.0,
+    "RENEWAL_RATE": 0.9135
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Commerce Connect Non-Retail",
+    "RENEWAL_COUNT": 49,
+    "RENEWAL_ARR": 4752688.94,
+    "CHURN_COUNT": 773,
+    "CHURN_ARR": -773305.0,
+    "RENEWAL_RATE": 0.8373
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Legacy",
+    "RENEWAL_COUNT": 133,
+    "RENEWAL_ARR": 2241631.9,
+    "CHURN_COUNT": 697,
+    "CHURN_ARR": -697623.0,
+    "RENEWAL_RATE": 0.6888
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Content Marketing",
+    "RENEWAL_COUNT": 33,
+    "RENEWAL_ARR": 1942343.58,
+    "CHURN_COUNT": 463,
+    "CHURN_ARR": -463334.0,
+    "RENEWAL_RATE": 0.7615
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Campaign",
+    "RENEWAL_COUNT": 111,
+    "RENEWAL_ARR": 1608854.81,
+    "CHURN_COUNT": 145,
+    "CHURN_ARR": -145934.34,
+    "RENEWAL_RATE": 0.9093
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Personalization",
+    "RENEWAL_COUNT": 64,
+    "RENEWAL_ARR": 1579177.17,
+    "CHURN_COUNT": 187,
+    "CHURN_ARR": -187036.0,
+    "RENEWAL_RATE": 0.8816
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Segmentation",
+    "RENEWAL_COUNT": 31,
+    "RENEWAL_ARR": 1282029.89,
+    "CHURN_COUNT": 181,
+    "CHURN_ARR": -181212.0,
+    "RENEWAL_RATE": 0.8587
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Commerce Connect",
+    "RENEWAL_COUNT": 53,
+    "RENEWAL_ARR": 939221.81,
+    "CHURN_COUNT": 0,
+    "CHURN_ARR": 11016.59,
+    "RENEWAL_RATE": 1.0117
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Content Recommendations",
+    "RENEWAL_COUNT": 26,
+    "RENEWAL_ARR": 752014.66,
+    "CHURN_COUNT": 39,
+    "CHURN_ARR": -39061.0,
+    "RENEWAL_RATE": 0.9481
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Commerce Connect Retail",
+    "RENEWAL_COUNT": 8,
+    "RENEWAL_ARR": 716233.27,
+    "CHURN_COUNT": 0,
+    "CHURN_ARR": 0.0,
+    "RENEWAL_RATE": 1.0
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Product Recommendations",
+    "RENEWAL_COUNT": 19,
+    "RENEWAL_ARR": 612233.66,
+    "CHURN_COUNT": 156,
+    "CHURN_ARR": -156686.0,
+    "RENEWAL_RATE": 0.7441
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Analytics",
+    "RENEWAL_COUNT": 6,
+    "RENEWAL_ARR": 291800.93,
+    "CHURN_COUNT": 27,
+    "CHURN_ARR": -27716.0,
+    "RENEWAL_RATE": 0.905
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Opal",
+    "RENEWAL_COUNT": 5,
+    "RENEWAL_ARR": 195388.79,
+    "CHURN_COUNT": 16,
+    "CHURN_ARR": -16757.0,
+    "RENEWAL_RATE": 0.9142
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Experimentation Addons",
+    "RENEWAL_COUNT": 2,
+    "RENEWAL_ARR": 118107.26,
+    "CHURN_COUNT": 53,
+    "CHURN_ARR": -53169.0,
+    "RENEWAL_RATE": 0.5498
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Legacy NetSpring",
+    "RENEWAL_COUNT": 1,
+    "RENEWAL_ARR": 53400.0,
+    "CHURN_COUNT": 53,
+    "CHURN_ARR": -53400.0,
+    "RENEWAL_RATE": 0.0
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Other Services",
+    "RENEWAL_COUNT": 2,
+    "RENEWAL_ARR": 33023.05,
+    "CHURN_COUNT": 0,
+    "CHURN_ARR": 0.0,
+    "RENEWAL_RATE": 1.0
+  },
+  {
+    "DIMENSION_TYPE": "Product Group",
+    "DIMENSION_VALUE": "Content Management SaaS",
+    "RENEWAL_COUNT": 2,
+    "RENEWAL_ARR": 30504.34,
+    "CHURN_COUNT": 15,
+    "CHURN_ARR": -15453.0,
+    "RENEWAL_RATE": 0.4934
+  }
+]

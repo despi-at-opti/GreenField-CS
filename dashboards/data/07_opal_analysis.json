@@ -1,0 +1,80 @@
+[
+  {
+    "PIPELINE_STAGE": "Won",
+    "ACCOUNT_COUNT": 8,
+    "OPPORTUNITY_COUNT": 8,
+    "TOTAL_PIPELINE_ARR": 3340990.47,
+    "_section": "pipeline"
+  },
+  {
+    "PIPELINE_STAGE": "Open",
+    "ACCOUNT_COUNT": 3,
+    "OPPORTUNITY_COUNT": 3,
+    "TOTAL_PIPELINE_ARR": 776307.93,
+    "_section": "pipeline"
+  },
+  {
+    "PIPELINE_STAGE": "Lost",
+    "ACCOUNT_COUNT": 1,
+    "OPPORTUNITY_COUNT": 1,
+    "TOTAL_PIPELINE_ARR": 71500.0,
+    "_section": "pipeline"
+  },
+  {
+    "REGION": "ALL",
+    "EO_CUSTOMER_COUNT": 1343,
+    "OPAL_ATTACHED_COUNT": 177,
+    "OPAL_ATTACH_RATE": 0.131794,
+    "_section": "attach"
+  },
+  {
+    "REGION": "APJ",
+    "EO_CUSTOMER_COUNT": 17,
+    "OPAL_ATTACHED_COUNT": 1,
+    "OPAL_ATTACH_RATE": 0.058824,
+    "_section": "attach"
+  },
+  {
+    "REGION": "EMEA",
+    "EO_CUSTOMER_COUNT": 80,
+    "OPAL_ATTACHED_COUNT": 6,
+    "OPAL_ATTACH_RATE": 0.075,
+    "_section": "attach"
+  },
+  {
+    "REGION": "NA",
+    "EO_CUSTOMER_COUNT": 163,
+    "OPAL_ATTACHED_COUNT": 11,
+    "OPAL_ATTACH_RATE": 0.067485,
+    "_section": "attach"
+  },
+  {
+    "REGION": "Unknown",
+    "EO_CUSTOMER_COUNT": 1083,
+    "OPAL_ATTACHED_COUNT": 159,
+    "OPAL_ATTACH_RATE": 0.146814,
+    "_section": "attach"
+  },
+  {
+    "PERIOD": "Current",
+    "DATE_YQ": "2026-Q2",
+    "RENEWAL_COUNT": 5,
+    "ARR_RENEWAL": 195388.79,
+    "ARR_CHURN": -16757.0,
+    "RENEWAL_RATE": 0.914238,
+    "RENEWAL_RATE_QOQ_DELTA": 0.001886,
+    "ARR_RENEWAL_QOQ_DELTA": -109145.63,
+    "_section": "renewals"
+  },
+  {
+    "PERIOD": "Prior",
+    "DATE_YQ": "2026-Q1",
+    "RENEWAL_COUNT": 8,
+    "ARR_RENEWAL": 304534.42,
+    "ARR_CHURN": -26692.0,
+    "RENEWAL_RATE": 0.912351,
+    "RENEWAL_RATE_QOQ_DELTA": null,
+    "ARR_RENEWAL_QOQ_DELTA": null,
+    "_section": "renewals"
+  }
+]
