@@ -73,6 +73,20 @@ GREATEST(DATEDIFF('day', oc.KICKOFF_DATE_C, oc.GO_LIVE_DATE_C), 0)
 -- Floored at 0. NULL if either date missing.
 ```
 
+## Solution Type (PBI definition)
+```sql
+-- Count DISTINCT core product solutions per MCID across ALL quarters (all-time, not just current).
+-- Core solutions: EO, EC, AI, CMP (exclude EOL%, Legacy%, Non-Core Other)
+-- If count = 1 → 'Single-Solution'
+-- If count > 1 → 'Multi-Solution'
+-- Source: EXEC_DECK_RENEWAL_RATES_PRODUCT_GROUP (all DATE_YQ)
+```
+Product Solution mapping for this calculation:
+- EO = Analytics, Feature Experimentation, Web Experimentation, Experimentation Platform, Experimentation Addons, Personalization, Segmentation
+- EC = Commerce Connect Non-Retail, Commerce Connect, Product Recommendations, Content Recommendations, Content Management PaaS/SaaS/Addons
+- AI = Opal
+- CMP = Content Marketing, Content Marketing Platform, Digital Asset Management
+
 ## Active Customer
 - STAGE IN ('Delivery', 'Delivery - Do Not Invoice', 'On Hold', 'Planning')
 - LAST_TIME_ENTRY_CHANGE_C >= CURRENT_DATE() - 60 days
